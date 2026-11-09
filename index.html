@@ -229,13 +229,61 @@ if (!profile || profile.role !== "admin") {
 
 message.textContent = "Админаар амжилттай нэвтэрлээ!";
 
-  if (profileError || profile.role !== "admin") {
-    await db.auth.signOut();
-    message.textContent = "Админ эрхгүй хэрэглэгч байна.";
+
+});
+</script>
+<section id="customerAuth" style="max-width:400px;margin:30px auto;padding:24px;background:white;border-radius:16px;">
+  <h2 style="color:#e75b98;text-align:center;">Тэнхлүүн карго</h2>
+  <input id="customerEmail" type="email" placeholder="Имэйл хаяг"
+    style="width:100%;padding:14px;margin:8px 0;border:1px solid #f3c5d9;border-radius:10px;">
+  <button id="sendOtp" style="width:100%;padding:14px;background:#e75b98;color:white;border:0;border-radius:10px;">
+    Код авах
+  </button>
+  <input id="customerOtp" inputmode="numeric" placeholder="Имэйлээр ирсэн код"
+    style="width:100%;padding:14px;margin:8px 0;border:1px solid #f3c5d9;border-radius:10px;">
+  <button id="verifyOtp" style="width:100%;padding:14px;background:#e75b98;color:white;border:0;border-radius:10px;">
+    Нэвтрэх
+  </button>
+  <p id="customerMessage"></p>
+</section>
+<script>
+document.getElementById("sendOtp").addEventListener("click", async () => {
+  const email = document.getElementById("customerEmail").value.trim();
+  const msg = document.getElementById("customerMessage");
+
+  if (!email) {
+    msg.textContent = "Имэйл хаягаа оруулна уу.";
     return;
   }
 
-  message.textContent = "Админаар амжилттай нэвтэрлээ!";
+  msg.textContent = "Код илгээж байна...";
+
+  const { error } = await db.auth.signInWithOtp({
+    email: email,
+    options: { shouldCreateUser: true }
+  });
+
+  msg.textContent = error
+    ? "Алдаа: " + error.message
+    : "Имэйл рүү код илгээлээ!";
+});
+
+document.getElementById("verifyOtp").addEventListener("click", async () => {
+  const email = document.getElementById("customerEmail").value.trim();
+  const token = document.getElementById("customerOtp").value.trim();
+  const msg = document.getElementById("customerMessage");
+
+  msg.textContent = "Баталгаажуулж байна...";
+
+  const { error } = await db.auth.verifyOtp({
+    email: email,
+    token: token,
+    type: "email"
+  });
+
+  msg.textContent = error
+    ? "Алдаа: " + error.message
+    : "Амжилттай нэвтэрлээ!";
 });
 </script>
 </body>
