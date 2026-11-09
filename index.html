@@ -178,5 +178,53 @@ const db = supabase.createClient(
 
 console.log("Тэнхлүүн Карго мэдээллийн сантай холбогдлоо");
 </script>
+<section id="adminLogin" style="max-width:400px;margin:40px auto;padding:24px;background:white;border-radius:16px;box-shadow:0 2px 15px #f3dce7;">
+  <h2 style="color:#e75b98;text-align:center;">Админ нэвтрэх</h2>
+
+  <input id="adminEmail" type="email" placeholder="Имэйл хаяг"
+    style="width:100%;padding:14px;margin:8px 0;border:1px solid #f3c5d9;border-radius:10px;">
+
+  <input id="adminPassword" type="password" placeholder="Нууц үг"
+    style="width:100%;padding:14px;margin:8px 0;border:1px solid #f3c5d9;border-radius:10px;">
+
+  <button id="adminLoginBtn" style="width:100%;padding:14px;background:#e75b98;color:white;border:0;border-radius:10px;">
+    Нэвтрэх
+  </button>
+
+  <p id="adminMessage" style="text-align:center;"></p>
+</section>
+<script>
+document.getElementById("adminLoginBtn").addEventListener("click", async () => {
+  const email = document.getElementById("adminEmail").value.trim();
+  const password = document.getElementById("adminPassword").value;
+  const message = document.getElementById("adminMessage");
+
+  message.textContent = "Нэвтэрч байна...";
+
+  const { data, error } = await db.auth.signInWithPassword({
+    email: email,
+    password: password
+  });
+
+  if (error) {
+    message.textContent = "Имэйл эсвэл нууц үг буруу байна.";
+    return;
+  }
+
+  const { data: profile, error: profileError } = await db
+    .from("profiles")
+    .select("role")
+    .eq("id", data.user.id)
+    .single();
+
+  if (profileError || profile.role !== "admin") {
+    await db.auth.signOut();
+    message.textContent = "Админ эрхгүй хэрэглэгч байна.";
+    return;
+  }
+
+  message.textContent = "Админаар амжилттай нэвтэрлээ!";
+});
+</script>
 </body>
 </html>
