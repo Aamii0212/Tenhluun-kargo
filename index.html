@@ -229,7 +229,13 @@ if (!profile || profile.role !== "admin") {
 
 message.textContent = "Админаар амжилттай нэвтэрлээ!";
 
+document.getElementById("adminDashboard").style.display = "block";
 
+const loginPanel = document.getElementById("adminLogin");
+if (loginPanel) loginPanel.style.display = "none";
+
+const customerPanel = document.getElementById("customerAuth");
+if (customerPanel) customerPanel.style.display = "none";
 });
 </script>
 <section id="customerAuth" style="max-width:400px;margin:30px auto;padding:24px;background:white;border-radius:16px;">
@@ -287,4 +293,27 @@ document.getElementById("verifyOtp").addEventListener("click", async () => {
 });
 </script>
 </body>
+ <section id="adminDashboard" style="display:none;max-width:1100px;margin:20px auto;padding:20px;background:#fff;">
+  <h2 style="color:#e75b98;">Тэнхлүүн карго — Админ удирдлага</h2>
+  <p>Тавтай морил, админ аа!</p>
+
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">
+    <div style="padding:18px;background:#fff0f6;border-radius:12px;">
+      <h3>📦 Ачаа бүртгэл</h3>
+      <p>Шинэ ачаа нэмэх, мэдээлэл засах</p>
+    </div>
+    <div style="padding:18px;background:#fff0f6;border-radius:12px;">
+      <h3>🚚 Ачааны жагсаалт</h3>
+      <p>Бүртгэлтэй бүх ачааг харах</p>
+    </div>
+    <div style="padding:18px;background:#fff0f6;border-radius:12px;">
+      <h3>👥 Хэрэглэгчид</h3>
+      <p>Бүртгэлтэй хэрэглэгчдийг харах</p>
+    </div>
+    <div style="padding:18px;background:#fff0f6;border-radius:12px;">
+      <h3>🏢 Салбарууд</h3>
+      <p>Салбар болон ажилтны эрх</p>
+    </div>
+  </div>
+</section> 
 </html>
