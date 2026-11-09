@@ -163,21 +163,6 @@ const db = supabase.createClient(
 
 console.log("Тэнхлүүн Карго мэдээллийн сантай холбогдлоо");
 </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-const SUPABASE_URL = "https://marlhculacividpbfddn.supabase.co";
-
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_13w76dxEXz7SWRAouotJvw_6Oceh9jh";
-
-const db = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY
-);
-
-console.log("Тэнхлүүн Карго мэдээллийн сантай холбогдлоо");
-</script>
 <section id="adminLogin" style="max-width:400px;margin:40px auto;padding:24px;background:white;border-radius:16px;box-shadow:0 2px 15px #f3dce7;">
   <h2 style="color:#e75b98;text-align:center;">Админ нэвтрэх</h2>
 
@@ -228,8 +213,14 @@ if (!profile || profile.role !== "admin") {
 }
 
 message.textContent = "Админаар амжилттай нэвтэрлээ!";
+const dashboard = document.getElementById("adminDashboard");
 
-document.getElementById("adminDashboard").style.display = "block";
+if (!dashboard) {
+  message.textContent = "Админ хэсэг олдсонгүй!";
+  return;
+}
+
+dashboard.style.display = "block";
 
 const loginPanel = document.getElementById("adminLogin");
 if (loginPanel) loginPanel.style.display = "none";
