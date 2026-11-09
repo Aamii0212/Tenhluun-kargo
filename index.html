@@ -212,10 +212,22 @@ document.getElementById("adminLoginBtn").addEventListener("click", async () => {
   }
 
   const { data: profile, error: profileError } = await db
-    .from("profiles")
-    .select("role")
-    .eq("id", data.user.id)
-    .single();
+  .from("profiles")
+  .select("role")
+  .eq("id", data.user.id)
+  .maybeSingle();
+
+if (profileError) {
+  message.textContent = "Профайл шалгахад алдаа гарлаа: " + profileError.message;
+  return;
+}
+
+if (!profile || profile.role !== "admin") {
+  message.textContent = "Админ эрхгүй хэрэглэгч байна.";
+  return;
+}
+
+message.textContent = "Админаар амжилттай нэвтэрлээ!";
 
   if (profileError || profile.role !== "admin") {
     await db.auth.signOut();
