@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тэнхлүүн Карго</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #fff8fb;
+  color: #352632;
+}
+header {
+  background: white;
+  padding: 20px;
+  box-shadow: 0 2px 12px #f3dce7;
+}
+.logo {
+  color: #e75b98;
+  font-size: 23px;
+  font-weight: bold;
+}
+.hero {
+  text-align: center;
+  padding: 45px 18px;
+  background: linear-gradient(140deg,#ffeaf3,#fff);
+}
+.hero h1 {
+  color: #d94f8d;
+  font-size: 29px;
+}
+.hero p {
+  color: #806b77;
+  line-height: 1.7;
+}
+.track {
+  background: white;
+  margin: 18px;
+  padding: 23px;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px #f0d9e4;
+}
+.track h2 {
+  text-align: center;
+  color: #d94f8d;
+}
+input {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid #efcddd;
+  border-radius: 12px;
+  margin: 10px 0;
+  font-size: 16px;
+}
+button {
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  background: #e75b98;
+  color: white;
+  font-weight: bold;
+  font-size: 15px;
+  width: 100%;
+}
+.services {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 18px;
+}
+.service {
+  background: white;
+  padding: 20px 10px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 3px 12px #f3e0e9;
+}
+.service b {
+  display: block;
+  color: #d94f8d;
+  margin: 9px;
+}
+footer {
+  background: #fbe5ef;
+  text-align: center;
+  padding: 25px;
+  color: #765565;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">ТЭНХЛҮҮН КАРГО</div>
+</header>
+
+<section class="hero">
+  <h1>Таны ачаа бидний хариуцлага</h1>
+  <p>БНХАУ-аас Монгол Улс руу<br>найдвартай, шуурхай карго үйлчилгээ</p>
+</section>
+
+<section class="track">
+  <h2>📦 Ачаа шалгах</h2>
+  <input id="cargoCode" placeholder="Ачааны кодоо оруулна уу">
+  <button onclick="trackCargo()">Ачаа шалгах</button>
+  <p id="result"></p>
+</section>
+
+<section class="services">
+  <div class="service">
+    📦
+    <b>Ачаа хүлээн авах</b>
+    <span>Эрээн агуулах</span>
+  </div>
+  <div class="service">
+    🚚
+    <b>Тээвэрлэлт</b>
+    <span>Монгол хүргэлт</span>
+  </div>
+  <div class="service">
+    📋
+    <b>Ачаа бүртгэл</b>
+    <span>Хэрэглэгчийн мэдээлэл</span>
+  </div>
+  <div class="service">
+    💗
+    <b>Найдвартай үйлчилгээ</b>
+    <span>Таны итгэл бидний зорилго</span>
+  </div>
+</section>
+
+<footer>
+  <b>ТЭНХЛҮҮН КАРГО</b>
+  <p>Холбоо барих: 00000000</p>
+  <p>© 2026 Бүх эрх хуулиар хамгаалагдсан</p>
+</footer>
+
+<script>
+function trackCargo() {
+  const code = document.getElementById("cargoCode").value.trim();
+  const result = document.getElementById("result");
+
+  if (!code) {
+    result.textContent = "Ачааны кодоо оруулна уу.";
+    return;
+  }
+
+  result.textContent = "Ачааны мэдээллийн сантай холболт хийгдэж байна.";
+}
+</script>
+
+</body>
+</html>
