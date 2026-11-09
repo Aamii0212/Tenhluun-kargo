@@ -152,4 +152,18 @@ function trackCargo() {
 </script>
 
 </body>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const SUPABASE_URL = "https://marlhculacividpbfddn.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY = sb_publishable_13w76dxEXz7SWRAouotJvw_6Oceh9jh;
+
+const db = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+console.log("Тэнхлүүн Карго мэдээллийн сантай холбогдлоо");
+</script>
 </html>
