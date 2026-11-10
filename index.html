@@ -7,9 +7,7 @@
 <title>Тэнхлүүн Карго</title>
 
 <style>
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -21,7 +19,7 @@ body {
 header {
   min-height: 76px;
   padding: 14px 5%;
-  background: #fff;
+  background: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -40,7 +38,6 @@ header {
   display: flex;
   align-items: center;
   gap: 6px;
-  max-width: 300px;
 }
 
 .track-small input {
@@ -162,9 +159,7 @@ header {
   box-shadow: 0 3px 14px #f3e0e9;
 }
 
-.service-icon {
-  font-size: 30px;
-}
+.service-icon { font-size: 30px; }
 
 .service b {
   display: block;
@@ -185,7 +180,7 @@ footer {
   line-height: 1.6;
 }
 
-/* Админы хэсэг */
+/* Админ хэсэг */
 #adminLogin,
 #adminDashboard {
   display: none;
@@ -197,9 +192,7 @@ footer {
   box-shadow: 0 2px 15px #f3dce7;
 }
 
-#adminLogin {
-  max-width: 400px;
-}
+#adminLogin { max-width: 400px; }
 
 .admin-input {
   width: 100%;
@@ -222,13 +215,9 @@ footer {
 }
 
 @media (max-width: 700px) {
-  header {
-    padding: 13px;
-  }
+  header { padding: 13px; }
 
-  .logo {
-    font-size: 16px;
-  }
+  .logo { font-size: 16px; }
 
   .track-small input {
     width: 105px;
@@ -245,29 +234,23 @@ footer {
     padding: 40px 16px;
   }
 
-  .hero h1 {
-    font-size: 25px;
-  }
+  .hero h1 { font-size: 25px; }
 
-  .login-card {
-    padding: 30px 20px;
-  }
+  .login-card { padding: 30px 20px; }
 
   .services {
     grid-template-columns: repeat(2, 1fr);
     padding: 20px 14px;
   }
 
-  .admin-grid {
-    grid-template-columns: 1fr;
-  }
+  .admin-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 
 <body>
 
-<header>
+<header id="publicHeader">
   <div class="logo">ТЭНХЛҮҮН КАРГО</div>
 
   <div class="track-small">
@@ -276,8 +259,7 @@ footer {
   </div>
 </header>
 
-<section class="hero">
-
+<section class="hero" id="publicHero">
   <h1>Таны ачаа бидний хариуцлага</h1>
 
   <div class="hero-description">
@@ -305,11 +287,9 @@ footer {
   </div>
 
   <p id="trackResult"></p>
-
 </section>
 
-<section class="services">
-
+<section class="services" id="publicServices">
   <div class="service">
     <div class="service-icon">📦</div>
     <b>Ачаа хүлээн авах</b>
@@ -333,23 +313,76 @@ footer {
     <b>Найдвартай үйлчилгээ</b>
     <span>Таны итгэл бидний зорилго</span>
   </div>
-
 </section>
 
-<footer>
+<footer id="publicFooter">
   <b>ТЭНХЛҮҮН КАРГО</b>
   <p>Холбоо барих: 00000000</p>
   <p>© 2026 Бүх эрх хуулиар хамгаалагдсан</p>
 </footer>
 
+<!-- Админ нэвтрэх хэсэг -->
+<section id="adminLogin">
+  <h2 style="color:#e75b98;text-align:center;">Админ нэвтрэх</h2>
+
+  <input
+    id="adminEmail"
+    class="admin-input"
+    type="email"
+    placeholder="Имэйл хаяг"
+  >
+
+  <input
+    id="adminPassword"
+    class="admin-input"
+    type="password"
+    placeholder="Нууц үг"
+  >
+
+  <button id="adminLoginBtn" class="main-button">
+    Нэвтрэх
+  </button>
+
+  <p id="adminMessage"></p>
+</section>
+
+<!-- Админ удирдлага -->
+<section id="adminDashboard">
+  <h2 style="color:#e75b98;">Тэнхлүүн карго — Админ удирдлага</h2>
+  <p>Тавтай морил, админ аа!</p>
+
+  <div class="admin-grid">
+    <div class="admin-item">
+      <h3>📦 Ачаа бүртгэл</h3>
+      <p>Шинэ ачаа нэмэх, мэдээлэл засах</p>
+    </div>
+
+    <div class="admin-item">
+      <h3>🚚 Ачааны жагсаалт</h3>
+      <p>Бүртгэлтэй бүх ачааг харах</p>
+    </div>
+
+    <div class="admin-item">
+      <h3>👥 Хэрэглэгчид</h3>
+      <p>Бүртгэлтэй хэрэглэгчдийг харах</p>
+    </div>
+
+    <div class="admin-item">
+      <h3>🏢 Салбарууд</h3>
+      <p>Салбар болон ажилтны эрх</p>
+    </div>
+  </div>
+</section>
+
 <!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-const SUPABASE_URL = "https://marlhculacividpbfddn.supabase.co";
+const SUPABASE_URL =
+  "https://marlhculacividpbfddn.supabase.co";
 
 const SUPABASE_PUBLISHABLE_KEY =
-"sb_publishable_13w76dxEXz7SWRAouotJvw_6Oceh9jh";
+  "sb_publishable_13w76dxEXz7SWRAouotJvw_6Oceh9jh";
 
 const db = supabase.createClient(
   SUPABASE_URL,
@@ -368,10 +401,11 @@ function trackCargo() {
     return;
   }
 
-  result.textContent = "Ачааны мэдээлэл шалгах холболт хийгдээгүй байна.";
+  result.textContent =
+    "Ачааны мэдээлэл шалгах холболтыг дараагийн алхамд хийнэ.";
 }
 
-/* Хэрэглэгчийн утасны нэвтрэлт */
+/* Хэрэглэгчийн утасны дугаар */
 function customerLogin() {
   const phone = document.getElementById("customerPhone").value.trim();
   const message = document.getElementById("customerMessage");
@@ -389,33 +423,36 @@ function customerLogin() {
   }
 
   message.textContent =
-    "Дугаар баталгаажлаа. Хэрэглэгчийн нэвтрэлтийн холболтыг дараагийн алхамд хийнэ.";
+    "Дугаар баталгаажлаа. Хэрэглэгчийн бодит нэвтрэлтийн холболт хийгдээгүй байна.";
 }
 
-/* Админ нэвтрэх хэсэг — зөвхөн #admin хаягаар */
+/* Админ тусдаа хаяг */
 function showAdminRoute() {
   const isAdminRoute = window.location.hash === "#admin";
+
+  document.getElementById("publicHeader").style.display =
+    isAdminRoute ? "none" : "flex";
+
+  document.getElementById("publicHero").style.display =
+    isAdminRoute ? "none" : "flex";
+
+  document.getElementById("publicServices").style.display =
+    isAdminRoute ? "none" : "grid";
+
+  document.getElementById("publicFooter").style.display =
+    isAdminRoute ? "none" : "block";
 
   document.getElementById("adminLogin").style.display =
     isAdminRoute ? "block" : "none";
 
-  document.querySelector("header").style.display =
-    isAdminRoute ? "none" : "flex";
-
-  document.querySelector(".hero").style.display =
-    isAdminRoute ? "none" : "flex";
-
-  document.querySelector(".services").style.display =
-    isAdminRoute ? "none" : "grid";
-
-  document.querySelector("footer").style.display =
-    isAdminRoute ? "none" : "block";
+  if (!isAdminRoute) {
+    document.getElementById("adminDashboard").style.display = "none";
+  }
 }
 
 window.addEventListener("hashchange", showAdminRoute);
-showAdminRoute();
 
-/* Админы нэвтрэлт */
+/* Админ нэвтрэх */
 document.getElementById("adminLoginBtn").addEventListener("click", async () => {
   const email = document.getElementById("adminEmail").value.trim();
   const password = document.getElementById("adminPassword").value;
@@ -450,68 +487,15 @@ document.getElementById("adminLoginBtn").addEventListener("click", async () => {
     return;
   }
 
-  message.textContent = "Админаар амжилттай нэвтэрлээ!";
+  message.textContent = "Амжилттай нэвтэрлээ!";
 
   document.getElementById("adminLogin").style.display = "none";
   document.getElementById("adminDashboard").style.display = "block";
 });
+
+/* Хуудас эхлэх */
+showAdminRoute();
 </script>
-
-<!-- Админ нэвтрэх хэсэг -->
-<section id="adminLogin">
-  <h2 style="color:#e75b98;text-align:center;">Админ нэвтрэх</h2>
-
-  <input
-    id="adminEmail"
-    class="admin-input"
-    type="email"
-    placeholder="Имэйл хаяг"
-  >
-
-  <input
-    id="adminPassword"
-    class="admin-input"
-    type="password"
-    placeholder="Нууц үг"
-  >
-
-  <button
-    id="adminLoginBtn"
-    class="main-button"
-  >
-    Нэвтрэх
-  </button>
-
-  <p id="adminMessage"></p>
-</section>
-
-<!-- Админ удирдлага -->
-<section id="adminDashboard">
-  <h2 style="color:#e75b98;">Тэнхлүүн карго — Админ удирдлага</h2>
-  <p>Тавтай морил, админ аа!</p>
-
-  <div class="admin-grid">
-    <div class="admin-item">
-      <h3>📦 Ачаа бүртгэл</h3>
-      <p>Шинэ ачаа нэмэх, мэдээлэл засах</p>
-    </div>
-
-    <div class="admin-item">
-      <h3>🚚 Ачааны жагсаалт</h3>
-      <p>Бүртгэлтэй бүх ачааг харах</p>
-    </div>
-
-    <div class="admin-item">
-      <h3>👥 Хэрэглэгчид</h3>
-      <p>Бүртгэлтэй хэрэглэгчдийг харах</p>
-    </div>
-
-    <div class="admin-item">
-      <h3>🏢 Салбарууд</h3>
-      <p>Салбар болон ажилтны эрх</p>
-    </div>
-  </div>
-</section>
 
 </body>
 </html>
