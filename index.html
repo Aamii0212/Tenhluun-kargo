@@ -306,5 +306,87 @@ document.getElementById("verifyOtp").addEventListener("click", async () => {
     </div>
   </div>
 </section>
+<section id="phonePinAuth" style="max-width:400px;margin:20px auto;padding:20px;background:white;border-radius:12px;">
+  <h2 style="color:#e75b98;text-align:center;">Утасны дугаараар нэвтрэх</h2>
+
+  <input id="ppName" placeholder="Таны нэр" style="width:100%;padding:13px;margin:6px 0;">
+  <input id="ppPhone" type="tel" placeholder="Утасны дугаар" style="width:100%;padding:13px;margin:6px 0;">
+  <input id="ppPin" type="password" inputmode="numeric" maxlength="6" placeholder="6 оронтой PIN" style="width:100%;padding:13px;margin:6px 0;">
+
+  <div class="cf-turnstile" data-sitekey="0x4AAAAAAF7V4i-_jle9kgtj" data-callback="ppCaptchaSuccess"></div>
+
+  <button id="ppRegister" style="width:100%;padding:14px;margin-top:12px;background:#e75b98;color:white;border:0;border-radius:8px;">Бүртгүүлэх</button>
+  <button id="ppLogin" style="width:100%;padding:14px;margin-top:8px;background:#fff0f6;color:#e75b98;border:0;border-radius:8px;">Нэвтрэх</button>
+
+  <p id="ppMessage"></p>
+</section>
+
+<script>
+let ppToken = "";
+
+window.ppCaptchaSuccess = function(token) {
+  ppToken = token;
+};
+
+function ppPhoneNumber(value) {
+  let p = value.replace(/\D/g, "");
+  if (p.length === 8) p = "976" + p;
+  return p;
+}
+
+document.getElementById("ppRegister").onclick = async function() {
+  const name = document.getElementById("ppName").value.trim();
+  const phone = ppPhoneNumber(document.getElementById("ppPhone").value);
+  const pin = document.getElementById("ppPin").value;
+  const msg = document.getElementById("ppMessage");
+
+  if (!name || !/^976\d{8}$/.test(phone) || !/^\d{6}$/.test(pin) || !ppToken) {
+    msg.textContent = "Нэр, утас, 6 оронтой PIN болон хамгаалалтын баталгаажуулалтаа шалгана уу.";
+    return;
+  }
+
+  msg.textContent = "Бүртгэж байна...";
+
+  const { data, error } = await db.functions.invoke("hyper-processor", {
+    body: { full_name: name, phone, pin, token: ppToken }
+  });
+
+  if (error || !data || !data.success) {
+    msg.textContent = data?.error || error?.message || "Бүртгэл амжилтгүй.";
+    return;
+  }
+
+  msg.textContent = "Бүртгэл амжилттай. Одоо нэвтэрч болно.";
+};
+
+document.getElementById("ppLogin").onclick = async function() {
+  const phone = ppPhoneNumber(document.getElementById("ppPhone").value);
+  const pin = document.getElementById("ppPin").value;
+  const msg = document.getElementById("ppMessage");
+
+  if (!/^976\d{8}$/.test(phone) || !/^\d{6}$/.test(pin)) {
+    msg.textContent = "Утасны дугаар болон 6 оронтой PIN-ээ шалгана уу.";
+    return;
+  }
+
+  msg.textContent = "Нэвтэрч байна...";
+
+  const email = "p" + phone + "@phone.tenhluun-login.com";
+  const { error } = await db.auth.signInWithPassword({ email, password: pin });
+
+  if (error) {
+    msg.textContent = "Нэвтрэх мэдээлэл буруу байна.";
+    return;
+  }
+
+  msg.textContent = "Амжилттай нэвтэрлээ.";
+  document.getElementById("phonePinAuth").style.display = "none";
+
+  const panel = document.getElementById("customerPanel");
+  if (panel) panel.style.display = "block";
+};
+</script>
+
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </body>
 </html>
