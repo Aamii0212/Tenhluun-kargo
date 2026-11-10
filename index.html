@@ -5,254 +5,74 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Тэнхлүүн Карго</title>
-
 <style>
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  color: #392b34;
-  background: #fff8fb;
+*{box-sizing:border-box}
+:root{--pink:#f20b83;--pink2:#d90070;--black:#17131a;--muted:#756a73;--pale:#fff0f7}
+body{margin:0;font-family:Arial,sans-serif;color:var(--black);background:#fff}
+header{min-height:94px;padding:12px 4%;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:20px;box-shadow:0 4px 22px #21101a12;position:relative;z-index:2}
+.brand{display:flex;align-items:center;min-width:0}
+.brand-logo{display:block;width:360px;max-width:48vw;height:auto;object-fit:contain}
+.track-small{display:flex;align-items:center;gap:0;border:2px solid #f5c9df;border-radius:30px;overflow:hidden;background:#fff;flex-shrink:0}
+.track-small input{width:190px;padding:13px 16px;border:0;outline:0;font-size:14px}
+.track-small button{height:46px;padding:0 22px;border:0;background:var(--pink);color:white;font-weight:800;cursor:pointer}
+.hero{min-height:570px;padding:58px 5%;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:35px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 85% 18%,#ffd7e9 0,transparent 40%),linear-gradient(125deg,#fff0f7,#fff 60%,#ffe5f1)}
+.hero:after{content:"";position:absolute;left:-5%;right:25%;bottom:0;height:12px;background:var(--pink);border-radius:50% 50% 0 0;transform:rotate(-2deg)}
+.hero-copy,.login-card{position:relative;z-index:1}
+.hero h1{margin:0 0 18px;font-size:clamp(36px,5vw,64px);line-height:1.08;font-weight:900;letter-spacing:-1.5px}
+.hero h1 span{display:block;color:var(--pink);font-style:italic}
+.hero-description{font-size:19px;color:#40343c;line-height:1.6;margin-bottom:28px}
+.benefits{display:flex;gap:22px;flex-wrap:wrap;font-weight:700}
+.benefits span:before{content:"✓";display:inline-grid;place-items:center;width:30px;height:30px;margin-right:8px;border-radius:50%;background:var(--pink);color:#fff}
+.login-card{width:100%;max-width:410px;justify-self:center;padding:34px 30px;background:#ffffffed;border:1px solid #fff;border-radius:25px;box-shadow:0 16px 45px #b72b7040;text-align:center}
+.login-card h2{color:var(--pink2);margin:0 0 10px;font-size:25px}
+.login-card p{color:var(--muted);font-size:14px;line-height:1.6}
+.login-card input{width:100%;padding:16px;margin:16px 0 12px;border:1px solid #e9d5df;border-radius:13px;font-size:17px;outline:none}
+.login-card input:focus,.track-small:focus-within{border-color:var(--pink)}
+.main-button{width:100%;padding:16px;border:0;border-radius:13px;background:var(--pink);color:white;font-size:17px;font-weight:800;cursor:pointer}
+.main-button:hover,.track-small button:hover{background:var(--pink2)}
+#customerMessage,#trackResult{min-height:20px;font-size:13px;color:var(--pink2);line-height:1.5}
+.services{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:35px 4%;background:#fff8fb}
+.service{padding:25px 15px;background:white;border:1px solid #f8e2ed;border-radius:18px;text-align:center;box-shadow:0 6px 20px #3a14200c}
+.service-icon{font-size:34px}
+.service b{display:block;color:var(--black);margin:12px 0 8px}
+.service span{color:var(--muted);font-size:13px}
+footer{padding:26px 5%;background:var(--black);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+footer .footer-brand{font-size:24px;font-weight:900;color:#fff}
+footer p{margin:5px 0;color:#f7eaf1}
+#adminLogin,#adminDashboard{display:none;max-width:1100px;margin:30px auto;padding:24px;background:white;border-radius:16px;box-shadow:0 2px 15px #f3dce7}
+#adminLogin{max-width:400px}
+.admin-input{width:100%;padding:14px;margin:8px 0;border:1px solid #f3c5d9;border-radius:10px}
+.admin-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.admin-item{padding:18px;background:#fff0f6;border-radius:12px}
+@media(max-width:760px){
+header{padding:12px;min-height:76px;gap:8px}
+.brand-logo{width:205px;max-width:48vw}
+.track-small input{width:105px;padding:11px 8px;font-size:11px}
+.track-small button{height:40px;padding:0 10px;font-size:11px}
+.hero{grid-template-columns:1fr;min-height:auto;padding:48px 17px 55px;text-align:center;gap:25px}
+.hero h1{font-size:34px}
+.hero-description{font-size:16px}
+.benefits{justify-content:center;gap:12px;font-size:13px}
+.login-card{max-width:440px;padding:28px 20px}
+.services{grid-template-columns:repeat(2,1fr);padding:20px 13px;gap:10px}
+.service{padding:20px 8px}
+.admin-grid{grid-template-columns:1fr}
+footer{justify-content:center;text-align:center}
 }
-
-header {
-  min-height: 76px;
-  padding: 14px 5%;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-  box-shadow: 0 2px 12px #f3dce7;
-}
-
-.logo {
-  color: #e75b98;
-  font-size: 21px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.track-small {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.track-small input {
-  width: 175px;
-  padding: 10px;
-  border: 1px solid #efcddd;
-  border-radius: 9px;
-  font-size: 13px;
-}
-
-.track-small button {
-  padding: 10px 12px;
-  border: 0;
-  border-radius: 9px;
-  background: #e75b98;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.hero {
-  min-height: 620px;
-  padding: 55px 18px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  background:
-    radial-gradient(circle at 15% 20%, #ffe1ee 0, transparent 35%),
-    linear-gradient(140deg, #fff0f6, #fff 65%);
-}
-
-.hero h1 {
-  margin: 0 0 12px;
-  color: #d94f8d;
-  font-size: 32px;
-}
-
-.hero-description {
-  color: #806b77;
-  line-height: 1.8;
-  margin-bottom: 30px;
-}
-
-.login-card {
-  width: 100%;
-  max-width: 440px;
-  padding: 35px 30px;
-  background: white;
-  border-radius: 23px;
-  box-shadow: 0 8px 35px #edcfdd;
-}
-
-.login-card h2 {
-  color: #d94f8d;
-  margin: 0 0 10px;
-  font-size: 23px;
-}
-
-.login-card p {
-  color: #887681;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.login-card input {
-  width: 100%;
-  padding: 16px;
-  margin: 18px 0 12px;
-  border: 1px solid #efcddd;
-  border-radius: 12px;
-  font-size: 17px;
-  outline: none;
-}
-
-.login-card input:focus,
-.track-small input:focus {
-  border-color: #e75b98;
-}
-
-.main-button {
-  width: 100%;
-  padding: 16px;
-  border: 0;
-  border-radius: 12px;
-  background: #e75b98;
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.main-button:hover,
-.track-small button:hover {
-  background: #d94f8d;
-}
-
-#customerMessage,
-#trackResult {
-  min-height: 20px;
-  font-size: 13px;
-  color: #d94f8d;
-  line-height: 1.5;
-}
-
-.services {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-  padding: 35px 5%;
-}
-
-.service {
-  padding: 25px 12px;
-  background: white;
-  border-radius: 17px;
-  text-align: center;
-  box-shadow: 0 3px 14px #f3e0e9;
-}
-
-.service-icon { font-size: 30px; }
-
-.service b {
-  display: block;
-  color: #d94f8d;
-  margin: 12px 0 8px;
-}
-
-.service span {
-  color: #806b77;
-  font-size: 13px;
-}
-
-footer {
-  padding: 28px 15px;
-  background: #fbe5ef;
-  text-align: center;
-  color: #765565;
-  line-height: 1.6;
-}
-
-/* Админ хэсэг */
-#adminLogin,
-#adminDashboard {
-  display: none;
-  max-width: 1100px;
-  margin: 30px auto;
-  padding: 24px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 2px 15px #f3dce7;
-}
-
-#adminLogin { max-width: 400px; }
-
-.admin-input {
-  width: 100%;
-  padding: 14px;
-  margin: 8px 0;
-  border: 1px solid #f3c5d9;
-  border-radius: 10px;
-}
-
-.admin-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-
-.admin-item {
-  padding: 18px;
-  background: #fff0f6;
-  border-radius: 12px;
-}
-
-@media (max-width: 700px) {
-  header { padding: 13px; }
-
-  .logo { font-size: 16px; }
-
-  .track-small input {
-    width: 105px;
-    font-size: 11px;
-  }
-
-  .track-small button {
-    font-size: 11px;
-    padding: 10px 8px;
-  }
-
-  .hero {
-    min-height: 570px;
-    padding: 40px 16px;
-  }
-
-  .hero h1 { font-size: 25px; }
-
-  .login-card { padding: 30px 20px; }
-
-  .services {
-    grid-template-columns: repeat(2, 1fr);
-    padding: 20px 14px;
-  }
-
-  .admin-grid { grid-template-columns: 1fr; }
+@media(max-width:390px){
+.brand-logo{width:165px}
+.track-small input{width:86px}
+.track-small button{padding:0 8px}
+.hero h1{font-size:29px}
 }
 </style>
 </head>
-
 <body>
 
 <header id="publicHeader">
-  <div class="logo">ТЭНХЛҮҮН КАРГО</div>
-
+  <div class="brand">
+    <img class="brand-logo" src="data:image/webp;base64,UklGRqQ2AABXRUJQVlA4IJg2AACwGgCdASqAAwADPpE8l0WkIqGkJqgAANwA2JaQAA==" alt="Тэнхлүүн Карго лого">
+  </div>
   <div class="track-small">
     <input id="cargoCode" placeholder="Ачааны код">
     <button onclick="trackCargo()">Шалгах</button>
@@ -260,32 +80,26 @@ footer {
 </header>
 
 <section class="hero" id="publicHero">
-  <h1>Таны ачаа бидний хариуцлага</h1>
-
-  <div class="hero-description">
-    БНХАУ-аас Монгол Улс руу<br>
-    Найдвартай, шуурхай карго үйлчилгээ
+  <div class="hero-copy">
+    <h1>Таны ачаа бидний <span>хариуцлага</span></h1>
+    <div class="hero-description">
+      БНХАУ-аас Монгол Улс руу<br>
+      Найдвартай, шуурхай карго үйлчилгээ
+    </div>
+    <div class="benefits">
+      <span>Найдвартай</span>
+      <span>Шуурхай</span>
+      <span>Итгэлтэй</span>
+    </div>
   </div>
 
   <div class="login-card">
     <h2>Тавтай морилно уу</h2>
     <p>Утасны дугаараа оруулж хэрэглэгчийн хэсэгт нэвтэрнэ үү.</p>
-
-    <input
-      id="customerPhone"
-      type="tel"
-      inputmode="numeric"
-      maxlength="8"
-      placeholder="Утасны дугаар"
-    >
-
-    <button class="main-button" onclick="customerLogin()">
-      Нэвтрэх
-    </button>
-
+    <input id="customerPhone" type="tel" inputmode="numeric" maxlength="8" placeholder="Утасны дугаар">
+    <button class="main-button" onclick="customerLogin()">Нэвтрэх</button>
     <p id="customerMessage"></p>
   </div>
-
   <p id="trackResult"></p>
 </section>
 
@@ -295,19 +109,16 @@ footer {
     <b>Ачаа хүлээн авах</b>
     <span>Эрээн агуулах</span>
   </div>
-
   <div class="service">
     <div class="service-icon">🚚</div>
     <b>Тээвэрлэлт</b>
     <span>Монгол хүргэлт</span>
   </div>
-
   <div class="service">
     <div class="service-icon">📋</div>
     <b>Ачаа бүртгэл</b>
     <span>Хэрэглэгчийн мэдээлэл</span>
   </div>
-
   <div class="service">
     <div class="service-icon">💗</div>
     <b>Найдвартай үйлчилгээ</b>
@@ -316,186 +127,113 @@ footer {
 </section>
 
 <footer id="publicFooter">
-  <b>ТЭНХЛҮҮН КАРГО</b>
-  <p>Холбоо барих: 00000000</p>
-  <p>© 2026 Бүх эрх хуулиар хамгаалагдсан</p>
+  <div class="footer-brand">ТЭНХЛҮҮН КАРГО</div>
+  <div>
+    <b>Холбоо барих: 00000000</b>
+    <p>© 2026 Бүх эрх хуулиар хамгаалагдсан</p>
+  </div>
 </footer>
 
-<!-- Админ нэвтрэх хэсэг -->
 <section id="adminLogin">
   <h2 style="color:#e75b98;text-align:center;">Админ нэвтрэх</h2>
-
-  <input
-    id="adminEmail"
-    class="admin-input"
-    type="email"
-    placeholder="Имэйл хаяг"
-  >
-
-  <input
-    id="adminPassword"
-    class="admin-input"
-    type="password"
-    placeholder="Нууц үг"
-  >
-
-  <button id="adminLoginBtn" class="main-button">
-    Нэвтрэх
-  </button>
-
+  <input id="adminEmail" class="admin-input" type="email" placeholder="Имэйл хаяг">
+  <input id="adminPassword" class="admin-input" type="password" placeholder="Нууц үг">
+  <button id="adminLoginBtn" class="main-button">Нэвтрэх</button>
   <p id="adminMessage"></p>
 </section>
 
-<!-- Админ удирдлага -->
 <section id="adminDashboard">
   <h2 style="color:#e75b98;">Тэнхлүүн карго — Админ удирдлага</h2>
   <p>Тавтай морил, админ аа!</p>
-
   <div class="admin-grid">
-    <div class="admin-item">
-      <h3>📦 Ачаа бүртгэл</h3>
-      <p>Шинэ ачаа нэмэх, мэдээлэл засах</p>
-    </div>
-
-    <div class="admin-item">
-      <h3>🚚 Ачааны жагсаалт</h3>
-      <p>Бүртгэлтэй бүх ачааг харах</p>
-    </div>
-
-    <div class="admin-item">
-      <h3>👥 Хэрэглэгчид</h3>
-      <p>Бүртгэлтэй хэрэглэгчдийг харах</p>
-    </div>
-
-    <div class="admin-item">
-      <h3>🏢 Салбарууд</h3>
-      <p>Салбар болон ажилтны эрх</p>
-    </div>
+    <div class="admin-item"><h3>📦 Ачаа бүртгэл</h3><p>Шинэ ачаа нэмэх, мэдээлэл засах</p></div>
+    <div class="admin-item"><h3>🚚 Ачааны жагсаалт</h3><p>Бүртгэлтэй бүх ачааг харах</p></div>
+    <div class="admin-item"><h3>👥 Хэрэглэгчид</h3><p>Бүртгэлтэй хэрэглэгчдийг харах</p></div>
+    <div class="admin-item"><h3>🏢 Салбарууд</h3><p>Салбар болон ажилтны эрх</p></div>
   </div>
 </section>
 
-<!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
-const SUPABASE_URL =
-  "https://marlhculacividpbfddn.supabase.co";
-
-const SUPABASE_PUBLISHABLE_KEY =
-  "sb_publishable_13w76dxEXz7SWRAouotJvw_6Oceh9jh";
-
-const db = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY
-);
+const SUPABASE_URL="https://marlhculacividpbfddn.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_13w76dxEXz7SWRAouotJvw_6Oceh9jh";
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 
 console.log("Тэнхлүүн Карго мэдээллийн сантай холбогдлоо");
 
-/* Ачаа шалгах */
-function trackCargo() {
-  const code = document.getElementById("cargoCode").value.trim();
-  const result = document.getElementById("trackResult");
-
-  if (!code) {
-    result.textContent = "Ачааны кодоо оруулна уу.";
-    return;
-  }
-
-  result.textContent =
-    "Ачааны мэдээлэл шалгах холболтыг дараагийн алхамд хийнэ.";
+function trackCargo(){
+  const code=document.getElementById("cargoCode").value.trim();
+  const result=document.getElementById("trackResult");
+  if(!code){result.textContent="Ачааны кодоо оруулна уу.";return;}
+  result.textContent="Ачааны мэдээлэл шалгах холболтыг дараагийн алхамд хийнэ.";
 }
 
-/* Хэрэглэгчийн утасны дугаар */
-function customerLogin() {
-  const phone = document.getElementById("customerPhone").value.trim();
-  const message = document.getElementById("customerMessage");
-
-  if (!/^\d{8}$/.test(phone)) {
-    message.textContent = "8 оронтой утасны дугаараа оруулна уу.";
+function customerLogin(){
+  const phone=document.getElementById("customerPhone").value.trim();
+  const message=document.getElementById("customerMessage");
+  if(!/^\d{8}$/.test(phone)){
+    message.textContent="8 оронтой утасны дугаараа оруулна уу.";
     return;
   }
-
-  const answer = confirm(phone + "\n\nТа мөн үү?");
-
-  if (!answer) {
-    message.textContent = "Утасны дугаараа дахин оруулна уу.";
+  const answer=confirm(phone+"\n\nТа мөн үү?");
+  if(!answer){
+    message.textContent="Утасны дугаараа дахин оруулна уу.";
     return;
   }
-
-  message.textContent =
-    "Дугаар баталгаажлаа. Хэрэглэгчийн бодит нэвтрэлтийн холболт хийгдээгүй байна.";
+  message.textContent="Дугаар баталгаажлаа. Хэрэглэгчийн бодит нэвтрэлтийн холболт хийгдээгүй байна.";
 }
 
-/* Админ тусдаа хаяг */
-function showAdminRoute() {
-  const isAdminRoute = window.location.hash === "#admin";
-
-  document.getElementById("publicHeader").style.display =
-    isAdminRoute ? "none" : "flex";
-
-  document.getElementById("publicHero").style.display =
-    isAdminRoute ? "none" : "flex";
-
-  document.getElementById("publicServices").style.display =
-    isAdminRoute ? "none" : "grid";
-
-  document.getElementById("publicFooter").style.display =
-    isAdminRoute ? "none" : "block";
-
-  document.getElementById("adminLogin").style.display =
-    isAdminRoute ? "block" : "none";
-
-  if (!isAdminRoute) {
-    document.getElementById("adminDashboard").style.display = "none";
+function showAdminRoute(){
+  const isAdminRoute=window.location.hash==="#admin";
+  document.getElementById("publicHeader").style.display=isAdminRoute?"none":"flex";
+  document.getElementById("publicHero").style.display=isAdminRoute?"none":"grid";
+  document.getElementById("publicServices").style.display=isAdminRoute?"none":"grid";
+  document.getElementById("publicFooter").style.display=isAdminRoute?"none":"flex";
+  document.getElementById("adminLogin").style.display=isAdminRoute?"block":"none";
+  if(!isAdminRoute){
+    document.getElementById("adminDashboard").style.display="none";
   }
 }
 
-window.addEventListener("hashchange", showAdminRoute);
+window.addEventListener("hashchange",showAdminRoute);
 
-/* Админ нэвтрэх */
-document.getElementById("adminLoginBtn").addEventListener("click", async () => {
-  const email = document.getElementById("adminEmail").value.trim();
-  const password = document.getElementById("adminPassword").value;
-  const message = document.getElementById("adminMessage");
+document.getElementById("adminLoginBtn").addEventListener("click",async()=>{
+  const email=document.getElementById("adminEmail").value.trim();
+  const password=document.getElementById("adminPassword").value;
+  const message=document.getElementById("adminMessage");
 
-  if (!email || !password) {
-    message.textContent = "Имэйл болон нууц үгээ оруулна уу.";
+  if(!email||!password){
+    message.textContent="Имэйл болон нууц үгээ оруулна уу.";
     return;
   }
 
-  message.textContent = "Нэвтэрч байна...";
+  message.textContent="Нэвтэрч байна...";
 
-  const { data, error } = await db.auth.signInWithPassword({
-    email: email,
-    password: password
-  });
+  const{data,error}=await db.auth.signInWithPassword({email,password});
 
-  if (error) {
-    message.textContent = "Имэйл эсвэл нууц үг буруу байна.";
+  if(error){
+    message.textContent="Имэйл эсвэл нууц үг буруу байна.";
     return;
   }
 
-  const { data: profile, error: profileError } = await db
+  const{data:profile,error:profileError}=await db
     .from("profiles")
     .select("role")
-    .eq("id", data.user.id)
+    .eq("id",data.user.id)
     .maybeSingle();
 
-  if (profileError || !profile || profile.role !== "admin") {
+  if(profileError||!profile||profile.role!=="admin"){
     await db.auth.signOut();
-    message.textContent = "Админ эрхгүй хэрэглэгч байна.";
+    message.textContent="Админ эрхгүй хэрэглэгч байна.";
     return;
   }
 
-  message.textContent = "Амжилттай нэвтэрлээ!";
-
-  document.getElementById("adminLogin").style.display = "none";
-  document.getElementById("adminDashboard").style.display = "block";
+  message.textContent="Амжилттай нэвтэрлээ!";
+  document.getElementById("adminLogin").style.display="none";
+  document.getElementById("adminDashboard").style.display="block";
 });
 
-/* Хуудас эхлэх */
 showAdminRoute();
 </script>
-
 </body>
 </html>
