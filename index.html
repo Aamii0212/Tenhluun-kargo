@@ -1,134 +1,339 @@
+
 <!DOCTYPE html>
 <html lang="mn">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Тэнхлүүн Карго</title>
+
 <style>
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   font-family: Arial, sans-serif;
+  color: #392b34;
   background: #fff8fb;
-  color: #352632;
 }
+
 header {
-  background: white;
-  padding: 20px;
+  min-height: 76px;
+  padding: 14px 5%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
   box-shadow: 0 2px 12px #f3dce7;
 }
+
 .logo {
   color: #e75b98;
-  font-size: 23px;
-  font-weight: bold;
+  font-size: 21px;
+  font-weight: 800;
+  white-space: nowrap;
 }
-.hero {
-  text-align: center;
-  padding: 45px 18px;
-  background: linear-gradient(140deg,#ffeaf3,#fff);
+
+.track-small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 300px;
 }
-.hero h1 {
-  color: #d94f8d;
-  font-size: 29px;
-}
-.hero p {
-  color: #806b77;
-  line-height: 1.7;
-}
-.track {
-  background: white;
-  margin: 18px;
-  padding: 23px;
-  border-radius: 20px;
-  box-shadow: 0 5px 20px #f0d9e4;
-}
-.track h2 {
-  text-align: center;
-  color: #d94f8d;
-}
-input {
-  width: 100%;
-  padding: 15px;
+
+.track-small input {
+  width: 175px;
+  padding: 10px;
   border: 1px solid #efcddd;
-  border-radius: 12px;
-  margin: 10px 0;
-  font-size: 16px;
+  border-radius: 9px;
+  font-size: 13px;
 }
-button {
-  border: none;
-  border-radius: 12px;
-  padding: 14px;
+
+.track-small button {
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 9px;
   background: #e75b98;
   color: white;
   font-weight: bold;
-  font-size: 15px;
-  width: 100%;
+  cursor: pointer;
 }
+
+.hero {
+  min-height: 620px;
+  padding: 55px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background:
+    radial-gradient(circle at 15% 20%, #ffe1ee 0, transparent 35%),
+    linear-gradient(140deg, #fff0f6, #fff 65%);
+}
+
+.hero h1 {
+  margin: 0 0 12px;
+  color: #d94f8d;
+  font-size: 32px;
+}
+
+.hero-description {
+  color: #806b77;
+  line-height: 1.8;
+  margin-bottom: 30px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 35px 30px;
+  background: white;
+  border-radius: 23px;
+  box-shadow: 0 8px 35px #edcfdd;
+}
+
+.login-card h2 {
+  color: #d94f8d;
+  margin: 0 0 10px;
+  font-size: 23px;
+}
+
+.login-card p {
+  color: #887681;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 16px;
+  margin: 18px 0 12px;
+  border: 1px solid #efcddd;
+  border-radius: 12px;
+  font-size: 17px;
+  outline: none;
+}
+
+.login-card input:focus,
+.track-small input:focus {
+  border-color: #e75b98;
+}
+
+.main-button {
+  width: 100%;
+  padding: 16px;
+  border: 0;
+  border-radius: 12px;
+  background: #e75b98;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.main-button:hover,
+.track-small button:hover {
+  background: #d94f8d;
+}
+
+#customerMessage,
+#trackResult {
+  min-height: 20px;
+  font-size: 13px;
+  color: #d94f8d;
+  line-height: 1.5;
+}
+
 .services {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  padding: 18px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  padding: 35px 5%;
 }
+
 .service {
+  padding: 25px 12px;
   background: white;
-  padding: 20px 10px;
-  border-radius: 16px;
+  border-radius: 17px;
   text-align: center;
-  box-shadow: 0 3px 12px #f3e0e9;
+  box-shadow: 0 3px 14px #f3e0e9;
 }
+
+.service-icon {
+  font-size: 30px;
+}
+
 .service b {
   display: block;
   color: #d94f8d;
-  margin: 9px;
+  margin: 12px 0 8px;
 }
+
+.service span {
+  color: #806b77;
+  font-size: 13px;
+}
+
 footer {
+  padding: 28px 15px;
   background: #fbe5ef;
   text-align: center;
-  padding: 25px;
   color: #765565;
+  line-height: 1.6;
+}
+
+/* Админы хэсэг */
+#adminLogin,
+#adminDashboard {
+  display: none;
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 24px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 15px #f3dce7;
+}
+
+#adminLogin {
+  max-width: 400px;
+}
+
+.admin-input {
+  width: 100%;
+  padding: 14px;
+  margin: 8px 0;
+  border: 1px solid #f3c5d9;
+  border-radius: 10px;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.admin-item {
+  padding: 18px;
+  background: #fff0f6;
+  border-radius: 12px;
+}
+
+@media (max-width: 700px) {
+  header {
+    padding: 13px;
+  }
+
+  .logo {
+    font-size: 16px;
+  }
+
+  .track-small input {
+    width: 105px;
+    font-size: 11px;
+  }
+
+  .track-small button {
+    font-size: 11px;
+    padding: 10px 8px;
+  }
+
+  .hero {
+    min-height: 570px;
+    padding: 40px 16px;
+  }
+
+  .hero h1 {
+    font-size: 25px;
+  }
+
+  .login-card {
+    padding: 30px 20px;
+  }
+
+  .services {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 20px 14px;
+  }
+
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
 </head>
+
 <body>
 
 <header>
   <div class="logo">ТЭНХЛҮҮН КАРГО</div>
+
+  <div class="track-small">
+    <input id="cargoCode" placeholder="Ачааны код">
+    <button onclick="trackCargo()">Шалгах</button>
+  </div>
 </header>
 
 <section class="hero">
-  <h1>Таны ачаа бидний хариуцлага</h1>
-  <p>БНХАУ-аас Монгол Улс руу<br>найдвартай, шуурхай карго үйлчилгээ</p>
-</section>
 
-<section class="track">
-  <h2>📦 Ачаа шалгах</h2>
-  <input id="cargoCode" placeholder="Ачааны кодоо оруулна уу">
-  <button onclick="trackCargo()">Ачаа шалгах</button>
-  <p id="result"></p>
+  <h1>Таны ачаа бидний хариуцлага</h1>
+
+  <div class="hero-description">
+    БНХАУ-аас Монгол Улс руу<br>
+    Найдвартай, шуурхай карго үйлчилгээ
+  </div>
+
+  <div class="login-card">
+    <h2>Тавтай морилно уу</h2>
+    <p>Утасны дугаараа оруулж хэрэглэгчийн хэсэгт нэвтэрнэ үү.</p>
+
+    <input
+      id="customerPhone"
+      type="tel"
+      inputmode="numeric"
+      maxlength="8"
+      placeholder="Утасны дугаар"
+    >
+
+    <button class="main-button" onclick="customerLogin()">
+      Нэвтрэх
+    </button>
+
+    <p id="customerMessage"></p>
+  </div>
+
+  <p id="trackResult"></p>
+
 </section>
 
 <section class="services">
+
   <div class="service">
-    📦
+    <div class="service-icon">📦</div>
     <b>Ачаа хүлээн авах</b>
     <span>Эрээн агуулах</span>
   </div>
+
   <div class="service">
-    🚚
+    <div class="service-icon">🚚</div>
     <b>Тээвэрлэлт</b>
     <span>Монгол хүргэлт</span>
   </div>
+
   <div class="service">
-    📋
+    <div class="service-icon">📋</div>
     <b>Ачаа бүртгэл</b>
     <span>Хэрэглэгчийн мэдээлэл</span>
   </div>
+
   <div class="service">
-    💗
+    <div class="service-icon">💗</div>
     <b>Найдвартай үйлчилгээ</b>
     <span>Таны итгэл бидний зорилго</span>
   </div>
+
 </section>
 
 <footer>
@@ -137,24 +342,14 @@ footer {
   <p>© 2026 Бүх эрх хуулиар хамгаалагдсан</p>
 </footer>
 
-<script>
-function trackCargo() {
-  const code = document.getElementById("cargoCode").value.trim();
-  const result = document.getElementById("result");
-
-  if (!code) {
-    result.textContent = "Ачааны кодоо оруулна уу.";
-    return;
-  }
-
-  result.textContent = "Ачааны мэдээллийн сантай холболт хийгдэж байна.";
-}
-</script>
+<!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 const SUPABASE_URL = "https://marlhculacividpbfddn.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_13w76dxEXz7SWRAouotJvw_6Oceh9jh";
+
+const SUPABASE_PUBLISHABLE_KEY =
+"sb_publishable_13w76dxEXz7SWRAouotJvw_6Oceh9jh";
 
 const db = supabase.createClient(
   SUPABASE_URL,
@@ -162,27 +357,74 @@ const db = supabase.createClient(
 );
 
 console.log("Тэнхлүүн Карго мэдээллийн сантай холбогдлоо");
-</script>
-<section id="adminLogin" style="max-width:400px;margin:40px auto;padding:24px;background:white;border-radius:16px;box-shadow:0 2px 15px #f3dce7;">
-  <h2 style="color:#e75b98;text-align:center;">Админ нэвтрэх</h2>
 
-  <input id="adminEmail" type="email" placeholder="Имэйл хаяг"
-    style="width:100%;padding:14px;margin:8px 0;border:1px solid #f3c5d9;border-radius:10px;">
+/* Ачаа шалгах */
+function trackCargo() {
+  const code = document.getElementById("cargoCode").value.trim();
+  const result = document.getElementById("trackResult");
 
-  <input id="adminPassword" type="password" placeholder="Нууц үг"
-    style="width:100%;padding:14px;margin:8px 0;border:1px solid #f3c5d9;border-radius:10px;">
+  if (!code) {
+    result.textContent = "Ачааны кодоо оруулна уу.";
+    return;
+  }
 
-  <button id="adminLoginBtn" style="width:100%;padding:14px;background:#e75b98;color:white;border:0;border-radius:10px;">
-    Нэвтрэх
-  </button>
+  result.textContent = "Ачааны мэдээлэл шалгах холболт хийгдээгүй байна.";
+}
 
-  <p id="adminMessage" style="text-align:center;"></p>
-</section>
-<script>
+/* Хэрэглэгчийн утасны нэвтрэлт */
+function customerLogin() {
+  const phone = document.getElementById("customerPhone").value.trim();
+  const message = document.getElementById("customerMessage");
+
+  if (!/^\d{8}$/.test(phone)) {
+    message.textContent = "8 оронтой утасны дугаараа оруулна уу.";
+    return;
+  }
+
+  const answer = confirm(phone + "\n\nТа мөн үү?");
+
+  if (!answer) {
+    message.textContent = "Утасны дугаараа дахин оруулна уу.";
+    return;
+  }
+
+  message.textContent =
+    "Дугаар баталгаажлаа. Хэрэглэгчийн нэвтрэлтийн холболтыг дараагийн алхамд хийнэ.";
+}
+
+/* Админ нэвтрэх хэсэг — зөвхөн #admin хаягаар */
+function showAdminRoute() {
+  const isAdminRoute = window.location.hash === "#admin";
+
+  document.getElementById("adminLogin").style.display =
+    isAdminRoute ? "block" : "none";
+
+  document.querySelector("header").style.display =
+    isAdminRoute ? "none" : "flex";
+
+  document.querySelector(".hero").style.display =
+    isAdminRoute ? "none" : "flex";
+
+  document.querySelector(".services").style.display =
+    isAdminRoute ? "none" : "grid";
+
+  document.querySelector("footer").style.display =
+    isAdminRoute ? "none" : "block";
+}
+
+window.addEventListener("hashchange", showAdminRoute);
+showAdminRoute();
+
+/* Админы нэвтрэлт */
 document.getElementById("adminLoginBtn").addEventListener("click", async () => {
   const email = document.getElementById("adminEmail").value.trim();
   const password = document.getElementById("adminPassword").value;
   const message = document.getElementById("adminMessage");
+
+  if (!email || !password) {
+    message.textContent = "Имэйл болон нууц үгээ оруулна уу.";
+    return;
+  }
 
   message.textContent = "Нэвтэрч байна...";
 
@@ -197,196 +439,79 @@ document.getElementById("adminLoginBtn").addEventListener("click", async () => {
   }
 
   const { data: profile, error: profileError } = await db
-  .from("profiles")
-  .select("role")
-  .eq("id", data.user.id)
-  .maybeSingle();
+    .from("profiles")
+    .select("role")
+    .eq("id", data.user.id)
+    .maybeSingle();
 
-if (profileError) {
-  message.textContent = "Профайл шалгахад алдаа гарлаа: " + profileError.message;
-  return;
-}
-
-if (!profile || profile.role !== "admin") {
-  message.textContent = "Админ эрхгүй хэрэглэгч байна.";
-  return;
-}
-
-message.textContent = "Админаар амжилттай нэвтэрлээ!";
-const dashboard = document.getElementById("adminDashboard");
-
-if (!dashboard) {
-  message.textContent = "Админ хэсэг олдсонгүй!";
-  return;
-}
-
-dashboard.style.display = "block";
-
-const loginPanel = document.getElementById("adminLogin");
-if (loginPanel) loginPanel.style.display = "none";
-
-const customerPanel = document.getElementById("customerAuth");
-if (customerPanel) customerPanel.style.display = "none";
-});
-</script>
-<section id="customerAuth" style="max-width:400px;margin:30px auto;padding:24px;background:white;border-radius:16px;">
-  <h2 style="color:#e75b98;text-align:center;">Тэнхлүүн карго</h2>
-  <input id="customerEmail" type="email" placeholder="Имэйл хаяг"
-    style="width:100%;padding:14px;margin:8px 0;border:1px solid #f3c5d9;border-radius:10px;">
-  <button id="sendOtp" style="width:100%;padding:14px;background:#e75b98;color:white;border:0;border-radius:10px;">
-    Код авах
-  </button>
-  <input id="customerOtp" inputmode="numeric" placeholder="Имэйлээр ирсэн код"
-    style="width:100%;padding:14px;margin:8px 0;border:1px solid #f3c5d9;border-radius:10px;">
-  <button id="verifyOtp" style="width:100%;padding:14px;background:#e75b98;color:white;border:0;border-radius:10px;">
-    Нэвтрэх
-  </button>
-  <p id="customerMessage"></p>
-</section>
-<script>
-document.getElementById("sendOtp").addEventListener("click", async () => {
-  const email = document.getElementById("customerEmail").value.trim();
-  const msg = document.getElementById("customerMessage");
-
-  if (!email) {
-    msg.textContent = "Имэйл хаягаа оруулна уу.";
+  if (profileError || !profile || profile.role !== "admin") {
+    await db.auth.signOut();
+    message.textContent = "Админ эрхгүй хэрэглэгч байна.";
     return;
   }
 
-  msg.textContent = "Код илгээж байна...";
+  message.textContent = "Админаар амжилттай нэвтэрлээ!";
 
-  const { error } = await db.auth.signInWithOtp({
-    email: email,
-    options: { shouldCreateUser: true }
-  });
-
-  msg.textContent = error
-    ? "Алдаа: " + error.message
-    : "Имэйл рүү код илгээлээ!";
-});
-
-document.getElementById("verifyOtp").addEventListener("click", async () => {
-  const email = document.getElementById("customerEmail").value.trim();
-  const token = document.getElementById("customerOtp").value.trim();
-  const msg = document.getElementById("customerMessage");
-
-  msg.textContent = "Баталгаажуулж байна...";
-
-  const { error } = await db.auth.verifyOtp({
-    email: email,
-    token: token,
-    type: "email"
-  });
-
-  msg.textContent = error
-    ? "Алдаа: " + error.message
-    : "Амжилттай нэвтэрлээ!";
+  document.getElementById("adminLogin").style.display = "none";
+  document.getElementById("adminDashboard").style.display = "block";
 });
 </script>
- <section id="adminDashboard" style="display:none;max-width:1100px;margin:20px auto;padding:20px;background:#fff;">
+
+<!-- Админ нэвтрэх хэсэг -->
+<section id="adminLogin">
+  <h2 style="color:#e75b98;text-align:center;">Админ нэвтрэх</h2>
+
+  <input
+    id="adminEmail"
+    class="admin-input"
+    type="email"
+    placeholder="Имэйл хаяг"
+  >
+
+  <input
+    id="adminPassword"
+    class="admin-input"
+    type="password"
+    placeholder="Нууц үг"
+  >
+
+  <button
+    id="adminLoginBtn"
+    class="main-button"
+  >
+    Нэвтрэх
+  </button>
+
+  <p id="adminMessage"></p>
+</section>
+
+<!-- Админ удирдлага -->
+<section id="adminDashboard">
   <h2 style="color:#e75b98;">Тэнхлүүн карго — Админ удирдлага</h2>
   <p>Тавтай морил, админ аа!</p>
 
-  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">
-    <div style="padding:18px;background:#fff0f6;border-radius:12px;">
+  <div class="admin-grid">
+    <div class="admin-item">
       <h3>📦 Ачаа бүртгэл</h3>
       <p>Шинэ ачаа нэмэх, мэдээлэл засах</p>
     </div>
-    <div style="padding:18px;background:#fff0f6;border-radius:12px;">
+
+    <div class="admin-item">
       <h3>🚚 Ачааны жагсаалт</h3>
       <p>Бүртгэлтэй бүх ачааг харах</p>
     </div>
-    <div style="padding:18px;background:#fff0f6;border-radius:12px;">
+
+    <div class="admin-item">
       <h3>👥 Хэрэглэгчид</h3>
       <p>Бүртгэлтэй хэрэглэгчдийг харах</p>
     </div>
-    <div style="padding:18px;background:#fff0f6;border-radius:12px;">
+
+    <div class="admin-item">
       <h3>🏢 Салбарууд</h3>
       <p>Салбар болон ажилтны эрх</p>
     </div>
   </div>
 </section>
-<section id="phonePinAuth" style="max-width:400px;margin:20px auto;padding:20px;background:white;border-radius:12px;">
-  <h2 style="color:#e75b98;text-align:center;">Утасны дугаараар нэвтрэх</h2>
 
-  <input id="ppName" placeholder="Таны нэр" style="width:100%;padding:13px;margin:6px 0;">
-  <input id="ppPhone" type="tel" placeholder="Утасны дугаар" style="width:100%;padding:13px;margin:6px 0;">
-  <input id="ppPin" type="password" inputmode="numeric" maxlength="6" placeholder="6 оронтой PIN" style="width:100%;padding:13px;margin:6px 0;">
-
-  <div class="cf-turnstile" data-sitekey="0x4AAAAAAF7V4i-_jle9kgtj" data-callback="ppCaptchaSuccess"></div>
-
-  <button id="ppRegister" style="width:100%;padding:14px;margin-top:12px;background:#e75b98;color:white;border:0;border-radius:8px;">Бүртгүүлэх</button>
-  <button id="ppLogin" style="width:100%;padding:14px;margin-top:8px;background:#fff0f6;color:#e75b98;border:0;border-radius:8px;">Нэвтрэх</button>
-
-  <p id="ppMessage"></p>
-</section>
-
-<script>
-let ppToken = "";
-
-window.ppCaptchaSuccess = function(token) {
-  ppToken = token;
-};
-
-function ppPhoneNumber(value) {
-  let p = value.replace(/\D/g, "");
-  if (p.length === 8) p = "976" + p;
-  return p;
-}
-
-document.getElementById("ppRegister").onclick = async function() {
-  const name = document.getElementById("ppName").value.trim();
-  const phone = ppPhoneNumber(document.getElementById("ppPhone").value);
-  const pin = document.getElementById("ppPin").value;
-  const msg = document.getElementById("ppMessage");
-
-  if (!name || !/^976\d{8}$/.test(phone) || !/^\d{6}$/.test(pin) || !ppToken) {
-    msg.textContent = "Нэр, утас, 6 оронтой PIN болон хамгаалалтын баталгаажуулалтаа шалгана уу.";
-    return;
-  }
-
-  msg.textContent = "Бүртгэж байна...";
-
-  const { data, error } = await db.functions.invoke("hyper-processor", {
-    body: { full_name: name, phone, pin, token: ppToken }
-  });
-
-  if (error || !data || !data.success) {
-    msg.textContent = data?.error || error?.message || "Бүртгэл амжилтгүй.";
-    return;
-  }
-
-  msg.textContent = "Бүртгэл амжилттай. Одоо нэвтэрч болно.";
-};
-
-document.getElementById("ppLogin").onclick = async function() {
-  const phone = ppPhoneNumber(document.getElementById("ppPhone").value);
-  const pin = document.getElementById("ppPin").value;
-  const msg = document.getElementById("ppMessage");
-
-  if (!/^976\d{8}$/.test(phone) || !/^\d{6}$/.test(pin)) {
-    msg.textContent = "Утасны дугаар болон 6 оронтой PIN-ээ шалгана уу.";
-    return;
-  }
-
-  msg.textContent = "Нэвтэрч байна...";
-
-  const email = "p" + phone + "@phone.tenhluun-login.com";
-  const { error } = await db.auth.signInWithPassword({ email, password: pin });
-
-  if (error) {
-    msg.textContent = "Нэвтрэх мэдээлэл буруу байна.";
-    return;
-  }
-
-  msg.textContent = "Амжилттай нэвтэрлээ.";
-  document.getElementById("phonePinAuth").style.display = "none";
-
-  const panel = document.getElementById("customerPanel");
-  if (panel) panel.style.display = "block";
-};
-</script>
-
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </body>
 </html>
