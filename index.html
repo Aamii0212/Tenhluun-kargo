@@ -125,7 +125,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
  <div id="adminMessage" class="message"></div>
 </section>
 <section id="adminDashboard" class="hidden">
- <div class="dashboard-head"><h2>📦 Ачааны удирдлага</h2><button class="logout" onclick="adminLogout()">Гарах</button></div>
+ <div class="dashboard-head"><h2>📦 Админ удирдлага</h2><div style="display:flex;gap:8px;flex-wrap:wrap"><a href="employee.html" target="_blank" style="display:inline-block;background:#ed168b;color:white;padding:12px 15px;border-radius:12px;text-decoration:none;font-weight:bold">📷 Баркод / Ажилтны үйлдэл</a><button class="logout" onclick="adminLogout()">Гарах</button></div></div>
  <div class="admin-editor"><h3>⚙️ Үнийн мэдээлэл ба ажлын цаг</h3><div class="admin-editor"><h3>📍 Эрээн агуулахын хаяг</h3><input id="settingEreenAddress" placeholder="Эрээн дэх агуулахын бүтэн хаяг"><input id="settingEreenContact" placeholder="Хүлээн авах хүн / утас"><button class="primary" onclick="saveEreenAddress()">Хаяг хадгалах</button><span id="ereenSettingsInfo" class="muted"></span></div>
  <div class="admin-fields"><input id="settingKg" type="number" min="0" placeholder="1 кг үнэ ₮"><input id="settingM3" type="number" min="0" placeholder="1 м³ үнэ юань"><input id="settingOpen" type="time" value="10:00"><input id="settingClose" type="time" value="20:00"></div>
  <div class="admin-actions"><button class="primary" onclick="saveSiteSettings()">Үнэ, цаг хадгалах</button><span id="settingsInfo" class="muted"></span></div></div>
