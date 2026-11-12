@@ -113,7 +113,8 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
   <div class="service-item"><span class="service-icon">📦</span>Миний ачаа</div>
   <div class="service-item"><span class="service-icon">▥</span>Трак код</div>
   <div class="service-item"><span class="service-icon">▤</span>Нэр дугааргүй ачаа</div>
-  <div class="service-item"><span class="service-icon">＄</span>Үнийн мэдээлэл</div>
+  <div class="service-item" onclick="showPricing()" style="cursor:pointer"><span class="service-icon">＄</span>Үнийн мэдээлэл</div>
+  <div id="publicPricing" class="branch-box" style="display:none;grid-column:1/-1"><h3>💰 Каргоны үнэ</h3><p>1 кг: <b id="publicKgPrice">2,500 ₮</b></p><p>1 м³: <b id="publicM3Price">700 юань</b></p><p>Ажлын цаг: <b id="publicHours">10:00–20:00</b></p></div>
  </div>
 </section>
 <section id="customerDashboard" style="display:none">
@@ -215,6 +216,12 @@ function customerLogout(){
  showMessage("customerMessage","");showMessage("trackingMessage","");
 }
 let siteSettings={kg_price:2500,m3_price:700,open_time:"10:00",close_time:"20:00"};
+async function showPricing(){
+ const box=document.getElementById("publicPricing");box.style.display=box.style.display==="none"?"block":"none";
+ try{const {data}=await db.from("site_settings").select("kg_price,m3_price,open_time,close_time").eq("id",1).maybeSingle();
+ if(data){document.getElementById("publicKgPrice").textContent=Number(data.kg_price).toLocaleString()+" ₮";document.getElementById("publicM3Price").textContent=Number(data.m3_price).toLocaleString()+" юань";document.getElementById("publicHours").textContent=(data.open_time||"10:00")+"–"+(data.close_time||"20:00");}}
+ catch(e){console.error(e)}
+}
 async function loadSiteSettings(){
  const {data,error}=await db.from("site_settings").select("*").eq("id",1).maybeSingle();
  if(data){siteSettings={...siteSettings,...data};}
@@ -269,7 +276,7 @@ function cancelParcelForm(){document.getElementById("parcelEditor").style.displa
 async function saveParcel(){
  const tracking=document.getElementById("editTracking").value.trim(),phone=cleanPhone(document.getElementById("editPhone").value);
  if(!tracking||phone.length!==8){showMessage("adminNotice","Трак код болон 8 оронтой утас заавал оруулна.");return}
- const payload={tracking_code:tracking,customer_name:document.getElementById("editName").value.trim(),customer_phone:phone,piece_number:Number(document.getElementById("editPieces").value||1),weight_kg:Number(document.getElementById("editWeight").value||0),volume_m3:Number(document.getElementById("editVolume").value||0),price_mnt:Number(document.getElementById("editPrice").value||0),parcel_status:document.getElementById("editStatus").value,branch_id:document.getElementById("editBranch").value||null,description:document.getElementById("editDescription").value.trim()};
+ const payload={tracking_code:tracking,customer_name:document.getElementById("editName").value.trim(),customer_phone:phone,piece_number:Number(document.getElementById("editPieces").value||1),weight_kg:Number(document.getElementById("editWeight").value||0),volume_m3:Number(document.getElementById("editVolume").value||0),price_mnt:Number(document.getElementById("editPrice").value||((Number(document.getElementById("editWeight").value||0)*siteSettings.kg_price)+(Number(document.getElementById("editVolume").value||0)*siteSettings.m3_price*500))),parcel_status:document.getElementById("editStatus").value,branch_id:document.getElementById("editBranch").value||null,description:document.getElementById("editDescription").value.trim()};
  showMessage("adminNotice","Хадгалж байна...");
  let result=editingParcelId?await db.from("parcels").update(payload).eq("id",editingParcelId):await db.from("parcels").insert(payload);
  if(result.error){showMessage("adminNotice","Хадгалах алдаа: "+result.error.message);return}
