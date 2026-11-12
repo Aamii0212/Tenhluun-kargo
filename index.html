@@ -154,17 +154,6 @@ let customerParcels = [];
 let currentPhone = "";
 let pendingTrackingCode = "";
 
-async function searchPublicTracking(){
- const code=document.getElementById("publicTrackingCode").value.trim(),out=document.getElementById("publicTrackingResult"),btn=document.getElementById("publicTrackingButton");
- if(!code){out.textContent="Трак кодоо оруулна уу.";return}
- btn.disabled=true;btn.textContent="ХАЙЖ БАЙНА...";out.textContent="";
- try{
-  const {data,error}=await db.from("parcels").select("tracking_code,parcel_status,weight_kg,volume_m3,created_at,arrived_at").ilike("tracking_code",code).limit(1).maybeSingle();
-  if(error)throw error;if(!data){out.textContent="Энэ трак кодтой ачаа олдсонгүй.";return}
-  out.innerHTML='<div class="parcel" style="text-align:left"><b>📦 '+escapeHTML(data.tracking_code)+'</b><p>Төлөв: <b>'+escapeHTML(data.parcel_status||"Бүртгэлтэй")+'</b></p><p>Жин: '+escapeHTML(data.weight_kg??"-")+' кг · Эзлэхүүн: '+escapeHTML(data.volume_m3??"-")+' м³</p></div>';
- }catch(e){console.error(e);out.textContent="Хайлт амжилтгүй. Дахин оролдоно уу."}
- finally{btn.disabled=false;btn.textContent="Ачаа хайх"}
-}
 function cleanPhone(value){return String(value||"").replace(/\D/g,"")}
 function escapeHTML(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function showMessage(id,message){const el=document.getElementById(id);if(el)el.textContent=message}
