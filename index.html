@@ -16,8 +16,6 @@ header{display:none;height:64px;background:#fff;align-items:center;justify-conte
 main{max-width:1050px;margin:auto;padding:0 16px 28px}
 #publicPage{padding-bottom:10px}
 .hero{position:relative;width:calc(100% + 32px);margin:0 -16px;min-height:375px;overflow:hidden;background:#f7b5dc;border-radius:0 0 28px 28px}
-/* Poster-ийн баруун дээд булангийн хуучин хайлтын хэсгийг дарж цэвэрлэв */
-.hero::after{content:"";position:absolute;z-index:2;top:0;right:0;width:39%;height:20%;background:#f7b5dc;border-bottom-left-radius:22px}
 .hero-artwork{display:block;width:100%;height:auto;min-height:330px;object-fit:cover}
 #trackingMessage{position:absolute;top:68px;right:6%;max-width:300px;color:#8d0750;text-align:right;font-size:12px;font-weight:bold;text-shadow:0 1px 3px #fff}
 .login-panel{position:relative;z-index:1;max-width:650px;margin:-2px auto 24px;border-radius:28px;padding:25px 30px;background:rgba(255,255,255,.97);box-shadow:0 10px 35px #e72b942b;border:1px solid #f8d9ea}
@@ -61,7 +59,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
  header{height:60px;padding:7px 14px}.brand img{width:32px;height:32px}.brand-name{font-size:13px}
  main{padding:0 13px 20px}.hero{width:calc(100% + 26px);margin:0 -13px;min-height:0;border-radius:0 0 24px 24px}
  .hero-artwork{width:100%;height:auto;min-height:0;object-fit:cover}
- .hero::after{width:42%;height:19%}
+ .track-box{display:none!important} #trackingMessage{display:none!important}
  .login-panel{padding:20px 17px;margin:0 auto 20px;border-radius:25px}
  .login-panel h2{font-size:22px}.login-icon{width:58px;height:58px;font-size:29px}
  .service-grid{gap:10px;margin:20px auto}.service-item{font-size:13px;padding:14px 10px;min-height:62px}
