@@ -344,18 +344,6 @@ async async async function handoverParcel(id){
 
 function deleteParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p||!confirm((p.tracking_code||"Энэ ачаа")+" устгах уу?"))return;const {error}=await db.from("parcels").delete().eq("id",id);if(error){showMessage("adminNotice","Устгах алдаа: "+error.message);return}await loadAdminParcels();showMessage("adminNotice","Ачааг устгалаа.")}
 
-function trackCargo(){
- const code=document.getElementById("trackingInput").value.trim();
- if(!code){showMessage("trackingMessage","Трак кодоо оруулна уу.");return}
- pendingTrackingCode=code;
- if(!currentPhone){showMessage("trackingMessage","Ачаагаа шалгахын тулд эхлээд утасны дугаараар нэвтэрнэ үү.");document.getElementById("customerPhone").focus();return}
- const parcel=customerParcels.find(p=>String(p.tracking_code||"").toLowerCase()===code.toLowerCase());
- if(!parcel){showMessage("trackingMessage","Таны бүртгэлээс энэ трак код олдсонгүй.");return}
- pendingTrackingCode="";showTab(classifyStatus(parcel.parcel_status));
- showMessage("trackingMessage","Ачаа олдлоо: "+parcel.tracking_code);
- document.getElementById("customerDashboard").scrollIntoView({behavior:"smooth",block:"start"});
-}
-document.getElementById("trackingInput").addEventListener("keydown",e=>{if(e.key==="Enter")trackCargo()});
 document.getElementById("customerPhone").addEventListener("keydown",e=>{if(e.key==="Enter")customerLogin()});
 if(location.hash==="#admin"){
  document.getElementById("publicPage").style.display="none";document.getElementById("pageFooter").style.display="none";
