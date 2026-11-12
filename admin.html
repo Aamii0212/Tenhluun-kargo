@@ -130,7 +130,8 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
  <div class="admin-fields"><input id="settingKg" type="number" min="0" placeholder="1 кг үнэ ₮"><input id="settingM3" type="number" min="0" placeholder="1 м³ үнэ юань"><input id="settingOpen" type="time" value="10:00"><input id="settingClose" type="time" value="20:00"></div>
  <div class="admin-actions"><button class="primary" onclick="saveSiteSettings()">Үнэ, цаг хадгалах</button><span id="settingsInfo" class="muted"></span></div></div>
  <div class="admin-stats" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0"><div class="branch-box"><small>📦 Нийт ачаа</small><h2 id="statTotal">0</h2></div><div class="branch-box"><small>🆕 Өнөөдөр бүртгэсэн</small><h2 id="statToday">0</h2></div><div class="branch-box"><small>🇨🇳 Эрээний агуулах</small><h2 id="statEreen">0</h2></div><div class="branch-box"><small>🇲🇳 Монголд ирсэн</small><h2 id="statMongolia">0</h2></div><div class="branch-box"><small>✅ Хүлээж авсан</small><h2 id="statReceived">0</h2></div><div class="branch-box" style="grid-column:1/-1"><small>💰 Хүлээж авсан ачааны нийт дүн</small><h2 id="statRevenue">0 ₮</h2><small>Бүх хүлээлгэн өгсөн ачааны дүн</small></div><div class="branch-box"><small>📅 Өнөөдрийн төлбөр</small><h2 id="statTodayPaid">0 ₮</h2></div><div class="branch-box"><small>💵 Бэлэн мөнгө</small><h2 id="statCash">0 ₮</h2></div><div class="branch-box"><small>🏦 Шилжүүлэг</small><h2 id="statTransfer">0 ₮</h2></div></div><div class="admin-toolbar"><input id="adminSearch" placeholder="Трак код, нэр, утсаар хайх..." oninput="filterAdminRows()"><select id="adminBranchFilter" onchange="filterAdminRows()" style="padding:12px;border:1px solid #e5d5e0;border-radius:9px"><option value="">Бүх салбар</option></select><select id="adminStatusFilter" onchange="filterAdminRows()" style="padding:12px;border:1px solid #e5d5e0;border-radius:9px"><option value="">Бүх төлөв</option><option value="ereen">Эрээнд</option><option value="mongolia">Монголд</option><option value="received">Хүлээж авсан</option></select><button class="logout" onclick="exportAdminCSV()">⬇ Ачааны CSV</button><button class="logout" onclick="exportPaymentsCSV()">💰 Орлогын CSV</button><button class="primary" onclick="newParcelForm()">＋ Ачаа бүртгэх</button><button class="logout" onclick="loadAdminParcels()">↻ Шинэчлэх</button></div>
- <div class="admin-editor" id="bulkEreenBox"><h3>📦 Олон трак кодыг “Эрээнд ирсэн” болгох</h3><p style="margin:6px 0;color:#666">Гадаадаас ирсэн трак кодуудаа нэг нэг мөрөөр эсвэл зай/таслалаар тусгаарлан хуулж оруулна.</p><textarea id="bulkTrackingCodes" rows="5" placeholder="SF123456789&#10;SF987654321" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #e5d5e0;border-radius:10px;font:inherit"></textarea><div class="admin-actions"><button class="primary" onclick="bulkMarkEreen()">⬇ Эрээнд ирсэн болгож хадгалах</button><button class="logout" onclick="document.getElementById('bulkTrackingCodes').value=''">Цэвэрлэх</button></div><div id="bulkEreenResult" class="message"></div></div>
+ <div class="admin-editor" id="bulkRegisterBox"><h3>📲 Олон утас + трак код бүртгэх</h3><p style="color:#666">Мөр бүр: утас, трак код (таслалтай). Нэг утсанд олон код, нэг удаад олон утас бүртгэж болно.</p><textarea id="bulkRegisterInput" rows="6" placeholder="99112233, ABC123&#10;99112233, ABC456&#10;88112233, XYZ789" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #e5d5e0;border-radius:10px;font:inherit"></textarea><div class="admin-actions"><button class="primary" onclick="bulkRegisterParcels()">＋ Бөөнөөр бүртгэх</button><button class="logout" onclick="document.getElementById('bulkRegisterInput').value=''">Цэвэрлэх</button></div><div id="bulkRegisterResult" class="message"></div></div>
+<div class="admin-editor" id="bulkEreenBox"><h3>📦 Олон трак кодыг “Эрээнд ирсэн” болгох</h3><p style="margin:6px 0;color:#666">Гадаадаас ирсэн трак кодуудаа нэг нэг мөрөөр эсвэл зай/таслалаар тусгаарлан хуулж оруулна.</p><textarea id="bulkTrackingCodes" rows="5" placeholder="SF123456789&#10;SF987654321" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #e5d5e0;border-radius:10px;font:inherit"></textarea><div class="admin-actions"><button class="primary" onclick="bulkMarkEreen()">⬇ Эрээнд ирсэн болгож хадгалах</button><button class="logout" onclick="document.getElementById('bulkTrackingCodes').value=''">Цэвэрлэх</button></div><div id="bulkEreenResult" class="message"></div></div>
 <div class="admin-editor"><h3>🏢 Салбар удирдах</h3><div class="admin-fields"><input id="newBranchName" placeholder="Шинэ салбарын нэр"><input id="newBranchAddress" placeholder="Салбарын хаягийг гараар оруулна уу"><input id="newBranchPhone" placeholder="Салбарын утасны дугаар"></div><div class="admin-actions"><button class="primary" onclick="addBranch()">＋ Салбар нэмэх</button></div><div id="branchList" style="margin-top:10px"></div></div>
  <div id="adminNotice" class="message"></div>
  <div id="parcelEditor" class="admin-editor" style="display:none">
@@ -328,6 +329,31 @@ async function saveParcel(){
  let result=editingParcelId?await db.from("parcels").update(payload).eq("id",editingParcelId):await db.from("parcels").insert(payload);
  if(result.error){showMessage("adminNotice","Хадгалах алдаа: "+result.error.message);return}
  cancelParcelForm();await loadAdminParcels();showMessage("adminNotice","Амжилттай хадгаллаа.");
+}
+async function bulkRegisterParcels(){
+ const input=document.getElementById("bulkRegisterInput"),out=document.getElementById("bulkRegisterResult");
+ const lines=input.value.split(/\n/).map(x=>x.trim()).filter(Boolean);
+ const records=[],bad=[];
+ for(let n=0;n<lines.length;n++){
+  const parts=lines[n].split(/[,;\t]+/).map(x=>x.trim());
+  const phone=cleanPhone(parts[0]||""),tracking=(parts[1]||"").trim(),name=(parts[2]||"").trim();
+  if(phone.length!==8||!tracking){bad.push(n+1);continue}
+  records.push({tracking_code:tracking,customer_phone:phone,customer_name:name,piece_number:1,weight_kg:0,volume_m3:0,price_mnt:0,parcel_status:"ereen"});
+ }
+ if(!records.length){showMessage("bulkRegisterResult","Утас (8 орон), трак кодтой мөр оруулна уу.");return}
+ if(records.length>500){showMessage("bulkRegisterResult","Нэг удаад 500 мөр хүртэл бүртгэнэ.");return}
+ if(!confirm(records.length+" ачааг утасны дугаартай нь бүртгэх үү?"))return;
+ out.textContent="Бүртгэж байна...";
+ const {data:existing,error:checkError}=await db.from("parcels").select("tracking_code").in("tracking_code",records.map(x=>x.tracking_code));
+ if(checkError){showMessage("bulkRegisterResult","Шалгах алдаа: "+checkError.message);return}
+ const exists=new Set((existing||[]).map(x=>String(x.tracking_code).toLowerCase()));
+ const fresh=records.filter(x=>!exists.has(x.tracking_code.toLowerCase()));
+ const duplicate=records.length-fresh.length;
+ if(!fresh.length){showMessage("bulkRegisterResult","Бүртгэх шинэ код алга. Давхардсан: "+duplicate);return}
+ const {error}=await db.from("parcels").insert(fresh);
+ if(error){showMessage("bulkRegisterResult","Бүртгэх алдаа: "+error.message);return}
+ await loadAdminParcels();
+ out.innerHTML="<b>Бүртгэл амжилттай: "+fresh.length+"</b><br>Давхардсан код: "+duplicate+(bad.length?"<br>Буруу мөр: "+escapeHTML(bad.join(", ")):"");
 }
 async function bulkMarkEreen(){
  const box=document.getElementById("bulkTrackingCodes"),out=document.getElementById("bulkEreenResult");
