@@ -275,15 +275,24 @@ async function saveSiteSettings(){
 }
 async function adminLogin(){
  const email=document.getElementById("adminEmail").value.trim(),password=document.getElementById("adminPassword").value;
- showMessage("adminMessage","Нэвтэрч байна...");
- const {data,error}=await db.auth.signInWithPassword({email,password});
- if(error){showMessage("adminMessage","Имэйл эсвэл нууц үг буруу байна.");return}
- const {data:profile,error:profileError}=await db.from("profiles").select("role").eq("id",data.user.id).single();
- if(profileError||!profile||profile.role!=="admin"){await db.auth.signOut();showMessage("adminMessage","Админы эрхгүй хэрэглэгч байна.");return}
- document.getElementById("publicPage").style.display="none";document.getElementById("pageFooter").style.display="none";
- document.getElementById("customerHeader").style.display="none";document.getElementById("adminLogin").style.display="none";
- document.getElementById("adminDashboard").style.display="block";
- await loadSiteSettings();await loadAdminParcels();
+ const msg=document.getElementById("adminMessage");msg.textContent="Нэвтэрч байна...";
+ try{
+  if(!email||!password){msg.textContent="Имэйл, нууц үгээ оруулна уу.";return}
+  const {data,error}=await db.auth.signInWithPassword({email,password});
+  if(error)throw error;
+  const user=data?.user;if(!user)throw new Error("Auth хэрэглэгч олдсонгүй");
+  const {data:profile,error:pe}=await db.from("profiles").select("role").eq("id",user.id).maybeSingle();
+  if(pe)throw pe;
+  if(profile?.role!=="admin"){await db.auth.signOut();msg.textContent="Админы эрх олгогдоогүй байна (profiles.role = admin).";return}
+  document.getElementById("publicPage").style.display="none";
+  document.getElementById("pageFooter").style.display="none";
+  document.getElementById("customerHeader").style.display="none";
+  document.getElementById("adminLogin").style.display="none";
+  const dash=document.getElementById("adminDashboard");dash.classList.remove("hidden");dash.style.display="block";
+  dash.scrollIntoView({behavior:"instant",block:"start"});
+  await loadSiteSettings();
+  await loadAdminParcels();
+ }catch(e){console.error("Admin login/dashboard:",e);msg.textContent="Алдаа: "+(e.message||"Админ нэвтрэх боломжгүй");}
 }
 async function adminLogout(){await db.auth.signOut();document.getElementById("adminDashboard").style.display="none";document.getElementById("adminLogin").style.display="block"}
 
