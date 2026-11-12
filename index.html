@@ -145,7 +145,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
  <div id="adminCount" class="muted"></div>
 </section>
 </main>
-<footer id="pageFooter">© Тэнхлүүн Карго</footer>
+<footer id="pageFooter">© Тэнхлүүн Карго · <a href="?admin=1" style="color:white;font-weight:bold">Админ нэвтрэх</a></footer>
 <script>
 const SUPABASE_URL = "https://marlhculacividpbfddn.supabase.co";
 const SUPABASE_KEY = "sb_publishable_13w76dxEXz7SWRAouotJvw_6Oceh9jh";
@@ -260,7 +260,7 @@ async function saveSiteSettings(){
  if(error){showMessage("settingsInfo","Хадгалж чадсангүй: "+error.message);return}
  siteSettings=payload;showMessage("settingsInfo","Хадгалагдлаа ✓");
 }
-async function adminLogin(){
+function openAdminLoginPage(){document.getElementById("publicPage").style.display="none";document.getElementById("customerDashboard").style.display="none";document.getElementById("pageFooter").style.display="none";document.getElementById("adminLogin").classList.remove("hidden");document.getElementById("adminLogin").style.display="block";}\nif(new URLSearchParams(location.search).get("admin")==="1"){openAdminLoginPage()}\nasync function adminLogin(){
  const email=document.getElementById("adminEmail").value.trim(),password=document.getElementById("adminPassword").value;
  const msg=document.getElementById("adminMessage");msg.textContent="Нэвтэрч байна...";
  try{
