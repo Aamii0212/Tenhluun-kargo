@@ -232,10 +232,10 @@ async function searchNoNameParcel(){
  const code=document.getElementById("noNameTrackingInput").value.trim(),out=document.getElementById("noNameTrackingResult");
  if(!code){out.textContent="Трак кодоо оруулна уу.";return}
  out.textContent="Хайж байна...";
- const {data,error}=await db.from("parcels").select("tracking_code,parcel_status,weight,volume,created_at").ilike("tracking_code",code).limit(1).maybeSingle();
+ const {data,error}=await db.from("parcels").select("tracking_code,parcel_status,weight_kg,volume_m3,created_at").ilike("tracking_code",code).limit(1).maybeSingle();
  if(error){out.textContent="Хайлт хийхэд алдаа гарлаа.";return}
  if(!data){out.textContent="Энэ трак кодтой ачаа олдсонгүй.";return}
- out.innerHTML="<b>Ачаа олдлоо ✓</b><p>Трак код: "+escapeHTML(data.tracking_code)+"</p><p>Төлөв: "+escapeHTML(data.parcel_status||"Бүртгэлтэй")+"</p><p>Жин: "+escapeHTML(String(data.weight||0))+" кг</p><p>Эзлэхүүн: "+escapeHTML(String(data.volume||0))+" м³</p>";
+ out.innerHTML="<b>Ачаа олдлоо ✓</b><p>Трак код: "+escapeHTML(data.tracking_code)+"</p><p>Төлөв: "+escapeHTML(data.parcel_status||"Бүртгэлтэй")+"</p><p>Жин: "+escapeHTML(String(data.weight_kg||0))+" кг</p><p>Эзлэхүүн: "+escapeHTML(String(data.volume_m3||0))+" м³</p>";
 }
 function showNoNameCheck(){const b=document.getElementById("noNameCheckBox");b.style.display=b.style.display==="none"?"block":"none";}
 function goPhoneCheck(){document.getElementById("customerPhone").scrollIntoView({behavior:"smooth"});document.getElementById("customerPhone").focus();}
@@ -332,7 +332,7 @@ async function saveParcel(){
  if(result.error){showMessage("adminNotice","Хадгалах алдаа: "+result.error.message);return}
  cancelParcelForm();await loadAdminParcels();showMessage("adminNotice","Амжилттай хадгаллаа.");
 }
-async async async function handoverParcel(id){
+async async function handoverParcel(id){
  const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;
  if(!confirm((p.tracking_code||"Ачаа")+"-г хүлээлгэн өгч, төлбөр бүртгэх үү?"))return;
  const staff=prompt("Хүлээлгэн өгсөн ажилтны нэр:");if(!staff||!staff.trim())return;
@@ -342,7 +342,7 @@ async async async function handoverParcel(id){
  await loadAdminParcels();showMessage("adminNotice","Хүлээлгэн өгч, төлбөр бүртгэлээ.");
 }
 
-function deleteParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p||!confirm((p.tracking_code||"Энэ ачаа")+" устгах уу?"))return;const {error}=await db.from("parcels").delete().eq("id",id);if(error){showMessage("adminNotice","Устгах алдаа: "+error.message);return}await loadAdminParcels();showMessage("adminNotice","Ачааг устгалаа.")}
+async function deleteParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p||!confirm((p.tracking_code||"Энэ ачаа")+" устгах уу?"))return;const {error}=await db.from("parcels").delete().eq("id",id);if(error){showMessage("adminNotice","Устгах алдаа: "+error.message);return}await loadAdminParcels();showMessage("adminNotice","Ачааг устгалаа.")}
 
 document.getElementById("customerPhone").addEventListener("keydown",e=>{if(e.key==="Enter")customerLogin()});
 if(location.hash==="#admin"){
