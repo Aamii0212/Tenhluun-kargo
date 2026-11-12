@@ -203,8 +203,8 @@ function customerLogout(){
  currentPhone="";customerParcels=[];pendingTrackingCode="";
  document.getElementById("customerDashboard").style.display="none";document.getElementById("customerHeader").style.display="none";
  document.getElementById("publicPage").style.display="block";document.getElementById("pageFooter").style.display="block";
- document.getElementById("customerPhone").value="";document.getElementById("trackingInput").value="";
- showMessage("customerMessage","");showMessage("trackingMessage","");
+ document.getElementById("customerPhone").value="";
+ showMessage("customerMessage","");
 }
 let siteSettings={kg_price:2500,m3_price:700,open_time:"10:00",close_time:"20:00"};
 async function showEreenAddress(){
