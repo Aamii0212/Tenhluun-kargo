@@ -323,7 +323,9 @@ function cancelParcelForm(){document.getElementById("parcelEditor").style.displa
 async function saveParcel(){
  const tracking=document.getElementById("editTracking").value.trim(),phone=cleanPhone(document.getElementById("editPhone").value);
  if(!tracking||phone.length!==8){showMessage("adminNotice","Трак код болон 8 оронтой утас заавал оруулна.");return}
- const payload={tracking_code:tracking,customer_name:document.getElementById("editName").value.trim(),customer_phone:phone,piece_number:Number(document.getElementById("editPieces").value||1),weight_kg:Number(document.getElementById("editWeight").value||0),volume_m3:Number(document.getElementById("editVolume").value||0),price_mnt:Number(document.getElementById("editPrice").value||((Number(document.getElementById("editWeight").value||0)*siteSettings.kg_price)+(Number(document.getElementById("editVolume").value||0)*siteSettings.m3_price*500))),parcel_status:document.getElementById("editStatus").value,branch_id:document.getElementById("editBranch").value||null,description:document.getElementById("editDescription").value.trim()};
+ const pieces=Number(document.getElementById("editPieces").value||1),weight=Number(document.getElementById("editWeight").value||0),volume=Number(document.getElementById("editVolume").value||0),manualPrice=document.getElementById("editPrice").value.trim(),price=Number(manualPrice||((weight*siteSettings.kg_price)+(volume*siteSettings.m3_price*500)));
+ if(!Number.isFinite(pieces)||pieces<1||!Number.isFinite(weight)||weight<0||!Number.isFinite(volume)||volume<0||!Number.isFinite(price)||price<0){showMessage("adminNotice","Ширхэг 1-ээс дээш, жин/эзлэхүүн/үнэ 0-ээс багагүй зөв тоо байна.");return}
+ const payload={tracking_code:tracking,customer_name:document.getElementById("editName").value.trim(),customer_phone:phone,piece_number:pieces,weight_kg:weight,volume_m3:volume,price_mnt:price,parcel_status:document.getElementById("editStatus").value,branch_id:document.getElementById("editBranch").value||null,description:document.getElementById("editDescription").value.trim()};
  const duplicateQuery=db.from("parcels").select("id").eq("tracking_code",tracking).limit(1);const {data:duplicate,error:duplicateError}=editingParcelId?await duplicateQuery.neq("id",editingParcelId).maybeSingle():await duplicateQuery.maybeSingle();if(duplicateError){showMessage("adminNotice","Трак код шалгах алдаа: "+duplicateError.message);return}if(duplicate){showMessage("adminNotice","⚠️ "+tracking+" трак кодтой ачаа аль хэдийн бүртгэлтэй байна.");return}
  showMessage("adminNotice","Хадгалж байна...");
  let result=editingParcelId?await db.from("parcels").update(payload).eq("id",editingParcelId):await db.from("parcels").insert(payload);
@@ -333,11 +335,12 @@ async function saveParcel(){
 async function bulkRegisterParcels(){
  const input=document.getElementById("bulkRegisterInput"),out=document.getElementById("bulkRegisterResult");
  const lines=input.value.split(/\n/).map(x=>x.trim()).filter(Boolean);
- const records=[],bad=[];
+ const records=[],bad=[],seenInput=new Set();
  for(let n=0;n<lines.length;n++){
   const parts=lines[n].split(/[,;\t]+/).map(x=>x.trim());
-  const phone=cleanPhone(parts[0]||""),tracking=(parts[1]||"").trim(),name=(parts[2]||"").trim();
+  const phone=cleanPhone(parts[0]||""),tracking=(parts[1]||"").trim(),name=(parts[2]||"").trim(),key=tracking.toLowerCase();
   if(phone.length!==8||!tracking){bad.push(n+1);continue}
+  if(seenInput.has(key)){bad.push(n+1);continue}seenInput.add(key);
   records.push({tracking_code:tracking,customer_phone:phone,customer_name:name,piece_number:1,weight_kg:0,volume_m3:0,price_mnt:0,parcel_status:"ereen"});
  }
  if(!records.length){showMessage("bulkRegisterResult","Утас (8 орон), трак кодтой мөр оруулна уу.");return}
@@ -350,10 +353,14 @@ async function bulkRegisterParcels(){
  const fresh=records.filter(x=>!exists.has(x.tracking_code.toLowerCase()));
  const duplicate=records.length-fresh.length;
  if(!fresh.length){showMessage("bulkRegisterResult","Бүртгэх шинэ код алга. Давхардсан: "+duplicate);return}
- const {error}=await db.from("parcels").insert(fresh);
- if(error){showMessage("bulkRegisterResult","Бүртгэх алдаа: "+error.message);return}
+ let inserted=0;
+ for(let start=0;start<fresh.length;start+=100){
+  const {error}=await db.from("parcels").insert(fresh.slice(start,start+100));
+  if(error){showMessage("bulkRegisterResult",""+inserted+" бүртгэгдсэн. Үлдсэн хэсгийн алдаа: "+error.message);await loadAdminParcels();return}
+  inserted+=Math.min(100,fresh.length-start);
+ }
  await loadAdminParcels();
- out.innerHTML="<b>Бүртгэл амжилттай: "+fresh.length+"</b><br>Давхардсан код: "+duplicate+(bad.length?"<br>Буруу мөр: "+escapeHTML(bad.join(", ")):"");
+ out.innerHTML="<b>Бүртгэл амжилттай: "+inserted+"</b><br>Давхардсан/давтсан: "+duplicate+"<br>Алдаатай мөр: "+bad.length+(bad.length?" ("+escapeHTML(bad.join(", "))+")":"");
 }
 async function bulkMarkEreen(){
  const box=document.getElementById("bulkTrackingCodes"),out=document.getElementById("bulkEreenResult");
