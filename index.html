@@ -113,7 +113,8 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
   <div id="publicBranches" class="branch-box" style="display:none;grid-column:1/-1"><h3>📍 Салбарын байршил, цагийн хуваарь</h3><div id="publicBranchList">Ачаалж байна...</div></div>
   <div class="service-item"><span class="service-icon">📦</span>Миний ачаа</div>
   <div class="service-item" onclick="showBranchLocations()" style="cursor:pointer"><span class="service-icon">📍</span>Салбарын байршил, цагийн хуваарь</div>
-  <div class="service-item"><span class="service-icon">▤</span>Нэр дугааргүй ачаа</div>
+  <div class="service-item" onclick="showEreenAddress()" style="cursor:pointer"><span class="service-icon">📍</span>Эрээн хаяг холбох</div>
+  <div id="ereenAddressBox" class="branch-box" style="display:none;grid-column:1/-1"><h3>📍 Эрээн дэх агуулахын хаяг</h3><div id="ereenAddressText">Админ хаяг оруулаагүй байна.</div></div>
   <div class="service-item" onclick="showPricing()" style="cursor:pointer"><span class="service-icon">＄</span>Үнийн мэдээлэл</div>
   <div id="publicPricing" class="branch-box" style="display:none;grid-column:1/-1"><h3>💰 Каргоны үнэ</h3><p>1 кг: <b id="publicKgPrice">2,500 ₮</b></p><p>1 м³: <b id="publicM3Price">700 юань</b></p><p>Ажлын цаг: <b id="publicHours">10:00–20:00</b></p></div>
  </div>
@@ -136,7 +137,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
 </section>
 <section id="adminDashboard" class="hidden">
  <div class="dashboard-head"><h2>📦 Ачааны удирдлага</h2><button class="logout" onclick="adminLogout()">Гарах</button></div>
- <div class="admin-editor"><h3>⚙️ Үнийн мэдээлэл ба ажлын цаг</h3>
+ <div class="admin-editor"><h3>⚙️ Үнийн мэдээлэл ба ажлын цаг</h3><div class="admin-editor"><h3>📍 Эрээн агуулахын хаяг</h3><input id="settingEreenAddress" placeholder="Эрээн дэх агуулахын бүтэн хаяг"><input id="settingEreenContact" placeholder="Хүлээн авах хүн / утас"><button class="primary" onclick="saveEreenAddress()">Хаяг хадгалах</button><span id="ereenSettingsInfo" class="muted"></span></div>
  <div class="admin-fields"><input id="settingKg" type="number" min="0" placeholder="1 кг үнэ ₮"><input id="settingM3" type="number" min="0" placeholder="1 м³ үнэ юань"><input id="settingOpen" type="time" value="10:00"><input id="settingClose" type="time" value="20:00"></div>
  <div class="admin-actions"><button class="primary" onclick="saveSiteSettings()">Үнэ, цаг хадгалах</button><span id="settingsInfo" class="muted"></span></div></div>
  <div class="admin-toolbar"><input id="adminSearch" placeholder="Трак код, нэр, утсаар хайх..." oninput="filterAdminRows()"><select id="adminBranchFilter" onchange="filterAdminRows()" style="padding:12px;border:1px solid #e5d5e0;border-radius:9px"><option value="">Бүх салбар</option></select><button class="primary" onclick="newParcelForm()">＋ Ачаа бүртгэх</button><button class="logout" onclick="loadAdminParcels()">↻ Шинэчлэх</button></div>
@@ -217,6 +218,13 @@ function customerLogout(){
  showMessage("customerMessage","");showMessage("trackingMessage","");
 }
 let siteSettings={kg_price:2500,m3_price:700,open_time:"10:00",close_time:"20:00"};
+async function showEreenAddress(){
+ const box=document.getElementById("ereenAddressBox");box.style.display=box.style.display==="none"?"block":"none";if(box.style.display==="none")return;
+ const el=document.getElementById("ereenAddressText");el.textContent="Хаяг ачаалж байна...";
+ try{const {data}=await db.from("site_settings").select("ereen_address,ereen_contact").eq("id",1).maybeSingle();
+ el.innerHTML=data?.ereen_address?'<p>'+escapeHTML(data.ereen_address)+'</p><p>'+escapeHTML(data.ereen_contact||"")+'</p>':'Админ хаяг оруулаагүй байна.'}
+ catch(e){el.textContent="Хаяг авахад алдаа гарлаа."}
+}
 async function showBranchLocations(){
  const box=document.getElementById("publicBranches");box.style.display=box.style.display==="none"?"block":"none";if(box.style.display==="none")return;
  const list=document.getElementById("publicBranchList");list.textContent="Ачаалж байна...";
@@ -232,6 +240,10 @@ async function showPricing(){
  if(data){document.getElementById("publicKgPrice").textContent=Number(data.kg_price).toLocaleString()+" ₮";document.getElementById("publicM3Price").textContent=Number(data.m3_price).toLocaleString()+" юань";document.getElementById("publicHours").textContent=(data.open_time||"10:00")+"–"+(data.close_time||"20:00");}}
  catch(e){console.error(e)}
 }
+async function saveEreenAddress(){
+ const payload={id:1,ereen_address:document.getElementById("settingEreenAddress").value.trim(),ereen_contact:document.getElementById("settingEreenContact").value.trim(),updated_at:new Date().toISOString()};
+ const {error}=await db.from("site_settings").upsert(payload);if(error){showMessage("ereenSettingsInfo","Хадгалах алдаа: "+error.message);return}showMessage("ereenSettingsInfo","Хаяг хадгалагдлаа ✓");
+}
 async function loadSiteSettings(){
  const {data,error}=await db.from("site_settings").select("*").eq("id",1).maybeSingle();
  if(data){siteSettings={...siteSettings,...data};}
@@ -239,6 +251,7 @@ async function loadSiteSettings(){
  document.getElementById("settingM3").value=siteSettings.m3_price??700;
  document.getElementById("settingOpen").value=siteSettings.open_time||"10:00";
  document.getElementById("settingClose").value=siteSettings.close_time||"20:00";
+ document.getElementById("settingEreenAddress").value=siteSettings.ereen_address||"";document.getElementById("settingEreenContact").value=siteSettings.ereen_contact||"";
  if(error)document.getElementById("settingsInfo").textContent="DB хүснэгт тохируулах шаардлагатай";
 }
 async function saveSiteSettings(){
