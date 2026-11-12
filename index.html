@@ -333,7 +333,8 @@ async function saveParcel(){
  if(result.error){showMessage("adminNotice","Хадгалах алдаа: "+result.error.message);return}
  cancelParcelForm();await loadAdminParcels();showMessage("adminNotice","Амжилттай хадгаллаа.");
 }
-async function deleteParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p||!confirm((p.tracking_code||"Энэ ачаа")+" устгах уу?"))return;const {error}=await db.from("parcels").delete().eq("id",id);if(error){showMessage("adminNotice","Устгах алдаа: "+error.message);return}await loadAdminParcels();showMessage("adminNotice","Ачааг устгалаа.")}
+async async function markParcelReceived(id){if(!confirm("Ачааг хэрэглэгчид хүлээлгэн өгсөн үү? Орлогод бүртгэнэ."))return;const {error}=await db.from("parcels").update({parcel_status:"received"}).eq("id",id);if(error){showMessage("adminNotice","Хүлээлгэн өгөх алдаа: "+error.message);return}await loadAdminParcels();showMessage("adminNotice","Хүлээлгэн өгсөн төлөвт орлоо.");}
+function deleteParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p||!confirm((p.tracking_code||"Энэ ачаа")+" устгах уу?"))return;const {error}=await db.from("parcels").delete().eq("id",id);if(error){showMessage("adminNotice","Устгах алдаа: "+error.message);return}await loadAdminParcels();showMessage("adminNotice","Ачааг устгалаа.")}
 
 function trackCargo(){
  const code=document.getElementById("trackingInput").value.trim();
