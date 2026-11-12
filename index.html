@@ -219,9 +219,9 @@ async function showBranchLocations(){
  const list=document.getElementById("publicBranchList");list.textContent="Ачаалж байна...";
  try{
   const [{data:branches,error:be},{data:settings,error:se}]=await Promise.all([db.from("branches").select("name,address,phone").order("name"),db.from("site_settings").select("open_time,close_time").eq("id",1).maybeSingle()]);
-  if(be)throw be;const hours=(settings?.open_time||"10:00")+"–"+(settings?.close_time||"20:00");
+  if(be)throw be;if(se)throw se;const hours=(settings?.open_time||"10:00")+"–"+(settings?.close_time||"20:00");
   list.innerHTML=(branches||[]).map(b=>'<div style="padding:12px 0;border-bottom:1px solid #eee"><b>'+escapeHTML(b.name)+'</b><p>📍 '+escapeHTML(b.address||"Хаяг удахгүй нэмэгдэнэ")+'</p><p>☎ '+escapeHTML(b.phone||"Утас удахгүй нэмэгдэнэ")+'</p><p>🕒 Ажлын цаг: <b>'+hours+'</b></p></div>').join("")||"<p>Салбарын мэдээлэл одоогоор алга.</p>";
- }catch(e){list.textContent="Салбарын мэдээлэл авахад алдаа гарлаа."}
+ }catch(e){console.error("Салбарын мэдээлэл:",e);list.textContent="Салбарын мэдээлэл авахад алдаа гарлаа. Админд мэдэгдэнэ үү."}
 }
 async function searchNoNameParcel(){
  const code=document.getElementById("noNameTrackingInput").value.trim(),out=document.getElementById("noNameTrackingResult");
