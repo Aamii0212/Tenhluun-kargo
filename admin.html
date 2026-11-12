@@ -262,7 +262,9 @@ async function saveSiteSettings(){
  if(error){showMessage("settingsInfo","Хадгалж чадсангүй: "+error.message);return}
  siteSettings=payload;showMessage("settingsInfo","Хадгалагдлаа ✓");
 }
-function openAdminLoginPage(){document.getElementById("publicPage").style.display="none";document.getElementById("customerDashboard").style.display="none";document.getElementById("customerHeader").style.display="none";document.getElementById("pageFooter").style.display="none";document.querySelectorAll("body > a").forEach(a=>a.style.display="none");document.getElementById("adminLogin").classList.remove("hidden");document.getElementById("adminLogin").style.display="block";document.getElementById("adminLogin").scrollIntoView({block:"start"});}\nif(new URLSearchParams(location.search).get("admin")==="1"){openAdminLoginPage()}\nasync function adminLogin(){
+function openAdminLoginPage(){document.getElementById("publicPage").style.display="none";document.getElementById("customerDashboard").style.display="none";document.getElementById("customerHeader").style.display="none";document.getElementById("pageFooter").style.display="none";document.querySelectorAll("body > a").forEach(a=>a.style.display="none");document.getElementById("adminLogin").classList.remove("hidden");document.getElementById("adminLogin").style.display="block";document.getElementById("adminLogin").scrollIntoView({block:"start"});}
+if(new URLSearchParams(location.search).get("admin")==="1"){openAdminLoginPage()}
+async function adminLogin(){
  const email=document.getElementById("adminEmail").value.trim(),password=document.getElementById("adminPassword").value;
  const msg=document.getElementById("adminMessage");msg.textContent="Нэвтэрч байна...";
  try{
