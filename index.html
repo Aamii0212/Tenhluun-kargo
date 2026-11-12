@@ -117,7 +117,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
   <div id="ereenAddressBox" class="branch-box" style="display:none;grid-column:1/-1"><h3>📍 Эрээн дэх агуулахын хаяг</h3><div id="ereenAddressText">Админ хаяг оруулаагүй байна.</div></div>
   <div class="service-item" onclick="showPricing()" style="cursor:pointer"><span class="service-icon">＄</span>Үнийн мэдээлэл</div>
   <div class="service-item" onclick="showNoNameCheck()" style="cursor:pointer"><span class="service-icon">🔎</span>Нэр, дугааргүй ачаа шалгах</div>
-  <div id="noNameCheckBox" class="branch-box" style="display:none;grid-column:1/-1"><h3>🔎 Нэр, дугааргүй ачаа шалгах</h3><p>Утасны дугаараа оруулаад бүртгэлтэй ачаагаа шалгана уу.</p><button class="primary" onclick="goPhoneCheck()">Утас оруулах хэсэг рүү очих</button></div>
+  <div id="noNameCheckBox" class="branch-box" style="display:none;grid-column:1/-1"><h3>🔎 Нэр, дугааргүй ачаа шалгах</h3><p>Нэр, утасны дугааргүй бүртгэсэн ачааг трак кодоор хайна.</p><div class="track-box"><input id="noNameTrackingInput" type="text" placeholder="Трак код оруулах..." aria-label="Нэр дугааргүй ачааны трак код"><button type="button" onclick="searchNoNameParcel()">⌕ Хайх</button></div><div id="noNameTrackingResult" class="message"></div></div>
   <div id="publicPricing" class="branch-box" style="display:none;grid-column:1/-1"><h3>💰 Каргоны үнэ тариф</h3><p>📦 Жингийн тариф: 1 кг = <b id="publicKgPrice">2,500 ₮</b></p><p>⚖️ Бодит жингээр тооцно.</p><hr><p>📐 Эзлэхүүний тариф: 1 м³ = <b id="publicM3Price">700 юань</b></p><p>Урт × өргөн × өндөр хэмжээгээр тооцно.</p><hr><p class="muted">Ачааны жин болон эзлэхүүнээс хамаарч төлбөр бодогдоно. Эцсийн үнэ ачаа бүртгэгдэхэд баталгаажна.</p></div>
  </div>
 </section>
@@ -235,6 +235,15 @@ async function showBranchLocations(){
   if(be)throw be;const hours=(settings?.open_time||"10:00")+"–"+(settings?.close_time||"20:00");
   list.innerHTML=(branches||[]).map(b=>'<div style="padding:12px 0;border-bottom:1px solid #eee"><b>'+escapeHTML(b.name)+'</b><p>📍 '+escapeHTML(b.address||"Хаяг удахгүй нэмэгдэнэ")+'</p><p>☎ '+escapeHTML(b.phone||"Утас удахгүй нэмэгдэнэ")+'</p><p>🕒 Ажлын цаг: <b>'+hours+'</b></p></div>').join("")||"<p>Салбарын мэдээлэл одоогоор алга.</p>";
  }catch(e){list.textContent="Салбарын мэдээлэл авахад алдаа гарлаа."}
+}
+async function searchNoNameParcel(){
+ const code=document.getElementById("noNameTrackingInput").value.trim(),out=document.getElementById("noNameTrackingResult");
+ if(!code){out.textContent="Трак кодоо оруулна уу.";return}
+ out.textContent="Хайж байна...";
+ const {data,error}=await db.from("parcels").select("tracking_code,parcel_status,weight,volume,created_at").ilike("tracking_code",code).limit(1).maybeSingle();
+ if(error){out.textContent="Хайлт хийхэд алдаа гарлаа.";return}
+ if(!data){out.textContent="Энэ трак кодтой ачаа олдсонгүй.";return}
+ out.innerHTML="<b>Ачаа олдлоо ✓</b><p>Трак код: "+escapeHTML(data.tracking_code)+"</p><p>Төлөв: "+escapeHTML(data.parcel_status||"Бүртгэлтэй")+"</p><p>Жин: "+escapeHTML(String(data.weight||0))+" кг</p><p>Эзлэхүүн: "+escapeHTML(String(data.volume||0))+" м³</p>";
 }
 function showNoNameCheck(){const b=document.getElementById("noNameCheckBox");b.style.display=b.style.display==="none"?"block":"none";}
 function goPhoneCheck(){document.getElementById("customerPhone").scrollIntoView({behavior:"smooth"});document.getElementById("customerPhone").focus();}
