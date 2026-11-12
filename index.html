@@ -177,8 +177,8 @@ async function customerLogin(){
  try{
   const {data,error}=await db.rpc("get_customer_parcels_by_phone",{p_phone:phone});
   if(error)throw error;
-  if(!data||data.length===0){showMessage("customerMessage","Энэ дугаарт бүртгэлтэй ачаа олдсонгүй.");return}
-  currentPhone=phone;customerParcels=data;openCustomerDashboard();
+  currentPhone=phone;customerParcels=data||[];openCustomerDashboard();
+  if(!customerParcels.length)showMessage("customerMessage","Ачааны түүх хоосон байна. Бүртгэл амжилттай нээгдлээ.");
   if(pendingTrackingCode){const code=pendingTrackingCode;pendingTrackingCode="";document.getElementById("trackingInput").value=code;trackCargo()}
  }catch(error){console.error(error);showMessage("customerMessage","Мэдээлэл авахад алдаа гарлаа. Дахин оролдоно уу.")}
  finally{btn.disabled=false;btn.textContent="➜ Нэвтрэх"}
