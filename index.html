@@ -116,7 +116,9 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
   <div class="service-item" onclick="showEreenAddress()" style="cursor:pointer"><span class="service-icon">📍</span>Эрээн хаяг холбох</div>
   <div id="ereenAddressBox" class="branch-box" style="display:none;grid-column:1/-1"><h3>📍 Эрээн дэх агуулахын хаяг</h3><div id="ereenAddressText">Админ хаяг оруулаагүй байна.</div></div>
   <div class="service-item" onclick="showPricing()" style="cursor:pointer"><span class="service-icon">＄</span>Үнийн мэдээлэл</div>
-  <div id="publicPricing" class="branch-box" style="display:none;grid-column:1/-1"><h3>💰 Каргоны үнэ</h3><p>1 кг: <b id="publicKgPrice">2,500 ₮</b></p><p>1 м³: <b id="publicM3Price">700 юань</b></p><p>Ажлын цаг: <b id="publicHours">10:00–20:00</b></p></div>
+  <div class="service-item" onclick="showNoNameCheck()" style="cursor:pointer"><span class="service-icon">🔎</span>Нэр, дугааргүй ачаа шалгах</div>
+  <div id="noNameCheckBox" class="branch-box" style="display:none;grid-column:1/-1"><h3>🔎 Нэр, дугааргүй ачаа шалгах</h3><p>Утасны дугаараа оруулаад бүртгэлтэй ачаагаа шалгана уу.</p><button class="primary" onclick="goPhoneCheck()">Утас оруулах хэсэг рүү очих</button></div>
+  <div id="publicPricing" class="branch-box" style="display:none;grid-column:1/-1"><h3>💰 Каргоны үнэ тариф</h3><p>📦 Жингийн тариф: 1 кг = <b id="publicKgPrice">2,500 ₮</b></p><p>⚖️ Бодит жингээр тооцно.</p><hr><p>📐 Эзлэхүүний тариф: 1 м³ = <b id="publicM3Price">700 юань</b></p><p>Урт × өргөн × өндөр хэмжээгээр тооцно.</p><hr><p class="muted">Ачааны жин болон эзлэхүүнээс хамаарч төлбөр бодогдоно. Эцсийн үнэ ачаа бүртгэгдэхэд баталгаажна.</p></div>
  </div>
 </section>
 <section id="customerDashboard" style="display:none">
@@ -234,6 +236,8 @@ async function showBranchLocations(){
   list.innerHTML=(branches||[]).map(b=>'<div style="padding:12px 0;border-bottom:1px solid #eee"><b>'+escapeHTML(b.name)+'</b><p>📍 '+escapeHTML(b.address||"Хаяг удахгүй нэмэгдэнэ")+'</p><p>☎ '+escapeHTML(b.phone||"Утас удахгүй нэмэгдэнэ")+'</p><p>🕒 Ажлын цаг: <b>'+hours+'</b></p></div>').join("")||"<p>Салбарын мэдээлэл одоогоор алга.</p>";
  }catch(e){list.textContent="Салбарын мэдээлэл авахад алдаа гарлаа."}
 }
+function showNoNameCheck(){const b=document.getElementById("noNameCheckBox");b.style.display=b.style.display==="none"?"block":"none";}
+function goPhoneCheck(){document.getElementById("customerPhone").scrollIntoView({behavior:"smooth"});document.getElementById("customerPhone").focus();}
 async function showPricing(){
  const box=document.getElementById("publicPricing");box.style.display=box.style.display==="none"?"block":"none";
  try{const {data}=await db.from("site_settings").select("kg_price,m3_price,open_time,close_time").eq("id",1).maybeSingle();
