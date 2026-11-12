@@ -180,7 +180,7 @@ async function customerLogin(){
   currentPhone=phone;customerParcels=data||[];openCustomerDashboard();
   if(!customerParcels.length)showMessage("customerMessage","Ачааны түүх хоосон байна. Бүртгэл амжилттай нээгдлээ.");
   if(pendingTrackingCode){pendingTrackingCode="";}
- }catch(error){console.error(error);showMessage("customerMessage","Мэдээлэл авахад алдаа гарлаа. Дахин оролдоно уу.")}
+ }catch(error){console.error("Customer login:",error);showMessage("customerMessage","Алдаа: "+(error.message||"Мэдээлэл авах боломжгүй"))}
  finally{btn.disabled=false;btn.textContent="➜ Нэвтрэх"}
 }
 function openCustomerDashboard(){
