@@ -288,7 +288,7 @@ function adminStatusLabel(s){return s==="received"?"Хүлээж авсан":s==
 async function loadAdminParcels(){
  const body=document.getElementById("adminParcelRows");body.innerHTML='<tr><td colspan="6">Ачаалж байна...</td></tr>';
  const {data,error}=await db.from("parcels").select("*").order("created_at",{ascending:false}).limit(1000);
- if(error){console.error(error);body.innerHTML='<tr><td colspan="6">Ачаа татахад алдаа. Supabase дээр parcels хүснэгт болон RLS admin эрхийг шалгана уу.</td></tr>';showMessage("adminNotice",error.message);return}
+ if(error){console.error(error);body.innerHTML='<tr><td colspan="7">Ачаа татахад алдаа: '+escapeHTML(error.message)+'</td></tr>';showMessage("adminNotice","Supabase parcels/RLS: "+error.message);return}
  adminParcels=data||[];await loadBranches();renderAdminRows(adminParcels);showMessage("adminNotice",""); 
 }
 function updateAdminStats(){
