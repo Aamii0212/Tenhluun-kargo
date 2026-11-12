@@ -17,9 +17,6 @@ main{max-width:1050px;margin:auto;padding:0 16px 28px}
 #publicPage{padding-bottom:10px}
 .hero{position:relative;width:calc(100% + 32px);margin:0 -16px;min-height:375px;overflow:hidden;background:#f7b5dc;border-radius:0 0 28px 28px}
 .hero-artwork{display:block;width:100%;height:auto;min-height:330px;object-fit:cover}
-.track-box{position:absolute;top:18px;right:5%;width:min(42%,330px);display:flex;align-items:center;gap:4px;background:#fff;padding:5px;border-radius:40px;box-shadow:0 5px 18px #8e145033}
-.track-box input{border:0!important;margin:0!important;padding:10px 12px!important;min-width:0;border-radius:30px!important;font-size:13px!important;background:#fff}
-.track-box button{background:var(--pink);color:#fff;border-radius:50%;width:42px;height:42px;padding:0;flex:0 0 42px}
 #trackingMessage{position:absolute;top:68px;right:6%;max-width:300px;color:#8d0750;text-align:right;font-size:12px;font-weight:bold;text-shadow:0 1px 3px #fff}
 .login-panel{position:relative;z-index:1;max-width:650px;margin:-2px auto 24px;border-radius:28px;padding:25px 30px;background:rgba(255,255,255,.97);box-shadow:0 10px 35px #e72b942b;border:1px solid #f8d9ea}
 .login-title-row{display:flex;align-items:center;justify-content:center;gap:15px}
@@ -182,7 +179,7 @@ async function customerLogin(){
   if(error)throw error;
   currentPhone=phone;customerParcels=data||[];openCustomerDashboard();
   if(!customerParcels.length)showMessage("customerMessage","Ачааны түүх хоосон байна. Бүртгэл амжилттай нээгдлээ.");
-  if(pendingTrackingCode){const code=pendingTrackingCode;pendingTrackingCode="";document.getElementById("trackingInput").value=code;trackCargo()}
+  if(pendingTrackingCode){pendingTrackingCode="";}
  }catch(error){console.error(error);showMessage("customerMessage","Мэдээлэл авахад алдаа гарлаа. Дахин оролдоно уу.")}
  finally{btn.disabled=false;btn.textContent="➜ Нэвтрэх"}
 }
