@@ -355,9 +355,10 @@ async function handoverParcel(id){
 async function deleteParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p||!confirm((p.tracking_code||"Энэ ачаа")+" устгах уу?"))return;const {error}=await db.from("parcels").delete().eq("id",id);if(error){showMessage("adminNotice","Устгах алдаа: "+error.message);return}await loadAdminParcels();showMessage("adminNotice","Ачааг устгалаа.")}
 
 document.getElementById("customerPhone").addEventListener("keydown",e=>{if(e.key==="Enter")customerLogin()});
-if(location.hash==="#admin"){
+if(location.hash==="#admin"||new URLSearchParams(location.search).get("admin")==="1"){
  document.getElementById("publicPage").style.display="none";document.getElementById("pageFooter").style.display="none";
  document.getElementById("adminLogin").classList.remove("hidden");
+ document.getElementById("adminDashboard").style.display="none";
 }
 </script>
 </body>
