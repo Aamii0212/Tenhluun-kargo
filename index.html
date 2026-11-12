@@ -312,8 +312,8 @@ function exportAdminCSV(){const rows=[["Салбар","Трак код","Нэр"
 function renderAdminRows(rows){
  updateAdminStats();
  const body=document.getElementById("adminParcelRows");
- if(!rows.length){body.innerHTML='<tr><td colspan="6">Бүртгэлтэй ачаа алга.</td></tr>'}
- else body.innerHTML=rows.map(p=>'<tr><td>'+escapeHTML(adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name||"-")+'</td><td><b>'+escapeHTML(p.tracking_code||"-")+'</b></td><td>'+escapeHTML(p.customer_name||p.name||"-")+'<br><small>'+escapeHTML(p.customer_phone||p.phone||"-")+'</small></td><td><span class="status-admin">'+adminStatusLabel(classifyStatus(p.parcel_status))+'</span></td><td>'+escapeHTML(p.weight_kg??"-")+' кг</td><td>'+escapeHTML(p.price_mnt??"-")+' ₮</td><td><button class="edit-btn" onclick="editParcel(\''+String(p.id).replace(/'/g,"\\'")+'\')">Засах</button><button class="delete-btn" onclick="deleteParcel(\''+String(p.id).replace(/'/g,"\\'")+'\')">Устгах</button></td></tr>').join("");
+ if(!rows.length){body.innerHTML='<tr><td colspan="7">Бүртгэлтэй ачаа алга.</td></tr>'}
+ else body.innerHTML=rows.map(p=>'<tr><td>'+escapeHTML(adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name||"-")+'</td><td><b>'+escapeHTML(p.tracking_code||"-")+'</b></td><td>'+escapeHTML(p.customer_name||p.name||"-")+'<br><small>'+escapeHTML(p.customer_phone||p.phone||"-")+'</small></td><td><span class="status-admin">'+adminStatusLabel(classifyStatus(p.parcel_status))+'</span></td><td>'+escapeHTML(p.weight_kg??"-")+' кг</td><td>'+escapeHTML(p.price_mnt??"-")+' ₮</td><td>'+(classifyStatus(p.parcel_status)!=="received"?'<button class="primary" onclick="handoverParcel(\''+String(p.id).replace(/'/g,"\\'")+'\')">Хүлээлгэн өгөх</button>':'<b>✓ Өгсөн</b>')+' <button class="edit-btn" onclick="editParcel(\''+String(p.id).replace(/'/g,"\\'")+'\')">Засах</button><button class="delete-btn" onclick="deleteParcel(\''+String(p.id).replace(/'/g,"\\'")+'\')">Устгах</button></td></tr>').join("");
  document.getElementById("adminCount").textContent="Нийт "+rows.length+" ачаа";
 }
 function filterAdminRows(){const q=document.getElementById("adminSearch").value.toLowerCase().trim(),bid=document.getElementById("adminBranchFilter").value,st=document.getElementById("adminStatusFilter").value;renderAdminRows(adminParcels.filter(p=>(!bid||String(p.branch_id||"")===bid)&&(!st||classifyStatus(p.parcel_status)===st)&&[p.tracking_code,p.customer_name,p.name,p.customer_phone,p.phone].some(v=>String(v||"").toLowerCase().includes(q))))}
@@ -333,7 +333,16 @@ async function saveParcel(){
  if(result.error){showMessage("adminNotice","Хадгалах алдаа: "+result.error.message);return}
  cancelParcelForm();await loadAdminParcels();showMessage("adminNotice","Амжилттай хадгаллаа.");
 }
-async async function markParcelReceived(id){if(!confirm("Ачааг хэрэглэгчид хүлээлгэн өгсөн үү? Орлогод бүртгэнэ."))return;const {error}=await db.from("parcels").update({parcel_status:"received"}).eq("id",id);if(error){showMessage("adminNotice","Хүлээлгэн өгөх алдаа: "+error.message);return}await loadAdminParcels();showMessage("adminNotice","Хүлээлгэн өгсөн төлөвт орлоо.");}
+async async async function handoverParcel(id){
+ const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;
+ if(!confirm((p.tracking_code||"Ачаа")+"-г хүлээлгэн өгч, төлбөр бүртгэх үү?"))return;
+ const staff=prompt("Хүлээлгэн өгсөн ажилтны нэр:");if(!staff||!staff.trim())return;
+ const method=prompt("Төлбөрийн хэлбэр:\\n1 = Бэлэн\\n2 = Шилжүүлэг","1");if(method!=="1"&&method!=="2"){alert("1 эсвэл 2 сонгоно уу.");return}
+ const {error}=await db.from("parcels").update({parcel_status:"received",paid_at:new Date().toISOString(),payment_method:method==="1"?"cash":"transfer",received_by:staff.trim()}).eq("id",id);
+ if(error){showMessage("adminNotice","Хүлээлгэн өгөх алдаа. SQL баганууд нэмэгдсэн эсэхийг шалгана уу: "+error.message);return}
+ await loadAdminParcels();showMessage("adminNotice","Хүлээлгэн өгч, төлбөр бүртгэлээ.");
+}
+
 function deleteParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p||!confirm((p.tracking_code||"Энэ ачаа")+" устгах уу?"))return;const {error}=await db.from("parcels").delete().eq("id",id);if(error){showMessage("adminNotice","Устгах алдаа: "+error.message);return}await loadAdminParcels();showMessage("adminNotice","Ачааг устгалаа.")}
 
 function trackCargo(){
