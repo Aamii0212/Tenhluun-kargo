@@ -134,6 +134,9 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
 </section>
 <section id="adminDashboard" class="hidden">
  <div class="dashboard-head"><h2>📦 Ачааны удирдлага</h2><button class="logout" onclick="adminLogout()">Гарах</button></div>
+ <div class="admin-editor"><h3>⚙️ Үнийн мэдээлэл ба ажлын цаг</h3>
+ <div class="admin-fields"><input id="settingKg" type="number" min="0" placeholder="1 кг үнэ ₮"><input id="settingM3" type="number" min="0" placeholder="1 м³ үнэ юань"><input id="settingOpen" type="time" value="10:00"><input id="settingClose" type="time" value="20:00"></div>
+ <div class="admin-actions"><button class="primary" onclick="saveSiteSettings()">Үнэ, цаг хадгалах</button><span id="settingsInfo" class="muted"></span></div></div>
  <div class="admin-toolbar"><input id="adminSearch" placeholder="Трак код, нэр, утсаар хайх..." oninput="filterAdminRows()"><select id="adminBranchFilter" onchange="filterAdminRows()" style="padding:12px;border:1px solid #e5d5e0;border-radius:9px"><option value="">Бүх салбар</option></select><button class="primary" onclick="newParcelForm()">＋ Ачаа бүртгэх</button><button class="logout" onclick="loadAdminParcels()">↻ Шинэчлэх</button></div>
  <div class="admin-editor"><h3>🏢 Салбар удирдах</h3><div class="admin-fields"><input id="newBranchName" placeholder="Шинэ салбарын нэр"><input id="newBranchAddress" placeholder="Хаяг (сонголттой)"><input id="newBranchPhone" placeholder="Утас (сонголттой)"></div><div class="admin-actions"><button class="primary" onclick="addBranch()">＋ Салбар нэмэх</button></div><div id="branchList" style="margin-top:10px"></div></div>
  <div id="adminNotice" class="message"></div>
@@ -211,6 +214,22 @@ function customerLogout(){
  document.getElementById("customerPhone").value="";document.getElementById("trackingInput").value="";
  showMessage("customerMessage","");showMessage("trackingMessage","");
 }
+let siteSettings={kg_price:2500,m3_price:700,open_time:"10:00",close_time:"20:00"};
+async function loadSiteSettings(){
+ const {data,error}=await db.from("site_settings").select("*").eq("id",1).maybeSingle();
+ if(data){siteSettings={...siteSettings,...data};}
+ document.getElementById("settingKg").value=siteSettings.kg_price??2500;
+ document.getElementById("settingM3").value=siteSettings.m3_price??700;
+ document.getElementById("settingOpen").value=siteSettings.open_time||"10:00";
+ document.getElementById("settingClose").value=siteSettings.close_time||"20:00";
+ if(error)document.getElementById("settingsInfo").textContent="DB хүснэгт тохируулах шаардлагатай";
+}
+async function saveSiteSettings(){
+ const payload={id:1,kg_price:Number(document.getElementById("settingKg").value||0),m3_price:Number(document.getElementById("settingM3").value||0),open_time:document.getElementById("settingOpen").value||"10:00",close_time:document.getElementById("settingClose").value||"20:00",updated_at:new Date().toISOString()};
+ const {error}=await db.from("site_settings").upsert(payload);
+ if(error){showMessage("settingsInfo","Хадгалж чадсангүй: "+error.message);return}
+ siteSettings=payload;showMessage("settingsInfo","Хадгалагдлаа ✓");
+}
 async function adminLogin(){
  const email=document.getElementById("adminEmail").value.trim(),password=document.getElementById("adminPassword").value;
  showMessage("adminMessage","Нэвтэрч байна...");
@@ -221,7 +240,7 @@ async function adminLogin(){
  document.getElementById("publicPage").style.display="none";document.getElementById("pageFooter").style.display="none";
  document.getElementById("customerHeader").style.display="none";document.getElementById("adminLogin").style.display="none";
  document.getElementById("adminDashboard").style.display="block";
- await loadAdminParcels();
+ await loadSiteSettings();await loadAdminParcels();
 }
 async function adminLogout(){await db.auth.signOut();document.getElementById("adminDashboard").style.display="none";document.getElementById("adminLogin").style.display="block"}
 
