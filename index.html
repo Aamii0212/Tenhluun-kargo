@@ -92,7 +92,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
    <div><h2>Нэвтрэх</h2><div class="muted">Тэнхлүүн Карго · Ачаагаа хянах</div></div>
   </div>
   <p class="muted">Бүртгэлтэй утасны дугаараа оруулан ачааны мэдээллээ авна уу.</p>
-  <input id="customerPhone" type="tel" inputmode="numeric" maxlength="8" placeholder="☎ Утасны дугаар оруулах..." autocomplete="tel">
+  <input id="customerPhone" type="tel" inputmode="numeric" maxlength="8" placeholder="☎ Утасны дугаар оруулах..." autocomplete="tel" onkeydown="if(event.key===\'Enter\')customerLogin()">
   <button class="primary" id="customerLoginButton" onclick="customerLogin()">➜ Нэвтрэх</button>
   <div id="customerMessage" class="message"></div>
   <p class="muted trust">🔒 Таны мэдээлэл хамгаалагдсан</p>
