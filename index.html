@@ -97,6 +97,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
   <div id="customerMessage" class="message"></div>
   <p class="muted trust">🔒 Таны мэдээлэл хамгаалагдсан</p>
  </div>
+ <div class="branch-box" style="max-width:650px;margin:20px auto"><h3>📦 Захиалсан ачаагаа урьдчилан бүртгүүлэх</h3><p class="muted">Трак кодоо оруулна уу. Агуулахад ирсний дараа ажилтан баталгаажуулна.</p><input id="preRegPhone" type="tel" inputmode="numeric" maxlength="8" placeholder="8 оронтой утасны дугаар"><input id="preRegTracking" placeholder="Трак код"><input id="preRegDescription" placeholder="Барааны нэр / тайлбар (заавал биш)"><button class="primary" onclick="submitPreRegistration()">📨 Бүртгүүлэх</button><div id="preRegMessage" class="message"></div></div>
  <div class="service-grid">
   
   <div id="publicBranches" class="branch-box" style="display:none;grid-column:1/-1"><h3>📍 Салбарын байршил, цагийн хуваарь</h3><div id="publicBranchList">Ачаалж байна...</div></div>
@@ -166,6 +167,14 @@ function classifyStatus(status){
 }
 function statusLabel(group){if(group==="received")return "Хүлээж авсан";if(group==="mongolia")return "Монголд ирсэн";return "Эрээнд ирсэн"}
 
+async function submitPreRegistration(){
+ const phone=cleanPhone(document.getElementById("preRegPhone").value),tracking=document.getElementById("preRegTracking").value.trim(),description=document.getElementById("preRegDescription").value.trim();
+ if(phone.length!==8||!tracking){showMessage("preRegMessage","8 оронтой утас болон трак кодоо зөв оруулна уу.");return}
+ const btn=document.querySelector('button[onclick="submitPreRegistration()"]');btn.disabled=true;btn.textContent="БҮРТГЭЖ БАЙНА...";
+ try{const {error}=await db.from("customer_pre_registrations").insert({customer_phone:phone,tracking_code:tracking,description:description||null});if(error)throw error;showMessage("preRegMessage","✅ Хүсэлт бүртгэгдлээ. Агуулахад ирсний дараа ажилтан баталгаажуулна.");document.getElementById("preRegTracking").value="";document.getElementById("preRegDescription").value=""}
+ catch(e){console.error(e);showMessage("preRegMessage","Бүртгэхэд алдаа гарлаа. Supabase SQL тохиргоо хийгдсэн эсэхийг шалгана уу. "+(e.message||""))}
+ finally{btn.disabled=false;btn.textContent="📨 Бүртгүүлэх"}
+}
 async function customerLogin(){
  const phone=cleanPhone(document.getElementById("customerPhone").value);
  if(phone.length!==8){showMessage("customerMessage","8 оронтой утасны дугаараа оруулна уу.");return}
