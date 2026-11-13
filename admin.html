@@ -258,7 +258,10 @@ async function loadSiteSettings(){
  if(error)document.getElementById("settingsInfo").textContent="DB хүснэгт тохируулах шаардлагатай";
 }
 async function saveSiteSettings(){
- const payload={id:1,kg_price:Number(document.getElementById("settingKg").value||0),m3_price:Number(document.getElementById("settingM3").value||0),open_time:document.getElementById("settingOpen").value||"10:00",close_time:document.getElementById("settingClose").value||"20:00",updated_at:new Date().toISOString()};
+ const kgRaw=document.getElementById("settingKg").value.trim(),m3Raw=document.getElementById("settingM3").value.trim();
+ const kg=Number(kgRaw),m3=Number(m3Raw);
+ if(kgRaw===""||m3Raw===""||!Number.isFinite(kg)||!Number.isFinite(m3)||kg<0||m3<0){showMessage("settingsInfo","Кг болон м³ үнэ 0-ээс багагүй зөв тоо оруулна.");return}
+ const payload={id:1,kg_price:kg,m3_price:m3,open_time:document.getElementById("settingOpen").value||"10:00",close_time:document.getElementById("settingClose").value||"20:00",updated_at:new Date().toISOString()};
  const {error}=await db.from("site_settings").upsert(payload);
  if(error){showMessage("settingsInfo","Хадгалж чадсангүй: "+error.message);return}
  siteSettings=payload;showMessage("settingsInfo","Хадгалагдлаа ✓");
