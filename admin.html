@@ -326,6 +326,7 @@ function exportPaymentsCSV(){
  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="tenhluun-payments.csv";a.click();URL.revokeObjectURL(url);
 }
 function renderAdminRows(rows){
+ rows=[...rows].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
  updateAdminStats();
  const body=document.getElementById("adminParcelRows");
  if(!rows.length){body.innerHTML='<tr><td colspan="7">Бүртгэлтэй ачаа алга.</td></tr>'}
