@@ -381,9 +381,10 @@ async function bulkRegisterParcels(){
  if(!fresh.length){showMessage("bulkRegisterResult","Бүртгэх шинэ код алга. Давхардсан: "+duplicate);return}
  let inserted=0;
  for(let start=0;start<fresh.length;start+=100){
-  const {error}=await db.from("parcels").insert(fresh.slice(start,start+100));
+  const batch=fresh.slice(start,start+100),{data,error}=await db.from("parcels").insert(batch).select("id");
   if(error){showMessage("bulkRegisterResult",""+inserted+" бүртгэгдсэн. Үлдсэн хэсгийн алдаа: "+error.message);await loadAdminParcels();return}
-  inserted+=Math.min(100,fresh.length-start);
+  const count=(data||[]).length;if(count!==batch.length){showMessage("bulkRegisterResult","Багцын бүртгэл баталгаажаагүй ("+count+"/"+batch.length+"). Өмнөх "+inserted+" бүртгэл хадгалагдсан.");await loadAdminParcels();return}
+  inserted+=count;
  }
  await loadAdminParcels();
  out.innerHTML="<b>Бүртгэл амжилттай: "+inserted+"</b><br>Давхардсан/давтсан: "+duplicate+"<br>Алдаатай мөр: "+bad.length+(bad.length?" ("+escapeHTML(bad.join(", "))+")":"");
