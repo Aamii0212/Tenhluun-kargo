@@ -341,7 +341,7 @@ function newParcelForm(){editingParcelId=null;document.getElementById("editorTit
 function editParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;editingParcelId=p.id;document.getElementById("editorTitle").textContent="Ачаа засах";document.getElementById("editTracking").value=p.tracking_code||"";document.getElementById("editName").value=p.customer_name||p.name||"";document.getElementById("editPhone").value=p.customer_phone||p.phone||"";document.getElementById("editPieces").value=p.piece_number??1;document.getElementById("editWeight").value=p.weight_kg??"";document.getElementById("editVolume").value=p.volume_m3??"";document.getElementById("editPrice").value=p.price_mnt??"";document.getElementById("editStatus").value=classifyStatus(p.parcel_status);document.getElementById("editDescription").value=p.description||"";document.getElementById("editBranch").value=p.branch_id||"";document.getElementById("parcelEditor").style.display="block";document.getElementById("parcelEditor").scrollIntoView({behavior:"smooth"})}
 function cancelParcelForm(){document.getElementById("parcelEditor").style.display="none";editingParcelId=null}
 async function saveParcel(){
- const tracking=document.getElementById("editTracking").value.trim(),phone=cleanPhone(document.getElementById("editPhone").value);
+ const tracking=document.getElementById("editTracking").value.trim().toUpperCase(),phone=cleanPhone(document.getElementById("editPhone").value);
  if(!tracking||phone.length!==8){showMessage("adminNotice","Трак код болон 8 оронтой утас заавал оруулна.");return}
  const pieces=Number(document.getElementById("editPieces").value||1),weight=Number(document.getElementById("editWeight").value||0),volume=Number(document.getElementById("editVolume").value||0),manualPrice=document.getElementById("editPrice").value.trim(),price=Number(manualPrice||((weight*siteSettings.kg_price)+(volume*siteSettings.m3_price*500)));
  if(!Number.isInteger(pieces)||pieces<1||!Number.isFinite(weight)||weight<0||!Number.isFinite(volume)||volume<0||!Number.isFinite(price)||price<0){showMessage("adminNotice","Ширхэг бүхэл 1-ээс дээш тоо; жин, эзлэхүүн, үнэ 0-ээс багагүй зөв тоо байна.");return}
@@ -361,7 +361,7 @@ async function bulkRegisterParcels(){
  const records=[],bad=[],seenInput=new Set();
  for(let n=0;n<lines.length;n++){
   const parts=lines[n].split(/[,;\t]+/).map(x=>x.trim());
-  const phone=cleanPhone(parts[0]||""),tracking=(parts[1]||"").trim(),name=(parts[2]||"").trim(),key=tracking.toLowerCase();
+  const phone=cleanPhone(parts[0]||""),tracking=(parts[1]||"").trim().toUpperCase(),name=(parts[2]||"").trim(),key=tracking.toLowerCase();
   if(phone.length!==8||!tracking){bad.push(n+1);continue}
   if(seenInput.has(key)){bad.push(n+1);continue}seenInput.add(key);
   records.push({tracking_code:tracking,customer_phone:phone,customer_name:name,piece_number:1,weight_kg:0,volume_m3:0,price_mnt:0,parcel_status:"ereen"});
