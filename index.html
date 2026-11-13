@@ -169,7 +169,7 @@ function classifyStatus(status){
 function statusLabel(group){if(group==="received")return "Хүлээж авсан";if(group==="mongolia")return "Монголд ирсэн";return "Эрээнд ирсэн"}
 
 async function submitPreRegistration(){
- const phone=cleanPhone(document.getElementById("preRegPhone").value),tracking=document.getElementById("preRegTracking").value.trim(),description=document.getElementById("preRegDescription").value.trim();
+ const phone=cleanPhone(document.getElementById("preRegPhone").value),tracking=document.getElementById("preRegTracking").value.trim().toUpperCase(),description=document.getElementById("preRegDescription").value.trim();
  if(phone.length!==8||!tracking){showMessage("preRegMessage","8 оронтой утас болон трак кодоо зөв оруулна уу.");return}
  const btn=document.querySelector('button[onclick="submitPreRegistration()"]');btn.disabled=true;btn.textContent="БҮРТГЭЖ БАЙНА...";
  try{const {error}=await db.from("customer_pre_registrations").insert({customer_phone:phone,tracking_code:tracking,description:description||null});if(error)throw error;showMessage("preRegMessage","✅ Хүсэлт бүртгэгдлээ. Агуулахад ирсний дараа ажилтан баталгаажуулна.");document.getElementById("preRegTracking").value="";document.getElementById("preRegDescription").value=""}
