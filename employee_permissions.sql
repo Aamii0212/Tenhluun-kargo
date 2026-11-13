@@ -56,9 +56,15 @@ BEGIN
     NEW.customer_name IS DISTINCT FROM OLD.customer_name OR
     NEW.customer_phone IS DISTINCT FROM OLD.customer_phone OR
     NEW.branch_id IS DISTINCT FROM OLD.branch_id OR
-    NEW.created_at IS DISTINCT FROM OLD.created_at
+    NEW.created_at IS DISTINCT FROM OLD.created_at OR
+    NEW.piece_number IS DISTINCT FROM OLD.piece_number OR
+    NEW.description IS DISTINCT FROM OLD.description OR
+    NEW.parcel_status IS DISTINCT FROM OLD.parcel_status AND NEW.parcel_status <> 'received' OR
+    NEW.paid_at IS DISTINCT FROM OLD.paid_at AND NEW.parcel_status <> 'received' OR
+    NEW.payment_method IS DISTINCT FROM OLD.payment_method AND NEW.parcel_status <> 'received' OR
+    NEW.received_by IS DISTINCT FROM OLD.received_by AND NEW.parcel_status <> 'received'
   ) THEN
-    RAISE EXCEPTION 'Ажилтан зөвхөн үнэ, жин, хүлээлгэн өгөх мэдээлэл өөрчилнө.';
+    RAISE EXCEPTION 'Ажилтан зөвхөн жин, эзлэхүүн, үнэ болон ачааг хүлээлгэн өгөх мэдээлэл өөрчилнө.';
   END IF;
 
   RETURN NEW;
