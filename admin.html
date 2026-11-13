@@ -290,14 +290,18 @@ async function adminLogout(){await db.auth.signOut();document.getElementById("ad
 let adminParcels=[],editingParcelId=null,adminBranches=[];
 function adminStatusLabel(s){return s==="received"?"Хүлээж авсан":s==="mongolia"?"Монголд ирсэн":"Эрээнд ирсэн"}
 async function loadAdminParcels(){
- const body=document.getElementById("adminParcelRows");body.innerHTML='<tr><td colspan="7">Ачаа ачаалж байна...</td></tr>';
- let all=[],from=0,batch=1000;
- while(true){
-  const {data,error}=await db.from("parcels").select("*").order("created_at",{ascending:false}).range(from,from+batch-1);
-  if(error){console.error(error);body.innerHTML='<tr><td colspan="7">Ачаа татахад алдаа: '+escapeHTML(error.message)+'</td></tr>';showMessage("adminNotice","Supabase parcels/RLS: "+error.message);return}
-  const rows=data||[];all=all.concat(rows);if(rows.length<batch)break;from+=batch;
- }
- adminParcels=all;await loadBranches();renderAdminRows(adminParcels);showMessage("adminNotice",""); 
+ const body=document.getElementById("adminParcelRows");if(!body)return;
+ body.innerHTML='<tr><td colspan="7">Ачаа ачаалж байна...</td></tr>';
+ try{
+  // Supabase 1000 мөрийн хязгаарыг давж бүх ачааг хэсэгчлэн татна.
+  const all=[];let from=0;const batchSize=1000;
+  while(true){
+   const {data,error}=await db.from("parcels").select("*").order("created_at",{ascending:false}).range(from,from+batchSize-1);
+   if(error)throw error;const part=data||[];all.push(...part);
+   if(part.length<batchSize)break;from+=batchSize;
+  }
+  adminParcels=all;await loadBranches();renderAdminRows(adminParcels);showMessage("adminNotice","");
+ }catch(error){console.error("Ачааны жагсаалт татах:",error);body.innerHTML='<tr><td colspan="7">Ачаа татахад алдаа: '+escapeHTML(error.message||error)+'</td></tr>';showMessage("adminNotice","Ачаа татах алдаа: "+(error.message||error));}
 }
 function updateAdminStats(){
  const total=adminParcels.length,ereen=adminParcels.filter(p=>classifyStatus(p.parcel_status)==="ereen").length,mongolia=adminParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia").length,received=adminParcels.filter(p=>classifyStatus(p.parcel_status)==="received"),revenue=received.reduce((sum,p)=>sum+Number(p.price_mnt||0),0),today=new Date().toLocaleDateString("en-CA");
