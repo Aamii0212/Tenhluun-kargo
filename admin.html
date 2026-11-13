@@ -119,8 +119,8 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
 </section>
 <section id="adminLogin" class="hidden">
  <h2 style="text-align:center;margin-top:0">Админы нэвтрэлт</h2>
- <input id="adminEmail" type="email" placeholder="Имэйл">
- <input id="adminPassword" type="password" placeholder="Нууц үг">
+ <input id="adminEmail" type="email" placeholder="Имэйл" onkeydown="if(event.key===\'Enter\')adminLogin()">
+ <input id="adminPassword" type="password" placeholder="Нууц үг" onkeydown="if(event.key===\'Enter\')adminLogin()">
  <button class="primary" onclick="adminLogin()">НЭВТРЭХ</button>
  <div id="adminMessage" class="message"></div>
 </section>
