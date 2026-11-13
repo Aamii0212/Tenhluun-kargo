@@ -352,8 +352,10 @@ async function saveParcel(){
  const payload={tracking_code:tracking,customer_name:document.getElementById("editName").value.trim(),customer_phone:phone,piece_number:pieces,weight_kg:weight,volume_m3:volume,price_mnt:price,parcel_status:requestedStatus,branch_id:document.getElementById("editBranch").value||null,description:document.getElementById("editDescription").value.trim()};
  const duplicateQuery=db.from("parcels").select("id").eq("tracking_code",tracking).limit(1);const {data:duplicate,error:duplicateError}=editingParcelId?await duplicateQuery.neq("id",editingParcelId).maybeSingle():await duplicateQuery.maybeSingle();if(duplicateError){showMessage("adminNotice","Трак код шалгах алдаа: "+duplicateError.message);return}if(duplicate){showMessage("adminNotice","⚠️ "+tracking+" трак кодтой ачаа аль хэдийн бүртгэлтэй байна.");return}
  showMessage("adminNotice","Хадгалж байна...");
- let result=editingParcelId?await db.from("parcels").update(payload).eq("id",editingParcelId):await db.from("parcels").insert(payload);
+ let result=editingParcelId?await db.from("parcels").update(payload).eq("id",editingParcelId).select("id").maybeSingle():await db.from("parcels").insert(payload).select("id").maybeSingle();
  if(result.error){showMessage("adminNotice","Хадгалах алдаа: "+result.error.message);return}
+ if(editingParcelId&&!result.data){showMessage("adminNotice","Ачаа олдсонгүй эсвэл засах эрхгүй байна. Өөрчлөлт хадгалагдсангүй.");return}
+ if(!editingParcelId&&!result.data){showMessage("adminNotice","Бүртгэл баталгаажаагүй. Ачаа нэмэгдсэн эсэхийг шалгана уу.");return}
  cancelParcelForm();await loadAdminParcels();showMessage("adminNotice","Амжилттай хадгаллаа.");
 }
 async function bulkRegisterParcels(){
