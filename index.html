@@ -228,7 +228,7 @@ async function searchNoNameParcel(){
  const code=document.getElementById("noNameTrackingInput").value.trim(),out=document.getElementById("noNameTrackingResult");
  if(!code){out.textContent="Трак кодоо оруулна уу.";return}
  out.textContent="Хайж байна...";
- const {data,error}=await db.from("parcels").select("tracking_code,parcel_status,weight_kg,volume_m3,created_at").ilike("tracking_code",code).limit(1).maybeSingle();
+ const {data,error}=await db.from("parcels").select("tracking_code,parcel_status,weight_kg,volume_m3,created_at").eq("tracking_code",code).limit(1).maybeSingle();
  if(error){out.textContent="Хайлт хийхэд алдаа гарлаа.";return}
  if(!data){out.textContent="Энэ трак кодтой ачаа олдсонгүй.";return}
  out.innerHTML="<b>Ачаа олдлоо ✓</b><p>Трак код: "+escapeHTML(data.tracking_code)+"</p><p>Төлөв: "+escapeHTML(data.parcel_status||"Бүртгэлтэй")+"</p><p>Жин: "+escapeHTML(String(data.weight_kg||0))+" кг</p><p>Эзлэхүүн: "+escapeHTML(String(data.volume_m3||0))+" м³</p>";
