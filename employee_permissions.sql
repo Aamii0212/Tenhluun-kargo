@@ -27,14 +27,14 @@ WITH CHECK (EXISTS (
 -- Ажилтан ачаа шинээр үүсгэх/устгах эрхгүй (админд зөвшөөрнө)
 DROP POLICY IF EXISTS cargo_only_admin_insert_parcels ON public.parcels;
 CREATE POLICY cargo_only_admin_insert_parcels ON public.parcels
-AS RESTRICTIVE FOR INSERT TO authenticated
+FOR INSERT TO authenticated
 WITH CHECK (EXISTS (
   SELECT 1 FROM public.profiles p WHERE p.id=auth.uid() AND p.role='admin'
 ));
 
 DROP POLICY IF EXISTS cargo_only_admin_delete_parcels ON public.parcels;
 CREATE POLICY cargo_only_admin_delete_parcels ON public.parcels
-AS RESTRICTIVE FOR DELETE TO authenticated
+FOR DELETE TO authenticated
 USING (EXISTS (
   SELECT 1 FROM public.profiles p WHERE p.id=auth.uid() AND p.role='admin'
 ));
