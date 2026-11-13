@@ -97,7 +97,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
   <div id="customerMessage" class="message"></div>
   <p class="muted trust">🔒 Таны мэдээлэл хамгаалагдсан</p>
  </div>
- <div class="branch-box" style="max-width:650px;margin:20px auto"><h3>📦 Захиалсан ачаагаа урьдчилан бүртгүүлэх</h3><p class="muted">Трак кодоо оруулна уу. Агуулахад ирсний дараа ажилтан баталгаажуулна.</p><input id="preRegPhone" type="tel" inputmode="numeric" maxlength="8" placeholder="8 оронтой утасны дугаар"><input id="preRegTracking" placeholder="Трак код"><input id="preRegDescription" placeholder="Барааны нэр / тайлбар (заавал биш)"><button class="primary" onclick="submitPreRegistration()">📨 Бүртгүүлэх</button><div id="preRegMessage" class="message"></div></div>
+
  <div class="service-grid">
   
   <div id="publicBranches" class="branch-box" style="display:none;grid-column:1/-1"><h3>📍 Салбарын байршил, цагийн хуваарь</h3><div id="publicBranchList">Ачаалж байна...</div></div>
@@ -111,6 +111,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
 </section>
 <section id="customerDashboard" style="display:none">
  <div class="dashboard-head"><div><h2>Миний ачаанууд</h2><div class="muted" id="customerPhoneLabel"></div></div><button class="logout" onclick="customerLogout()">Гарах</button></div>
+ <div class="branch-box" style="margin:18px 0"><h3>📦 Захиалсан ачаагаа урьдчилан бүртгүүлэх</h3><p class="muted">Трак кодоо оруулна уу. Агуулахад ирсний дараа ажилтан баталгаажуулна.</p><input id="preRegPhone" type="tel" inputmode="numeric" maxlength="8" placeholder="8 оронтой утасны дугаар"><input id="preRegTracking" placeholder="Трак код"><input id="preRegDescription" placeholder="Барааны нэр / тайлбар (заавал биш)"><button class="primary" onclick="submitPreRegistration()">📨 Бүртгүүлэх</button><div id="preRegMessage" class="message"></div></div>
  <div class="tabs">
   <button class="tab active" id="tabEreen" onclick="showTab('ereen')"><span class="count" id="countEreen">0</span>Эрээнд ирсэн</button>
   <button class="tab" id="tabMongolia" onclick="showTab('mongolia')"><span class="count" id="countMongolia">0</span>Монголд ирсэн</button>
