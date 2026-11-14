@@ -33,7 +33,15 @@ CREATE INDEX IF NOT EXISTS parcels_paid_at_idx ON public.parcels(paid_at);
 ALTER TABLE public.branches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
 
--- Admin л салбар болон сайтын тохиргоог өөрчилнө.
+-- Public website үнэ/салбарын мэдээллийг уншина; өөрчлөх эрх зөвхөн admin.
+DROP POLICY IF EXISTS cargo_public_read_branches ON public.branches;
+CREATE POLICY cargo_public_read_branches ON public.branches
+FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS cargo_public_read_site_settings ON public.site_settings;
+CREATE POLICY cargo_public_read_site_settings ON public.site_settings
+FOR SELECT TO anon, authenticated USING (true);
+
 DROP POLICY IF EXISTS cargo_admin_manage_branches ON public.branches;
 CREATE POLICY cargo_admin_manage_branches ON public.branches
 FOR ALL TO authenticated
@@ -46,6 +54,4 @@ FOR ALL TO authenticated
 USING (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin'))
 WITH CHECK (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin'));
 
--- Админ самбарын public key-ээр хүснэгтэд шууд нэвтрэхийг хаана.
--- Хэрэглэгчийн үнэ/ажлын цагийг public RPC эсвэл зөвшөөрөгдсөн endpoint-оор уншдаг бол
--- түүнд тусдаа, зөвхөн SELECT policy-г тохируулна.
+-- Ачааны RLS policy-г employee_permissions.sql тусад нь тохируулна.
