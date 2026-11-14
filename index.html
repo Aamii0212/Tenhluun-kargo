@@ -236,7 +236,7 @@ function copyEreenAddress(){
  t.remove();document.getElementById("ereenCopyMsg").textContent=ok?"Хуулагдлаа ✓":"Хаягийг гараар сонгоод хуулна уу";
  if(!ok){const p=document.createElement("textarea");p.value=address;p.style.width="100%";document.getElementById("ereenCopyMsg").after(p);p.focus();p.select();}
 }
-async function showBranchLocations(){
+async async function showBranchLocations(){
  const box=document.getElementById("publicBranches");box.style.display=box.style.display==="none"?"block":"none";if(box.style.display==="none")return;
  const list=document.getElementById("publicBranchList");list.textContent="Ачаалж байна...";
  try{
@@ -260,7 +260,7 @@ async function searchNoNameParcel(){
 }
 function showNoNameCheck(){const b=document.getElementById("noNameCheckBox");b.style.display=b.style.display==="none"?"block":"none";}
 function goPhoneCheck(){document.getElementById("customerPhone").scrollIntoView({behavior:"smooth"});document.getElementById("customerPhone").focus();}
-async function showPricing(){
+async async function showPricing(){
  const box=document.getElementById("publicPricing");box.style.display=box.style.display==="none"?"block":"none";
  try{const {data}=await db.from("site_settings").select("kg_price,m3_price,open_time,close_time").eq("id",1).maybeSingle();
  if(data){document.getElementById("publicKgPrice").textContent=Number(data.kg_price).toLocaleString()+" ₮";document.getElementById("publicM3Price").textContent=Number(data.m3_price).toLocaleString()+" юань";document.getElementById("publicHours").textContent=(data.open_time||"10:00")+"–"+(data.close_time||"20:00");}}
