@@ -605,7 +605,9 @@ async function handoverParcel(id){
  if(!confirm((p.tracking_code||"Ачаа")+" — "+amount.toLocaleString()+"₮ төлбөрийг хүлээн авч хүлээлгэн өгөх үү?"))return;
  const staff=prompt("Хүлээлгэн өгсөн ажилтны нэр:");if(!staff||!staff.trim())return;
  const method=prompt("Төлбөрийн хэлбэр:\n1 = Бэлэн\n2 = Шилжүүлэг","1");if(method!=="1"&&method!=="2"){alert("1 эсвэл 2 сонгоно уу.");return}
- const {data:updated,error}=await db.from("parcels").update({parcel_status:"received",paid_at:p.paid_at||new Date().toISOString(),payment_method:p.paid_at?p.payment_method:(method==="1"?"cash":"transfer"),received_by:staff.trim()}).eq("id",id).eq("tracking_code",p.tracking_code).eq("price_mnt",p.price_mnt).is("paid_at",p.paid_at||null).eq("parcel_status",p.parcel_status).select("id").maybeSingle();
+ let handoverQuery=db.from("parcels").update({parcel_status:"received",paid_at:p.paid_at||new Date().toISOString(),payment_method:p.paid_at?p.payment_method:(method==="1"?"cash":"transfer"),received_by:staff.trim()}).eq("id",id).eq("tracking_code",p.tracking_code).eq("price_mnt",p.price_mnt);
+ handoverQuery=p.paid_at?handoverQuery.eq("paid_at",p.paid_at):handoverQuery.is("paid_at",null);
+ const {data:updated,error}=await handoverQuery.eq("parcel_status",p.parcel_status).select("id").maybeSingle();
  if(error){showMessage("adminNotice","Хүлээлгэн өгөх алдаа. SQL баганууд нэмэгдсэн эсэхийг шалгана уу: "+error.message);return}
  if(!updated){showMessage("adminNotice","Ачаа аль хэдийн хүлээлгэн өгөгдсөн эсвэл шинэчлэгдсэн байна.");await loadAdminParcels();return}
  await loadAdminParcels();showMessage("adminNotice","Хүлээлгэн өгч, төлбөрийн мэдээлэл бүртгэлээ.");
