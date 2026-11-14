@@ -4,11 +4,21 @@ create table if not exists public.customer_pre_registrations (
   customer_phone text not null check (customer_phone ~ '^[0-9]{8}$'),
   tracking_code text not null,
   description text,
-  status text not null default 'pending' check (status in ('pending','confirmed','rejected')),
+  status text not null default 'pending' check (status in ('pending','confirmed','approved','rejected')),
+  admin_note text,
+  reviewed_at timestamptz,
   created_at timestamptz not null default now()
 );
 
-alter table public.customer_pre_registrations enable row level security;
+
+-- Өмнөх хүснэгтэд эдгээр багана/төлөв байгаагүй бол нэмнэ.
+alter table public.customer_pre_registrations add column if not exists admin_note text;
+alter table public.customer_pre_registrations add column if not exists reviewed_at timestamptz;
+\n
+-- Хуучин CHECK constraint-ийг шинэ төлөвүүдтэй нийцүүлнэ.
+alter table public.customer_pre_registrations drop constraint if exists customer_pre_registrations_status_check;
+alter table public.customer_pre_registrations add constraint customer_pre_registrations_status_check check (status in ('pending','confirmed','approved','rejected'));
+\nalter table public.customer_pre_registrations enable row level security;
 -- Ижил утас + трак кодоор pending хүсэлтийг давхар үүсгэхээс хамгаална.
 create unique index if not exists customer_pre_reg_pending_unique
 on public.customer_pre_registrations (customer_phone, lower(trim(tracking_code)))
