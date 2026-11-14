@@ -276,10 +276,15 @@ async function loadSiteSettings(){
  if(error)document.getElementById("settingsInfo").textContent="DB хүснэгт тохируулах шаардлагатай";
 }
 async function saveSiteSettings(){
- const payload={id:1,kg_price:Number(document.getElementById("settingKg").value||0),m3_price:Number(document.getElementById("settingM3").value||0),open_time:document.getElementById("settingOpen").value||"10:00",close_time:document.getElementById("settingClose").value||"20:00",updated_at:new Date().toISOString()};
+ const kgRaw=document.getElementById("settingKg").value.trim(),m3Raw=document.getElementById("settingM3").value.trim();
+ const open=document.getElementById("settingOpen").value,close=document.getElementById("settingClose").value;
+ const kg=Number(kgRaw),m3=Number(m3Raw);
+ if(!kgRaw||!m3Raw||!Number.isFinite(kg)||!Number.isFinite(m3)||kg<0||m3<0){showMessage("settingsInfo","Кг болон м³ үнийг 0-ээс багагүй тоогоор бөглөнө үү.");return}
+ if(!open||!close){showMessage("settingsInfo","Ажлын эхлэх, дуусах цагийг сонгоно уу.");return}
+ const payload={id:1,kg_price:kg,m3_price:m3,open_time:open,close_time:close,updated_at:new Date().toISOString()};
  const {error}=await db.from("site_settings").upsert(payload);
  if(error){showMessage("settingsInfo","Хадгалж чадсангүй: "+error.message);return}
- siteSettings=payload;showMessage("settingsInfo","Хадгалагдлаа ✓");
+ siteSettings=payload;showMessage("settingsInfo","Үнэ, ажлын цаг хадгалагдлаа ✓");
 }
 function openAdminLoginPage(){document.getElementById("publicPage").style.display="none";document.getElementById("customerDashboard").style.display="none";document.getElementById("customerHeader").style.display="none";document.getElementById("pageFooter").style.display="none";document.querySelectorAll("body > a").forEach(a=>a.style.display="none");document.getElementById("adminLogin").classList.remove("hidden");document.getElementById("adminLogin").style.display="block";document.getElementById("adminLogin").scrollIntoView({block:"start"});}
 if(new URLSearchParams(location.search).get("admin")==="1"){openAdminLoginPage()}
