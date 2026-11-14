@@ -262,7 +262,7 @@ async function showPricing(){
  if(data){document.getElementById("publicKgPrice").textContent=Number(data.kg_price).toLocaleString()+" ₮";document.getElementById("publicM3Price").textContent=Number(data.m3_price).toLocaleString()+" юань";document.getElementById("publicHours").textContent=(data.open_time||"10:00")+"–"+(data.close_time||"20:00");}}
  catch(e){console.error(e)}
 }
-async async function loadSiteSettings(){
+async function loadSiteSettings(){
  const {data,error}=await db.from("site_settings").select("*").eq("id",1).maybeSingle();
  if(data){siteSettings={...siteSettings,...data};}
  document.getElementById("settingKg").value=siteSettings.kg_price??2500;
