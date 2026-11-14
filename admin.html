@@ -499,7 +499,7 @@ async function removeBranch(id){
  const b=adminBranches.find(x=>String(x.id)===String(id));if(!b)return;
  const attached=adminParcels.filter(p=>String(p.branch_id||"")===String(id)).length;
  if(!confirm('"'+b.name+'" салбарыг устгах уу? '+attached+' ачааны салбарын холбоос сална. Ачааны бүртгэл өөрөө устахгүй.'))return;
- if(attached){const {error:parcelError}=await db.from("parcels").update({branch_id:null}).eq("branch_id",id);if(parcelError){showMessage("adminNotice","Ачааг салбараас салгах алдаа: "+parcelError.message);return}}
+ if(attached){const {data:detached,error:parcelError}=await db.from("parcels").update({branch_id:null}).eq("branch_id",id).select("id");if(parcelError){showMessage("adminNotice","Ачааг салбараас салгах алдаа: "+parcelError.message);return}if((detached||[]).length<attached){showMessage("adminNotice","Салбарын холбоос бүрэн салсан эсэх баталгаажаагүй ("+(detached||[]).length+"/"+attached+"). Салбарыг устгахгүй; дахин шалгана уу.");await loadAdminParcels();return}}
  const {error}=await db.from("branches").delete().eq("id",id);
  if(error){showMessage("adminNotice","Салбар устгах алдаа: "+error.message);return}
  await loadBranches();await loadAdminParcels();showMessage("adminNotice","Салбар устгалаа. Ачааны бүртгэл хадгалагдсан.");
