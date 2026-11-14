@@ -119,6 +119,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
  </div>
  <div id="parcelList"></div><div class="branch-box" id="branchInfo"></div>
 </section>
+<section id="passwordResetPanel" class="hidden" style="max-width:440px;margin:30px auto;background:#fff;border:1px solid #f3d9e8;border-radius:20px;padding:25px"><h2>Шинэ админ нууц үг</h2><p>Шинэ нууц үгээ хоёр удаа оруулна уу.</p><input id="resetPassword1" type="password" placeholder="Шинэ нууц үг (8+ тэмдэгт)"><input id="resetPassword2" type="password" placeholder="Нууц үг давтах"><button class="primary" onclick="saveNewPassword()">Нууц үг хадгалах</button><div id="resetPasswordMessage" class="message"></div></section>
 <section id="adminLogin" class="hidden">
  <h2 style="text-align:center;margin-top:0">Админы нэвтрэлт</h2>
  <input id="adminEmail" type="email" placeholder="Имэйл">
@@ -275,6 +276,24 @@ async function saveSiteSettings(){
 }
 function openAdminLoginPage(){document.getElementById("publicPage").style.display="none";document.getElementById("customerDashboard").style.display="none";document.getElementById("customerHeader").style.display="none";document.getElementById("pageFooter").style.display="none";document.querySelectorAll("body > a").forEach(a=>a.style.display="none");document.getElementById("adminLogin").classList.remove("hidden");document.getElementById("adminLogin").style.display="block";document.getElementById("adminLogin").scrollIntoView({block:"start"});}
 if(new URLSearchParams(location.search).get("admin")==="1"){openAdminLoginPage()}
+function checkPasswordRecovery(){
+ const hash=new URLSearchParams(location.hash.slice(1));
+ if(hash.get("type")!=="recovery")return;
+ document.getElementById("publicPage").style.display="none";
+ document.getElementById("pageFooter").style.display="none";
+ document.getElementById("passwordResetPanel").classList.remove("hidden");
+ document.getElementById("passwordResetPanel").style.display="block";
+}
+async function saveNewPassword(){
+ const a=document.getElementById("resetPassword1").value,b=document.getElementById("resetPassword2").value,m=document.getElementById("resetPasswordMessage");
+ if(a.length<8){m.textContent="Нууц үг 8-аас дээш тэмдэгттэй байна.";return}
+ if(a!==b){m.textContent="Нууц үг таарахгүй байна.";return}
+ const {error}=await db.auth.updateUser({password:a});
+ if(error){m.textContent="Алдаа: "+error.message;return}
+ m.textContent="Нууц үг амжилттай шинэчлэгдлээ. Админ нэвтрэлт рүү буцна уу.";
+ setTimeout(()=>location.href="https://tenhluun-kargo.vercel.app",1200);
+}
+document.addEventListener("DOMContentLoaded",checkPasswordRecovery);
 async function adminLogin(){
  const email=document.getElementById("adminEmail").value.trim(),password=document.getElementById("adminPassword").value;
  const msg=document.getElementById("adminMessage");msg.textContent="Нэвтэрч байна...";
