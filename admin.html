@@ -568,9 +568,15 @@ async function saveParcel(){
  const payload={tracking_code:tracking,customer_name:document.getElementById("editName").value.trim(),customer_phone:phone,piece_number:pieces,weight_kg:weight,volume_m3:volume,price_mnt:price,parcel_status:requestedStatus,branch_id:document.getElementById("editBranch").value||null,description:document.getElementById("editDescription").value.trim()};
  const duplicateQuery=db.from("parcels").select("id").ilike("tracking_code",tracking).limit(1);const {data:duplicate,error:duplicateError}=editingParcelId?await duplicateQuery.neq("id",editingParcelId).maybeSingle():await duplicateQuery.maybeSingle();if(duplicateError){showMessage("adminNotice","Трак код шалгах алдаа: "+duplicateError.message);return}if(duplicate){showMessage("adminNotice","⚠️ "+tracking+" трак кодтой ачаа аль хэдийн бүртгэлтэй байна.");return}
  showMessage("adminNotice","Хадгалж байна...");
- let result=editingParcelId?await db.from("parcels").update(payload).eq("id",editingParcelId).select("id").maybeSingle():await db.from("parcels").insert(payload).select("id").maybeSingle();
+ let result;
+ if(editingParcelId){
+  const prior=existingParcel;
+  let updateQuery=db.from("parcels").update(payload).eq("id",editingParcelId).eq("tracking_code",prior.tracking_code).eq("customer_phone",prior.customer_phone||prior.phone||"").eq("price_mnt",prior.price_mnt).eq("parcel_status",prior.parcel_status);
+  updateQuery=prior.paid_at?updateQuery.eq("paid_at",prior.paid_at):updateQuery.is("paid_at",null);
+  result=await updateQuery.select("id").maybeSingle();
+ }else result=await db.from("parcels").insert(payload).select("id").maybeSingle();
  if(result.error){showMessage("adminNotice","Хадгалах алдаа: "+result.error.message);return}
- if(editingParcelId&&!result.data){showMessage("adminNotice","Ачаа олдсонгүй эсвэл засах эрхгүй байна. Өөрчлөлт хадгалагдсангүй.");return}
+ if(editingParcelId&&!result.data){showMessage("adminNotice","Ачааны мэдээлэл зэрэг өөрчлөгдсөн эсвэл засах эрхгүй байна. Шинэчилж дахин шалгана уу.");await loadAdminParcels();return}
  if(!editingParcelId&&!result.data){showMessage("adminNotice","Бүртгэл баталгаажаагүй. Ачаа нэмэгдсэн эсэхийг шалгана уу.");return}
  cancelParcelForm();await loadAdminParcels();showMessage("adminNotice","Амжилттай хадгаллаа.");
 }
