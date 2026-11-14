@@ -180,7 +180,7 @@ async function submitPreRegistration(){
  finally{btn.disabled=false;btn.textContent="📨 Бүртгүүлэх"}
 }
 async function customerLogin(){
- const phone=cleanPhone(document.getElementById("customerPhone").value);
+ const phone=cleanPhone(document.getElementById("customerPhone").value).slice(-8);
  if(phone.length!==8){showMessage("customerMessage","8 оронтой утасны дугаараа оруулна уу.");return}
  const btn=document.getElementById("customerLoginButton");btn.disabled=true;btn.textContent="ШАЛГАЖ БАЙНА...";showMessage("customerMessage","");
  try{
