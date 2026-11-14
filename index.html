@@ -225,10 +225,12 @@ function showEreenAddress(){
  const box=document.getElementById("ereenAddressBox");box.style.display=box.style.display==="none"?"block":"none";
  document.getElementById("ereenAddressText").innerHTML='<p><b>腾赫伦</b></p><p>18847960337</p><p id="ereenCopyText">内蒙古自治区锡林郭勒盟二连浩特市<br>利众物流园东门外三颗星货运部</p><button class="primary" onclick="copyEreenAddress()">📋 Хаяг хуулах</button><span id="ereenCopyMsg" style="margin-left:8px"></span>';
 }
-async function copyEreenAddress(){
+function copyEreenAddress(){
  const address="内蒙古自治区锡林郭勒盟二连浩特市利众物流园东门外三颗星货运部";
- try{await navigator.clipboard.writeText(address);document.getElementById("ereenCopyMsg").textContent="Хуулагдлаа ✓";}
- catch(e){const t=document.createElement("textarea");t.value=address;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();document.getElementById("ereenCopyMsg").textContent="Хуулагдлаа ✓";}
+ const t=document.createElement("textarea");t.value=address;t.style.position="fixed";t.style.opacity="0";document.body.appendChild(t);t.focus();t.select();
+ let ok=false;try{ok=document.execCommand("copy");}catch(e){}
+ t.remove();document.getElementById("ereenCopyMsg").textContent=ok?"Хуулагдлаа ✓":"Хаягийг гараар сонгоод хуулна уу";
+ if(!ok){const p=document.createElement("textarea");p.value=address;p.style.width="100%";document.getElementById("ereenCopyMsg").after(p);p.focus();p.select();}
 }
 async function showBranchLocations(){
  const box=document.getElementById("publicBranches");box.style.display=box.style.display==="none"?"block":"none";if(box.style.display==="none")return;
