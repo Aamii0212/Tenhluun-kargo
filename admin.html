@@ -580,7 +580,7 @@ async function bulkMarkEreen(){
  const protectedCount=(rows||[]).length-eligible.length;
  let updated=0;
  for(const p of eligible){
-  const {data:changed,error:updateError}=await db.from("parcels").update({parcel_status:"ereen"}).eq("id",p.id).neq("parcel_status","received").select("id").maybeSingle();
+  const {data:changed,error:updateError}=await db.from("parcels").update({parcel_status:"ereen"}).eq("id",p.id).eq("tracking_code",p.tracking_code).eq("parcel_status",p.parcel_status).neq("parcel_status","received").select("id").maybeSingle();
   if(updateError){showMessage("bulkEreenResult",updated+" шинэчлэгдсэн. Алдаа: "+updateError.message);await loadAdminParcels();return}
   if(changed)updated++;
  }
