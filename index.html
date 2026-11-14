@@ -421,7 +421,7 @@ async function scanTracking(){
 }
 async function saveParcel(){
  const trackingRaw=document.getElementById("editTracking").value,phone=cleanPhone(document.getElementById("editPhone").value);
- const codes=[...new Set(trackingRaw.split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean))];
+ const codes=[...new Set(trackingRaw.split(/[\s,;]+/).map(x=>x.trim().toUpperCase()).filter(Boolean))];
  if(!codes.length||phone.length!==8){showMessage("adminNotice","Трак код болон 8 оронтой утас заавал оруулна.");return}
  const requestedStatus=document.getElementById("editStatus").value,existingParcel=editingParcelId?adminParcels.find(p=>String(p.id)===String(editingParcelId)):null;
  if(requestedStatus==="received"&&(!existingParcel||classifyStatus(existingParcel.parcel_status)!=="received")){showMessage("adminNotice","Ачааг хүлээлгэн өгсөн төлөвт гараар оруулахгүй.");return}
