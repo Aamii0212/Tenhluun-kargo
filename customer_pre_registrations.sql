@@ -4,7 +4,7 @@ create table if not exists public.customer_pre_registrations (
   tracking_code text not null,
   customer_phone text not null,
   description text,
-  status text not null default 'pending' check (status in ('pending','approved','rejected')),
+  status text not null default 'pending' check (status in ('pending','approved','rejected','confirmed')),
   admin_note text,
   created_at timestamptz not null default now(),
   reviewed_at timestamptz
