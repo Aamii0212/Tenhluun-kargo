@@ -530,6 +530,7 @@ async function bulkMarkEreen(){
 }
 async function handoverParcel(id){
  const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;
+ if(classifyStatus(p.parcel_status)==="received"){showMessage("adminNotice","Энэ ачаа өмнө нь хүлээлгэн өгөгдсөн байна.");return}
  if(!confirm((p.tracking_code||"Ачаа")+"-г хүлээлгэн өгч, төлбөр бүртгэх үү?"))return;
  const staff=prompt("Хүлээлгэн өгсөн ажилтны нэр:");if(!staff||!staff.trim())return;
  const method=prompt("Төлбөрийн хэлбэр:\\n1 = Бэлэн\\n2 = Шилжүүлэг","1");if(method!=="1"&&method!=="2"){alert("1 эсвэл 2 сонгоно уу.");return}
