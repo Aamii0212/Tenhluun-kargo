@@ -571,15 +571,15 @@ async function bulkMarkEreen(){
 async function handoverParcel(id){
  const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;
  if(classifyStatus(p.parcel_status)==="received"){showMessage("adminNotice","Энэ ачаа өмнө нь хүлээлгэн өгөгдсөн байна.");return}
- if(!confirm((p.tracking_code||"Ачаа")+"-г хүлээлгэн өгч, төлбөр бүртгэх үү?"))return;
+ const amount=Number(p.price_mnt||0);if(!Number.isFinite(amount)||amount<=0){showMessage("adminNotice","Хүлээлгэн өгөхийн өмнө ачааны үнийг 0-ээс дээш зөв оруулна уу.");return}
+ if(!confirm((p.tracking_code||"Ачаа")+" — "+amount.toLocaleString()+"₮ төлбөрийг хүлээн авч хүлээлгэн өгөх үү?"))return;
  const staff=prompt("Хүлээлгэн өгсөн ажилтны нэр:");if(!staff||!staff.trim())return;
- const method=prompt("Төлбөрийн хэлбэр:\\n1 = Бэлэн\\n2 = Шилжүүлэг","1");if(method!=="1"&&method!=="2"){alert("1 эсвэл 2 сонгоно уу.");return}
- const {data:updated,error}=await db.from("parcels").update({parcel_status:"received",paid_at:new Date().toISOString(),payment_method:method==="1"?"cash":"transfer",received_by:staff.trim()}).eq("id",id).neq("parcel_status","received").select("id").maybeSingle();
+ const method=prompt("Төлбөрийн хэлбэр:\n1 = Бэлэн\n2 = Шилжүүлэг","1");if(method!=="1"&&method!=="2"){alert("1 эсвэл 2 сонгоно уу.");return}
+ const {data:updated,error}=await db.from("parcels").update({parcel_status:"received",paid_at:p.paid_at||new Date().toISOString(),payment_method:method==="1"?"cash":"transfer",received_by:staff.trim()}).eq("id",id).neq("parcel_status","received").select("id").maybeSingle();
  if(error){showMessage("adminNotice","Хүлээлгэн өгөх алдаа. SQL баганууд нэмэгдсэн эсэхийг шалгана уу: "+error.message);return}
  if(!updated){showMessage("adminNotice","Ачаа аль хэдийн хүлээлгэн өгөгдсөн эсвэл шинэчлэгдсэн байна.");await loadAdminParcels();return}
- await loadAdminParcels();showMessage("adminNotice","Хүлээлгэн өгч, төлбөр бүртгэлээ.");
+ await loadAdminParcels();showMessage("adminNotice","Хүлээлгэн өгч, төлбөрийн мэдээлэл бүртгэлээ.");
 }
-
 async function deleteParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p||!confirm((p.tracking_code||"Энэ ачаа")+" устгах уу?"))return;const {data:deleted,error}=await db.from("parcels").delete().eq("id",id).select("id").maybeSingle();if(error){showMessage("adminNotice","Устгах алдаа: "+error.message);return}if(!deleted){showMessage("adminNotice","Ачаа устсангүй. Устгах эрх болон RLS тохиргоог шалгана уу.");return}await loadAdminParcels();showMessage("adminNotice","Ачааг устгалаа.")}
 
 document.getElementById("customerPhone").addEventListener("keydown",e=>{if(e.key==="Enter")customerLogin()});
