@@ -517,7 +517,7 @@ async function bulkRegisterParcels(){
 }
 async function bulkMarkEreen(){
  const box=document.getElementById("bulkTrackingCodes"),out=document.getElementById("bulkEreenResult");
- const codes=[...new Set(box.value.split(/[\\s,;]+/).map(x=>x.trim().toUpperCase()).filter(Boolean))];
+ const codes=[...new Set(box.value.split(/[\s,;]+/).map(x=>x.trim().toUpperCase()).filter(Boolean))];
  if(!codes.length){showMessage("bulkEreenResult","Трак кодоо оруулна уу.");return}
  if(codes.length>500){showMessage("bulkEreenResult","Нэг удаад 500 хүртэл трак код оруулна.");return}
  if(!confirm(codes.length+" трак кодыг шалгаж, олдсон ачааг “Эрээнд ирсэн” төлөвт оруулах уу?"))return;
@@ -528,9 +528,9 @@ async function bulkMarkEreen(){
  const protectedCount=(rows||[]).length-eligible.length;
  let updated=0;
  for(const p of eligible){
-  const {data,error:updateError}=await db.from("parcels").update({parcel_status:"ereen"}).eq("id",p.id).select("id").maybeSingle();
+  const {data:changed,error:updateError}=await db.from("parcels").update({parcel_status:"ereen"}).eq("id",p.id).neq("parcel_status","received").select("id").maybeSingle();
   if(updateError){showMessage("bulkEreenResult",updated+" шинэчлэгдсэн. Алдаа: "+updateError.message);await loadAdminParcels();return}
-  if(data)updated++;
+  if(changed)updated++;
  }
  const foundSet=new Set((rows||[]).map(p=>String(p.tracking_code||"").toUpperCase()));
  const missing=codes.filter(x=>!foundSet.has(x));
