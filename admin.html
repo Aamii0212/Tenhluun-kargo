@@ -428,8 +428,9 @@ async function approvePreRegistration(id){
   const {error:insertError}=await db.from("parcels").insert({tracking_code:x.tracking_code,customer_phone:x.customer_phone,customer_name:"",piece_number:1,weight_kg:0,volume_m3:0,price_mnt:0,parcel_status:"ereen",description:x.description||""});
   if(insertError){alert("Ачаа бүртгэх алдаа: "+insertError.message);return}
  }
- const {error:reviewError}=await db.from("customer_pre_registrations").update({status:"approved",reviewed_at:new Date().toISOString(),admin_note:found?"Өмнөх ачаатай холбосон":"Ачаа шинээр бүртгэсэн"}).eq("id",id);
- if(reviewError){alert("Ачаа холбогдсон ч хүсэлтийн төлөв шинэчилсэнгүй: "+reviewError.message);await loadAdminParcels();return}
+ const {data:reviewed,error:reviewError}=await db.from("customer_pre_registrations").update({status:"approved",reviewed_at:new Date().toISOString(),admin_note:found?"Өмнөх ачаатай холбосон":"Ачаа шинээр бүртгэсэн"}).eq("id",id).eq("status","pending").select("id").maybeSingle();
+ if(reviewError){alert("Ачаа холбогдсон ч хүсэлтийн төлөв шинэчилсэнгүй: "+reviewError.message);await loadAdminParcels();await loadPreRegistrations();return}
+ if(!reviewed){alert("Хүсэлт өөр админд аль хэдийн шийдвэрлэгдсэн байна. Ачааны бүртгэл/холболтыг шалгаад жагсаалтыг шинэчиллээ.");await loadAdminParcels();await loadPreRegistrations();return}
  await loadAdminParcels();await loadPreRegistrations();showMessage("adminNotice","Урьдчилсан бүртгэлийг зөвшөөрлөө.");
 }
 async function rejectPreRegistration(id){const x=preRegistrations.find(a=>String(a.id)===String(id));if(!x)return;const note=prompt("Татгалзсан шалтгаан (заавал биш):","");if(note===null)return;const {data:changed,error}=await db.from("customer_pre_registrations").update({status:"rejected",admin_note:note,reviewed_at:new Date().toISOString()}).eq("id",id).eq("status","pending").select("id").maybeSingle();if(error){alert("Татгалзах алдаа: "+error.message);return}if(!changed){alert("Хүсэлт аль хэдийн шийдвэрлэгдсэн байна. Жагсаалтыг шинэчиллээ.");await loadPreRegistrations();return}await loadPreRegistrations()}
