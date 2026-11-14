@@ -92,6 +92,11 @@ details.admin-menu{background:#fff;border:1px solid #f1dce8;border-radius:14px;m
 .quick-qr{background:#fff;border:1px solid #efc7df;border-radius:14px;padding:13px;margin:10px 0}
 .quick-qr h3{margin:0 0 8px}.quick-qr .primary{margin-top:7px}
 @media(max-width:600px){#adminDashboard{padding:9px!important;margin:8px auto!important}.admin-toolbar input{min-width:100%!important}.admin-stats{gap:7px!important}.admin-stats .branch-box{padding:9px!important}.admin-fields{gap:6px!important}}
+/* Compact sticky parcel search/actions */
+.records-quickbar{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid #e8eaf0;border-radius:13px;padding:9px;margin-bottom:10px;position:sticky;top:64px;z-index:20}
+.records-quickbar input{margin:0;min-width:0;flex:1;padding:11px;border:1px solid #e5e7eb;border-radius:9px;font-size:14px}
+.records-quickbar button{background:#ed168b;color:white;padding:11px 13px;border-radius:9px}
+@media(max-width:760px){.records-quickbar{top:60px}.records-quickbar button{padding:10px}}
 </style><style id="standaloneAdminFix">#publicPage,#customerDashboard,#customerHeader,#pageFooter{display:none!important}#adminLogin:not(.hidden){display:block}#adminDashboard:not(.hidden){display:block}</style><style>
 /* Refined cargo admin dashboard */
 #adminDashboard{max-width:1240px!important;margin:18px auto!important;padding:18px!important;background:#f7f8fb!important;border:1px solid #e8eaf0!important;border-radius:20px!important;color:#20232a!important}
@@ -199,6 +204,7 @@ details.admin-menu{background:#fff;border:1px solid #f1dce8;border-radius:14px;m
  </aside>
  <div class="admin-workspace">
   <div class="admin-mobile-nav"><button type="button" onclick="toggleAdminMenu()">☰</button><span>Тэнхлүүн Карго · Админ</span></div>
+  <div class="records-quickbar"><button onclick="newParcelForm()">＋ Бүртгэх</button><input aria-label="Ачаа хайх" placeholder="🔎 Трак код / нэр / утас..." oninput="document.getElementById('adminSearch').value=this.value;filterAdminRows()"><button onclick="loadAdminParcels()">↻</button></div>
 <details class="admin-menu"><summary>⚙️ Үнийн мэдээлэл / ажлын цаг / Эрээн хаяг</summary><div class="admin-editor"><h3>⚙️ Үнийн мэдээлэл ба ажлын цаг</h3><div class="admin-editor"><h3>📍 Эрээн агуулахын хаяг</h3><input id="settingEreenAddress" placeholder="Эрээн дэх агуулахын бүтэн хаяг"><input id="settingEreenContact" placeholder="Хүлээн авах хүн / утас"><button class="primary" onclick="saveEreenAddress()">Хаяг хадгалах</button><span id="ereenSettingsInfo" class="muted"></span></div>
  <div class="admin-fields"><input id="settingKg" type="number" min="0" placeholder="1 кг үнэ ₮"><input id="settingM3" type="number" min="0" placeholder="1 м³ үнэ юань"><input id="settingOpen" type="time" value="10:00"><input id="settingClose" type="time" value="20:00"></div>
  <div class="admin-actions"><button class="primary" onclick="saveSiteSettings()">Үнэ, цаг хадгалах</button><span id="settingsInfo" class="muted"></span></div></div>
