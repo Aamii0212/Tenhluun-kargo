@@ -172,6 +172,7 @@ function classifyStatus(status){
 function statusLabel(group){if(group==="received")return "Хүлээж авсан";if(group==="mongolia")return "Монголд ирсэн";return "Эрээнд ирсэн"}
 
 async function submitPreRegistration(){
+ console.log("submitPreRegistration invoked");
  const phone=cleanPhone(currentPhone||""),tracking=document.getElementById("preRegTracking").value.trim().toUpperCase(),description=document.getElementById("preRegDescription").value.trim();
  if(phone.length!==8||!tracking){showMessage("preRegMessage","Нэвтэрсэн утасны дугаар эсвэл трак код буруу байна.");return}
  const btn=document.querySelector('button[onclick="submitPreRegistration()"]');btn.disabled=true;btn.textContent="БҮРТГЭЖ БАЙНА...";
