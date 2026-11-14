@@ -115,7 +115,11 @@ details.admin-menu{background:#fff;border:1px solid #f1dce8;border-radius:14px;m
  #adminDashboard{padding:10px!important;margin:8px auto!important;border-radius:14px!important}
  .admin-layout{display:block}
  .admin-mobile-nav{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:10px;margin-bottom:12px;font-weight:800;font-size:13px}
- .admin-mobile-nav button{background:#fce7f3;color:#c51b78;padding:10px 12px}
+ .admin-mobile-nav button{background:#fce7f3;color:#c51b78;padding:10px 12px;font-size:22px;min-width:46px}
+ .admin-mobile-nav{position:sticky;top:0;z-index:100;background:#fff;box-shadow:0 4px 14px #00000008}
+ .admin-sidebar{top:75px;bottom:12px;left:8px;width:min(285px,82vw);border:1px solid #f0c9df;border-radius:16px}
+ .admin-sidebar .side-link{font-size:14px;padding:14px 12px}
+ .admin-sidebar .side-title{color:#c51b78}
  .admin-sidebar{display:none;position:fixed;z-index:9999;left:10px;top:90px;bottom:20px;width:min(260px,82vw);overflow:auto;box-shadow:0 12px 40px #0003}
  .admin-sidebar.show{display:block}
  #adminDashboard .dashboard-head{padding:10px}
@@ -187,7 +191,7 @@ details.admin-menu{background:#fff;border:1px solid #f1dce8;border-radius:14px;m
   <button class="side-link" data-menu="5">📦 Бөөнөөр Эрээнд</button>
  </aside>
  <div class="admin-workspace">
-  <div class="admin-mobile-nav"><button type="button" onclick="document.getElementById('adminSidebar').classList.toggle('show')">☰ Цэс</button><span>Тэнхлүүн Карго · Админ</span></div>
+  <div class="admin-mobile-nav"><button type="button" onclick="document.getElementById('adminSidebar').classList.toggle('show')">☰</button><span>Тэнхлүүн Карго · Админ</span></div>
 <details class="admin-menu"><summary>⚙️ Үнийн мэдээлэл / ажлын цаг / Эрээн хаяг</summary><div class="admin-editor"><h3>⚙️ Үнийн мэдээлэл ба ажлын цаг</h3><div class="admin-editor"><h3>📍 Эрээн агуулахын хаяг</h3><input id="settingEreenAddress" placeholder="Эрээн дэх агуулахын бүтэн хаяг"><input id="settingEreenContact" placeholder="Хүлээн авах хүн / утас"><button class="primary" onclick="saveEreenAddress()">Хаяг хадгалах</button><span id="ereenSettingsInfo" class="muted"></span></div>
  <div class="admin-fields"><input id="settingKg" type="number" min="0" placeholder="1 кг үнэ ₮"><input id="settingM3" type="number" min="0" placeholder="1 м³ үнэ юань"><input id="settingOpen" type="time" value="10:00"><input id="settingClose" type="time" value="20:00"></div>
  <div class="admin-actions"><button class="primary" onclick="saveSiteSettings()">Үнэ, цаг хадгалах</button><span id="settingsInfo" class="muted"></span></div></div>
