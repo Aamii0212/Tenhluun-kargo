@@ -344,7 +344,7 @@ let adminParcels=[],editingParcelId=null,adminBranches=[];
 function adminStatusLabel(s){return s==="received"?"Хүлээж авсан":s==="mongolia"?"Монголд ирсэн":"Эрээнд ирсэн"}
 async function clearPreRegAdminFilters(){const q=document.getElementById("preRegSearch"),st=document.getElementById("preRegStatusFilter");if(q)q.value="";if(st)st.value="";filterPreRegAdminRows()}
 function filterPreRegAdminRows(){const q=(document.getElementById("preRegSearch")?.value||"").trim().toLowerCase(),status=document.getElementById("preRegStatusFilter")?.value||"";document.querySelectorAll("#preRegAdminRows tbody tr").forEach(row=>{const matchText=row.textContent.toLowerCase().includes(q),matchStatus=!status||(status==="pending"?row.textContent.includes("Хүлээгдэж буй"):status==="confirmed"?row.textContent.includes("Баталгаажсан"):row.textContent.includes("Татгалзсан"));row.style.display=matchText&&matchStatus?"":"none"})}
-function loadPreRegistrations(){
+async function loadPreRegistrations(){
  const box=document.getElementById("preRegAdminRows");if(!box)return;box.innerHTML="Ачаалж байна...";
  const {data,error}=await db.from("customer_pre_registrations").select("*").order("created_at",{ascending:false}).limit(300);
  if(error){box.innerHTML="<p style=\"color:#b42318\">Бүртгэл татахад алдаа: "+escapeHTML(error.message)+"</p><button class=\"logout\" onclick=\"loadPreRegistrations()\">↻ Дахин оролдох</button>";return}
