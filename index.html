@@ -391,7 +391,7 @@ function newParcelForm(){editingParcelId=null;document.getElementById("editorTit
 function editParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;editingParcelId=p.id;document.getElementById("editorTitle").textContent="Ачаа засах";document.getElementById("editTracking").value=p.tracking_code||"";document.getElementById("editPhone").value=p.customer_phone||p.phone||"";renderTrackingPrices();document.getElementById("editStatus").value=classifyStatus(p.parcel_status);document.getElementById("editBranch").value=p.branch_id||"";document.getElementById("parcelEditor").style.display="block";document.getElementById("parcelEditor").scrollIntoView({behavior:"smooth"})}
 function cancelParcelForm(){document.getElementById("parcelEditor").style.display="none";editingParcelId=null}
 function renderTrackingPrices(){
- const codes=[...new Set(document.getElementById("editTracking").value.split(/[\\s,;]+/).map(x=>x.trim()).filter(Boolean))],box=document.getElementById("trackingPriceRows");
+ const codes=[...new Set(document.getElementById("editTracking").value.split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean))],box=document.getElementById("trackingPriceRows");
  if(!box)return;const old={};box.querySelectorAll("[data-code]").forEach(el=>old[el.dataset.code]=el.value);
  box.innerHTML=codes.map((code,i)=>'<div style="display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:8px;align-items:center;margin:7px 0"><span style="overflow-wrap:anywhere;font-size:14px">'+(i+1)+'. '+code.replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]))+'</span><input data-code="'+code.replace(/"/g,"&quot;")+'" class="tracking-price" type="number" min="0" placeholder="Үнэ ₮" value="'+(old[code]||"")+'" style="width:100%;box-sizing:border-box"></div>').join("");
 }
@@ -407,13 +407,13 @@ async function scanTracking(){
   modal.innerHTML='<div style="color:white;font-size:18px;margin-bottom:12px">Трак кодоо камерын хүрээнд тааруулна уу</div><button style="padding:12px 24px;margin-bottom:12px" id="closeScan">✕ Болих</button>';
   modal.appendChild(video);video.style="width:100%;max-width:520px;border-radius:12px";document.body.appendChild(modal);
   modal.querySelector("#closeScan").onclick=()=>modal.remove();
-  const scanLoop=async()=>{if(!modal.isConnected)return;try{const codes=await detector.detect(video);if(codes.length&&codes[0].rawValue){input.value=(input.value.trim()?input.value.trim()+"\\n":"")+codes[0].rawValue.trim();renderTrackingPrices();modal.remove();showMessage("scanNotice","✅ Трак код нэмлээ");return}}catch(e){}requestAnimationFrame(scanLoop)};scanLoop();
+  const scanLoop=async()=>{if(!modal.isConnected)return;try{const codes=await detector.detect(video);if(codes.length&&codes[0].rawValue){input.value=(input.value.trim()?input.value.trim()+"\n":"")+codes[0].rawValue.trim();renderTrackingPrices();modal.remove();showMessage("scanNotice","✅ Трак код нэмлээ");return}}catch(e){}requestAnimationFrame(scanLoop)};scanLoop();
   const observer=new MutationObserver(()=>{if(!modal.isConnected){stream.getTracks().forEach(t=>t.stop());observer.disconnect()}});observer.observe(document.body,{childList:true});
  }catch(e){if(stream)stream.getTracks().forEach(t=>t.stop());showMessage("scanNotice","Камер нээж чадсангүй. Камерын зөвшөөрөл өгөөд дахин оролдоно уу.")}
 }
 async function saveParcel(){
  const trackingRaw=document.getElementById("editTracking").value,phone=cleanPhone(document.getElementById("editPhone").value);
- const codes=[...new Set(trackingRaw.split(/[\\s,;]+/).map(x=>x.trim()).filter(Boolean))];
+ const codes=[...new Set(trackingRaw.split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean))];
  if(!codes.length||phone.length!==8){showMessage("adminNotice","Трак код болон 8 оронтой утас заавал оруулна.");return}
  const requestedStatus=document.getElementById("editStatus").value,existingParcel=editingParcelId?adminParcels.find(p=>String(p.id)===String(editingParcelId)):null;
  if(requestedStatus==="received"&&(!existingParcel||classifyStatus(existingParcel.parcel_status)!=="received")){showMessage("adminNotice","Ачааг хүлээлгэн өгсөн төлөвт гараар оруулахгүй.");return}
@@ -433,7 +433,7 @@ async function saveParcel(){
 }
 async function bulkMarkEreen(){
  const box=document.getElementById("bulkTrackingCodes"),out=document.getElementById("bulkEreenResult");
- const codes=[...new Set(box.value.split(/[\\s,;]+/).map(x=>x.trim()).filter(Boolean))];
+ const codes=[...new Set(box.value.split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean))];
  if(!codes.length){showMessage("bulkEreenResult","Трак кодоо оруулна уу.");return}
  if(codes.length>500){showMessage("bulkEreenResult","Нэг удаад 500 хүртэл трак код оруулна.");return}
  if(!confirm(codes.length+" трак кодыг шалгаж, олдсон ачааг “Эрээнд ирсэн” төлөвт оруулах уу?"))return;
@@ -448,7 +448,7 @@ async function handoverParcel(id){
  const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;
  if(!confirm((p.tracking_code||"Ачаа")+"-г хүлээлгэн өгч, төлбөр бүртгэх үү?"))return;
  const staff=prompt("Хүлээлгэн өгсөн ажилтны нэр:");if(!staff||!staff.trim())return;
- const method=prompt("Төлбөрийн хэлбэр:\\n1 = Бэлэн\\n2 = Шилжүүлэг","1");if(method!=="1"&&method!=="2"){alert("1 эсвэл 2 сонгоно уу.");return}
+ const method=prompt("Төлбөрийн хэлбэр:\n1 = Бэлэн\n2 = Шилжүүлэг","1");if(method!=="1"&&method!=="2"){alert("1 эсвэл 2 сонгоно уу.");return}
  const {data:updated,error}=await db.from("parcels").update({parcel_status:"received",paid_at:new Date().toISOString(),payment_method:method==="1"?"cash":"transfer",received_by:staff.trim()}).eq("id",id).neq("parcel_status","received").select("id").maybeSingle();
  if(error){showMessage("adminNotice","Хүлээлгэн өгөх алдаа. SQL баганууд нэмэгдсэн эсэхийг шалгана уу: "+error.message);return}if(!updated){showMessage("adminNotice","Энэ ачаа өмнө нь хүлээлгэн өгөгдсөн байна.");return}
  await loadAdminParcels();showMessage("adminNotice","Хүлээлгэн өгч, төлбөр бүртгэлээ.");
