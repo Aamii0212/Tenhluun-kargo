@@ -117,11 +117,11 @@ details.admin-menu{background:#fff;border:1px solid #f1dce8;border-radius:14px;m
  .admin-mobile-nav{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:10px;margin-bottom:12px;font-weight:800;font-size:13px}
  .admin-mobile-nav button{background:#fce7f3;color:#c51b78;padding:10px 12px;font-size:22px;min-width:46px}
  .admin-mobile-nav{position:sticky;top:0;z-index:100;background:#fff;box-shadow:0 4px 14px #00000008}
- .admin-sidebar{top:75px;bottom:12px;left:8px;width:min(285px,82vw);border:1px solid #f0c9df;border-radius:16px}
+ .admin-sidebar{display:none;position:fixed;z-index:10001;left:10px;top:78px;bottom:18px;width:min(285px,82vw);overflow:auto;box-shadow:0 12px 40px #0003;border:1px solid #f0c9df;border-radius:16px;background:#fff}
+ .admin-sidebar.show{display:block}
  .admin-sidebar .side-link{font-size:14px;padding:14px 12px}
  .admin-sidebar .side-title{color:#c51b78}
- .admin-sidebar{display:none;position:fixed;z-index:9999;left:10px;top:90px;bottom:20px;width:min(260px,82vw);overflow:auto;box-shadow:0 12px 40px #0003}
- .admin-sidebar.show{display:block}
+ body.admin-menu-open:before{content:"";position:fixed;inset:0;background:#1118;z-index:10000}
  #adminDashboard .dashboard-head{padding:10px}
  #adminDashboard .dashboard-head h2{font-size:18px!important}
 }
@@ -191,7 +191,7 @@ details.admin-menu{background:#fff;border:1px solid #f1dce8;border-radius:14px;m
   <button class="side-link" data-menu="5">📦 Бөөнөөр Эрээнд</button>
  </aside>
  <div class="admin-workspace">
-  <div class="admin-mobile-nav"><button type="button" onclick="document.getElementById('adminSidebar').classList.toggle('show')">☰</button><span>Тэнхлүүн Карго · Админ</span></div>
+  <div class="admin-mobile-nav"><button type="button" onclick="toggleAdminMenu()">☰</button><span>Тэнхлүүн Карго · Админ</span></div>
 <details class="admin-menu"><summary>⚙️ Үнийн мэдээлэл / ажлын цаг / Эрээн хаяг</summary><div class="admin-editor"><h3>⚙️ Үнийн мэдээлэл ба ажлын цаг</h3><div class="admin-editor"><h3>📍 Эрээн агуулахын хаяг</h3><input id="settingEreenAddress" placeholder="Эрээн дэх агуулахын бүтэн хаяг"><input id="settingEreenContact" placeholder="Хүлээн авах хүн / утас"><button class="primary" onclick="saveEreenAddress()">Хаяг хадгалах</button><span id="ereenSettingsInfo" class="muted"></span></div>
  <div class="admin-fields"><input id="settingKg" type="number" min="0" placeholder="1 кг үнэ ₮"><input id="settingM3" type="number" min="0" placeholder="1 м³ үнэ юань"><input id="settingOpen" type="time" value="10:00"><input id="settingClose" type="time" value="20:00"></div>
  <div class="admin-actions"><button class="primary" onclick="saveSiteSettings()">Үнэ, цаг хадгалах</button><span id="settingsInfo" class="muted"></span></div></div>
@@ -497,6 +497,9 @@ if(true){
  document.getElementById("adminDashboard").style.display="none";
 }
 
+function toggleAdminMenu(){const side=document.getElementById("adminSidebar");side.classList.toggle("show");document.body.classList.toggle("admin-menu-open",side.classList.contains("show"))}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){document.getElementById("adminSidebar").classList.remove("show");document.body.classList.remove("admin-menu-open");document.body.classList.remove("admin-menu-open")}});
+document.addEventListener("click",e=>{const side=document.getElementById("adminSidebar");if(side&&side.classList.contains("show")&&!side.contains(e.target)&&!e.target.closest(".admin-mobile-nav button")){side.classList.remove("show");document.body.classList.remove("admin-menu-open")}});
 // Admin sidebar navigation: open the matching existing section without changing its functions.
 document.querySelectorAll("#adminSidebar [data-menu]").forEach(btn=>{
  btn.addEventListener("click",()=>{
