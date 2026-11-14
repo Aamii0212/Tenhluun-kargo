@@ -432,7 +432,7 @@ async function approvePreRegistration(id){
  if(reviewError){alert("Ачаа холбогдсон ч хүсэлтийн төлөв шинэчилсэнгүй: "+reviewError.message);await loadAdminParcels();return}
  await loadAdminParcels();await loadPreRegistrations();showMessage("adminNotice","Урьдчилсан бүртгэлийг зөвшөөрлөө.");
 }
-async function rejectPreRegistration(id){const note=prompt("Татгалзсан шалтгаан (заавал биш):","");if(note===null)return;const {error}=await db.from("customer_pre_registrations").update({status:"rejected",admin_note:note,reviewed_at:new Date().toISOString()}).eq("id",id);if(error){alert("Татгалзах алдаа: "+error.message);return}await loadPreRegistrations()}
+async function rejectPreRegistration(id){const x=preRegistrations.find(a=>String(a.id)===String(id));if(!x)return;const note=prompt("Татгалзсан шалтгаан (заавал биш):","");if(note===null)return;const {data:changed,error}=await db.from("customer_pre_registrations").update({status:"rejected",admin_note:note,reviewed_at:new Date().toISOString()}).eq("id",id).eq("status","pending").select("id").maybeSingle();if(error){alert("Татгалзах алдаа: "+error.message);return}if(!changed){alert("Хүсэлт аль хэдийн шийдвэрлэгдсэн байна. Жагсаалтыг шинэчиллээ.");await loadPreRegistrations();return}await loadPreRegistrations()}
 
 async function adminLogout(){await db.auth.signOut();document.getElementById("adminDashboard").style.display="none";document.getElementById("adminLogin").style.display="block"}
 
