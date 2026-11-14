@@ -140,7 +140,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
  <div id="parcelEditor" class="admin-editor" style="display:none">
   <h3 id="editorTitle">Ачаа бүртгэх</h3>
   <label>📱 Харилцагчийн утас</label><input id="editPhone" inputmode="numeric" maxlength="8" placeholder="8 оронтой утас *">
-  <label>📦 Трак код</label><div class="admin-fields" style="grid-template-columns:1fr auto"><input id="editTracking" placeholder="Трак кодоо сканнердах эсвэл бичих *"><button type="button" class="secondary" onclick="scanTracking()">📷 Скан</button></div>
+  <label>📦 Трак код</label><div class="admin-fields" style="grid-template-columns:1fr auto"><textarea id="editTracking" rows="4" placeholder="Трак код бүрийг шинэ мөрөөр бичих эсвэл скан хийх *"></textarea><button type="button" class="secondary" onclick="scanTracking()">📷 Скан</button></div>
   <label>💰 Үнэ (₮)</label><input id="editPrice" type="number" min="0" placeholder="Үнийг гараар оруулах *">
   <select id="editStatus"><option value="ereen">Эрээнд ирсэн</option><option value="mongolia">Монголд ирсэн</option></select>
   <select id="editBranch"><option value="">Салбар сонгох</option></select>
@@ -402,22 +402,28 @@ async function scanTracking(){
   modal.innerHTML='<div style="color:white;font-size:18px;margin-bottom:12px">Трак кодоо камерын хүрээнд тааруулна уу</div><button style="padding:12px 24px;margin-bottom:12px" id="closeScan">✕ Болих</button>';
   modal.appendChild(video);video.style="width:100%;max-width:520px;border-radius:12px";document.body.appendChild(modal);
   modal.querySelector("#closeScan").onclick=()=>modal.remove();
-  const scanLoop=async()=>{if(!modal.isConnected)return;try{const codes=await detector.detect(video);if(codes.length&&codes[0].rawValue){input.value=codes[0].rawValue.trim();modal.remove();showMessage("scanNotice","✅ Трак код уншлаа");return}}catch(e){}requestAnimationFrame(scanLoop)};scanLoop();
+  const scanLoop=async()=>{if(!modal.isConnected)return;try{const codes=await detector.detect(video);if(codes.length&&codes[0].rawValue){input.value=(input.value.trim()?input.value.trim()+"\\n":"")+codes[0].rawValue.trim();modal.remove();showMessage("scanNotice","✅ Трак код нэмлээ");return}}catch(e){}requestAnimationFrame(scanLoop)};scanLoop();
   const observer=new MutationObserver(()=>{if(!modal.isConnected){stream.getTracks().forEach(t=>t.stop());observer.disconnect()}});observer.observe(document.body,{childList:true});
  }catch(e){if(stream)stream.getTracks().forEach(t=>t.stop());showMessage("scanNotice","Камер нээж чадсангүй. Камерын зөвшөөрөл өгөөд дахин оролдоно уу.")}
 }
 async function saveParcel(){
- const tracking=document.getElementById("editTracking").value.trim(),phone=cleanPhone(document.getElementById("editPhone").value);
- if(!tracking||phone.length!==8){showMessage("adminNotice","Трак код болон 8 оронтой утас заавал оруулна.");return}
- const requestedStatus=document.getElementById("editStatus").value,existingParcel=editingParcelId?(adminParcels.find(p=>String(p.id)===String(editingParcelId))):null;
- if(requestedStatus==="received"&&(!existingParcel||classifyStatus(existingParcel.parcel_status)!=="received")){showMessage("adminNotice","Ачааг хүлээлгэн өгсөн төлөвт гараар оруулахгүй. “Хүлээлгэн өгөх” товчоор төлбөр, ажилтны мэдээллийг баталгаажуулна.");return}
+ const trackingRaw=document.getElementById("editTracking").value,phone=cleanPhone(document.getElementById("editPhone").value);
+ const codes=[...new Set(trackingRaw.split(/[\\s,;]+/).map(x=>x.trim()).filter(Boolean))];
+ if(!codes.length||phone.length!==8){showMessage("adminNotice","Трак код болон 8 оронтой утас заавал оруулна.");return}
+ const requestedStatus=document.getElementById("editStatus").value,existingParcel=editingParcelId?adminParcels.find(p=>String(p.id)===String(editingParcelId)):null;
+ if(requestedStatus==="received"&&(!existingParcel||classifyStatus(existingParcel.parcel_status)!=="received")){showMessage("adminNotice","Ачааг хүлээлгэн өгсөн төлөвт гараар оруулахгүй.");return}
  if(existingParcel&&classifyStatus(existingParcel.parcel_status)==="received"&&requestedStatus!=="received"){showMessage("adminNotice","Хүлээлгэн өгсөн ачааны төлөвийг буцаах боломжгүй.");return}
- const priceInput=document.getElementById("editPrice").value.trim();if(priceInput===""||Number(priceInput)<0){showMessage("adminNotice","Үнийг оруулна уу.");return}const payload={tracking_code:tracking,customer_phone:phone,price_mnt:Number(priceInput),parcel_status:requestedStatus,branch_id:document.getElementById("editBranch").value||null};
- const duplicateQuery=db.from("parcels").select("id").eq("tracking_code",tracking).limit(1);const {data:duplicate,error:duplicateError}=editingParcelId?await duplicateQuery.neq("id",editingParcelId).maybeSingle():await duplicateQuery.maybeSingle();if(duplicateError){showMessage("adminNotice","Трак код шалгах алдаа: "+duplicateError.message);return}if(duplicate){showMessage("adminNotice","⚠️ "+tracking+" трак кодтой ачаа аль хэдийн бүртгэлтэй байна.");return}
- showMessage("adminNotice","Хадгалж байна...");
- let result=editingParcelId?await db.from("parcels").update(payload).eq("id",editingParcelId):await db.from("parcels").insert(payload);
+ const priceInput=document.getElementById("editPrice").value.trim();if(priceInput===""||Number(priceInput)<0){showMessage("adminNotice","Үнийг оруулна уу.");return}
+ if(editingParcelId&&codes.length!==1){showMessage("adminNotice","Засварлах үед нэг трак код оруулна.");return}
+ const payload=codes.map(tracking_code=>({tracking_code,customer_phone:phone,price_mnt:Number(priceInput),parcel_status:requestedStatus,branch_id:document.getElementById("editBranch").value||null}));
+ showMessage("adminNotice","Трак код "+codes.length+" ширхэгийг шалгаж, хадгалж байна...");
+ const {data:duplicates,error:dupError}=await db.from("parcels").select("tracking_code").in("tracking_code",codes);
+ if(dupError){showMessage("adminNotice","Трак код шалгах алдаа: "+dupError.message);return}
+ const duplicateCodes=(duplicates||[]).map(x=>x.tracking_code);
+ if(duplicateCodes.length){showMessage("adminNotice","Бүртгэлтэй трак код байна: "+duplicateCodes.join(", "));return}
+ const result=editingParcelId?await db.from("parcels").update(payload[0]).eq("id",editingParcelId):await db.from("parcels").insert(payload);
  if(result.error){showMessage("adminNotice","Хадгалах алдаа: "+result.error.message);return}
- cancelParcelForm();await loadAdminParcels();showMessage("adminNotice","Амжилттай хадгаллаа.");
+ cancelParcelForm();await loadAdminParcels();showMessage("adminNotice",codes.length+" ачааг амжилттай бүртгэлээ.");
 }
 async function bulkMarkEreen(){
  const box=document.getElementById("bulkTrackingCodes"),out=document.getElementById("bulkEreenResult");
