@@ -349,7 +349,7 @@ function loadPreRegistrations(){
 }
 function exportPreRegistrationsCSV(){
  const rows=[["Утас","Трак код","Тайлбар","Төлөв","Бүртгэсэн огноо"],...Array.from(document.querySelectorAll("#preRegAdminRows tbody tr")).filter(row=>row.style.display!=="none").map(row=>Array.from(row.cells).slice(0,5).map(cell=>cell.textContent.trim()))];
- const csv="\\uFEFF"+rows.map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\\r\\n");
+ const csv="\uFEFF"+rows.map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\r\n");
  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="tenhluun-preregistrations.csv";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)
 }
 async function setPreRegStatus(id,status){
