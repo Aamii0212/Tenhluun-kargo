@@ -21,16 +21,23 @@ with check (
   and status = 'pending'
 );
 
--- Админ/ажилтан хүсэлтүүдийг харах, баталгаажуулахад Supabase Auth хэрэглэгч байх шаардлагатай
+-- Урьдчилсан бүртгэлийг зөвхөн admin role-той хэрэглэгч харах/батлах эрхтэй.
 drop policy if exists "authenticated can view pre registrations" on public.customer_pre_registrations;
-create policy "authenticated can view pre registrations"
-on public.customer_pre_registrations for select
-to authenticated using (true);
-
 drop policy if exists "authenticated can update pre registrations" on public.customer_pre_registrations;
-create policy "authenticated can update pre registrations"
+drop policy if exists cargo_admin_read_pre_registrations on public.customer_pre_registrations;
+create policy cargo_admin_read_pre_registrations
+on public.customer_pre_registrations for select
+to authenticated using (
+  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+);
+drop policy if exists cargo_admin_update_pre_registrations on public.customer_pre_registrations;
+create policy cargo_admin_update_pre_registrations
 on public.customer_pre_registrations for update
-to authenticated using (true) with check (true);
+to authenticated using (
+  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+) with check (
+  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+);
 
 grant insert on public.customer_pre_registrations to anon, authenticated;
 grant select, update on public.customer_pre_registrations to authenticated;
