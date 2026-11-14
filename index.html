@@ -425,7 +425,7 @@ async function saveParcel(){
  showMessage("adminNotice",codes.length+" ачааг шалгаж хадгалж байна...");
  const {data:duplicates,error:dupError}=await db.from("parcels").select("tracking_code").in("tracking_code",codes);
  if(dupError){showMessage("adminNotice","Трак код шалгах алдаа: "+dupError.message);return}
- const duplicateCodes=(duplicates||[]).map(x=>x.tracking_code);
+ const duplicateCodes=(duplicates||[]).map(x=>x.tracking_code).filter(code=>!editingParcelId||code!==existingParcel?.tracking_code);
  if(duplicateCodes.length){showMessage("adminNotice","Бүртгэлтэй трак код байна: "+duplicateCodes.join(", "));return}
  const result=editingParcelId?await db.from("parcels").update(payload[0]).eq("id",editingParcelId):await db.from("parcels").insert(payload);
  if(result.error){showMessage("adminNotice","Хадгалах алдаа: "+result.error.message);return}
