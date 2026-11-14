@@ -104,6 +104,13 @@ details.admin-menu{background:#fff;border:1px solid #f1dce8;border-radius:14px;m
 .admin-sidebar .side-link.active,.admin-sidebar .side-link:hover{background:#fce7f3;color:#c51b78}
 .admin-workspace{min-width:0}
 .admin-mobile-nav{display:none}
+/* Mobile-first cargo records workspace inspired by compact logistics dashboards */
+.admin-mobile-nav button{border:0;border-radius:10px;background:#ed168b;color:#fff;box-shadow:0 3px 10px #ed168b30;cursor:pointer}
+.admin-mobile-nav span{font-weight:800;color:#211820;letter-spacing:-.2px}
+.admin-workspace details.admin-menu>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.admin-workspace details.admin-menu>summary::-webkit-details-marker{display:none}
+.admin-workspace details.admin-menu>summary:after{content:"＋";color:#d92f8a;font-size:22px;font-weight:800}
+.admin-workspace details.admin-menu[open]>summary:after{content:"−"}
 .admin-workspace details.admin-menu{background:#fff;border:1px solid #e8eaf0;border-radius:14px;margin:0 0 12px;padding:0 14px 14px;box-shadow:0 3px 12px #17203305}
 .admin-workspace details.admin-menu>summary{padding:17px 4px;color:#343946;font-size:14px}
 .admin-workspace details.admin-menu[open]>summary{color:#c51b78;border-bottom:1px solid #f1e5ed;margin-bottom:12px}
