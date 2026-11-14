@@ -555,9 +555,14 @@ async function bulkRegisterParcels(){
  if(records.length>500){showMessage("bulkRegisterResult","Нэг удаад 500 мөр хүртэл бүртгэнэ.");return}
  if(!confirm(records.length+" ачааг утасны дугаартай нь бүртгэх үү?"))return;
  out.textContent="Бүртгэж байна...";
- const {data:existing,error:checkError}=await db.from("parcels").select("tracking_code").in("tracking_code",records.map(x=>x.tracking_code));
- if(checkError){showMessage("bulkRegisterResult","Шалгах алдаа: "+checkError.message);return}
- const normalizeCode=v=>String(v||"").trim().toLocaleUpperCase();const exists=new Set([...(existing||[]).map(x=>normalizeCode(x.tracking_code)),...adminParcels.map(x=>normalizeCode(x.tracking_code))]);
+ // Бүх трак кодыг хэсэгчлэн уншиж, том/жижиг үсгийн ялгаагүй давхардлыг шалгана.
+ const allCodes=[];let offset=0;const pageSize=1000;
+ while(true){
+  const {data:page,error:checkError}=await db.from("parcels").select("tracking_code").range(offset,offset+pageSize-1);
+  if(checkError){showMessage("bulkRegisterResult","Давхардал шалгах алдаа: "+checkError.message);return}
+  const part=page||[];allCodes.push(...part);if(part.length<pageSize)break;offset+=pageSize;
+ }
+ const normalizeCode=v=>String(v||"").trim().toLocaleUpperCase();const exists=new Set(allCodes.map(x=>normalizeCode(x.tracking_code)));
  const fresh=records.filter(x=>!exists.has(normalizeCode(x.tracking_code)));
  const duplicate=records.length-fresh.length;
  if(!fresh.length){showMessage("bulkRegisterResult","Бүртгэх шинэ код алга. Давхардсан: "+duplicate);return}
