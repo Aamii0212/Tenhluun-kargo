@@ -553,8 +553,8 @@ async function bulkRegisterParcels(){
  out.textContent="Бүртгэж байна...";
  const {data:existing,error:checkError}=await db.from("parcels").select("tracking_code").in("tracking_code",records.map(x=>x.tracking_code));
  if(checkError){showMessage("bulkRegisterResult","Шалгах алдаа: "+checkError.message);return}
- const exists=new Set((existing||[]).map(x=>String(x.tracking_code).toLowerCase()));
- const fresh=records.filter(x=>!exists.has(x.tracking_code.toLowerCase()));
+ const normalizeCode=v=>String(v||"").trim().toLocaleUpperCase();const exists=new Set([...(existing||[]).map(x=>normalizeCode(x.tracking_code)),...adminParcels.map(x=>normalizeCode(x.tracking_code))]);
+ const fresh=records.filter(x=>!exists.has(normalizeCode(x.tracking_code)));
  const duplicate=records.length-fresh.length;
  if(!fresh.length){showMessage("bulkRegisterResult","Бүртгэх шинэ код алга. Давхардсан: "+duplicate);return}
  let inserted=0;
