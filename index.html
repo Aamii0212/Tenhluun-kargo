@@ -434,5 +434,46 @@ if(location.hash==="#admin"||new URLSearchParams(location.search).get("admin")==
  document.getElementById("adminDashboard").style.display="none";
 }
 </script>
+
+<style>
+/* Compact admin accordion menu */
+#adminDashboard .admin-fold{border:1px solid #f0c9df;border-radius:13px;background:#fff;margin:9px 0;overflow:hidden}
+#adminDashboard .admin-fold>summary{list-style:none;cursor:pointer;padding:14px 15px;font-weight:800;color:#9e155d;background:#fff3fa;display:flex;align-items:center;justify-content:space-between}
+#adminDashboard .admin-fold>summary::-webkit-details-marker{display:none}
+#adminDashboard .admin-fold>summary:after{content:"＋";font-size:18px;color:#e01686}
+#adminDashboard .admin-fold[open]>summary:after{content:"－"}
+#adminDashboard .admin-fold-body{padding:12px}
+#adminDashboard .admin-fold-body>.admin-editor:first-child{margin-top:0}
+@media(max-width:600px){#adminDashboard .admin-fold>summary{padding:12px;font-size:14px}#adminDashboard .admin-fold-body{padding:9px}}
+</style>
+<script>
+(function(){
+ function compactAdmin(){
+  const dash=document.getElementById('adminDashboard');if(!dash||dash.dataset.compact==='1')return;
+  dash.dataset.compact='1';
+  const children=[...dash.children];
+  children.forEach((node,i)=>{
+   if(i===0||node.classList.contains('admin-fold'))return;
+   let label='';
+   const h=node.querySelector('h3');
+   if(h)label=h.textContent.trim();
+   else if(node.classList.contains('admin-stats'))label='📊 Статистик';
+   else if(node.classList.contains('admin-toolbar'))label='🔎 Хайлт · CSV · Ачаа бүртгэл';
+   else if(node.id==='parcelEditor')label='✏️ Ачааны мэдээлэл';
+   else if(node.id==='adminNotice')label='ℹ️ Мэдэгдэл';
+   else if(node.id==='parcelList')label='📦 Ачааны жагсаалт';
+   else label='📋 Нэмэлт удирдлага';
+   const fold=document.createElement('details');fold.className='admin-fold';
+   if(node.id==='bulkEreenBox')fold.open=false;
+   const summary=document.createElement('summary');summary.textContent=label;
+   const body=document.createElement('div');body.className='admin-fold-body';
+   node.parentNode.insertBefore(fold,node);fold.append(summary,body);body.appendChild(node);
+  });
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',compactAdmin);else compactAdmin();
+ const obs=new MutationObserver(()=>{const d=document.getElementById('adminDashboard');if(d&&d.style.display!=='none')compactAdmin()});
+ obs.observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['style','class']});
+})();
+</script>
 </body>
 </html>
