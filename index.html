@@ -446,7 +446,7 @@ async function bulkMarkEreen(){
  if(codes.length>500){showMessage("bulkEreenResult","Нэг удаад 500 хүртэл трак код оруулна.");return}
  if(!confirm(codes.length+" трак кодыг шалгаж, олдсон ачааг “Эрээнд ирсэн” төлөвт оруулах уу?"))return;
  out.textContent="Шалгаж, хадгалж байна...";
- const {data,error}=await db.from("parcels").update({parcel_status:"ereen"}).neq("parcel_status","received").in("tracking_code",codes).select("tracking_code");
+ const {data,error}=await db.from("parcels").update({parcel_status:"ereen"}).eq("parcel_status","mongolia").in("tracking_code",codes).select("tracking_code");
  if(error){showMessage("bulkEreenResult","Хадгалах алдаа: "+error.message);return}
  const found=(data||[]).map(p=>String(p.tracking_code));const foundSet=new Set(found);const missing=codes.filter(x=>!foundSet.has(x));
  await loadAdminParcels();
