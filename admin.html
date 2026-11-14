@@ -240,6 +240,7 @@ details.admin-menu{background:#fff;border:1px solid #f1dce8;border-radius:14px;m
   <div class="admin-mobile-nav"><button type="button" onclick="toggleAdminMenu()">☰</button><span>Тэнхлүүн Карго · Админ</span></div>
   <div class="records-quickbar"><button onclick="newParcelForm()">＋ Бүртгэх</button><input aria-label="Ачаа хайх" placeholder="🔎 Трак код / нэр / утас..." oninput="document.getElementById('adminSearch').value=this.value;filterAdminRows()"><button onclick="loadAdminParcels()">↻</button></div>
 <details class="admin-menu"><summary>⚙️ Үнийн мэдээлэл / ажлын цаг / Эрээн хаяг</summary><div class="admin-editor"><h3>⚙️ Үнийн мэдээлэл ба ажлын цаг</h3><div class="admin-editor"><h3>📍 Эрээн агуулахын хаяг</h3><input id="settingEreenAddress" placeholder="Эрээн дэх агуулахын бүтэн хаяг"><input id="settingEreenContact" placeholder="Хүлээн авах хүн / утас"><button class="primary" onclick="saveEreenAddress()">Хаяг хадгалах</button><span id="ereenSettingsInfo" class="muted"></span></div>
+ <div class="admin-editor"><h3>🏦 Төлбөрийн дансны мэдээлэл</h3><input id="settingBankName" placeholder="Банкны нэр"><input id="settingBankAccount" placeholder="Дансны дугаар"><input id="settingBankHolder" placeholder="Данс эзэмшигчийн нэр"><span id="bankSettingsInfo" class="muted"></span></div>
  <div class="admin-fields"><input id="settingKg" type="number" min="0" placeholder="1 кг үнэ ₮"><input id="settingM3" type="number" min="0" placeholder="1 м³ үнэ юань"><input id="settingOpen" type="time" value="10:00"><input id="settingClose" type="time" value="20:00"></div>
  <div class="admin-actions"><button class="primary" onclick="saveSiteSettings()">Үнэ, цаг хадгалах</button><span id="settingsInfo" class="muted"></span></div></div>
  </details>
@@ -371,14 +372,14 @@ async function loadSiteSettings(){
  document.getElementById("settingM3").value=siteSettings.m3_price??700;
  document.getElementById("settingOpen").value=siteSettings.open_time||"10:00";
  document.getElementById("settingClose").value=siteSettings.close_time||"20:00";
- document.getElementById("settingEreenAddress").value=siteSettings.ereen_address||"";document.getElementById("settingEreenContact").value=siteSettings.ereen_contact||"";
+ document.getElementById("settingEreenAddress").value=siteSettings.ereen_address||"";document.getElementById("settingEreenContact").value=siteSettings.ereen_contact||"";document.getElementById("settingBankName").value=siteSettings.bank_name||"";document.getElementById("settingBankAccount").value=siteSettings.bank_account||"";document.getElementById("settingBankHolder").value=siteSettings.bank_holder||"";
  if(error)document.getElementById("settingsInfo").textContent="DB хүснэгт тохируулах шаардлагатай";
 }
 async function saveSiteSettings(){
  const kgRaw=document.getElementById("settingKg").value.trim(),m3Raw=document.getElementById("settingM3").value.trim();
  const kg=Number(kgRaw),m3=Number(m3Raw);
  if(kgRaw===""||m3Raw===""||!Number.isFinite(kg)||!Number.isFinite(m3)||kg<0||m3<0){showMessage("settingsInfo","Кг болон м³ үнэ 0-ээс багагүй зөв тоо оруулна.");return}
- const payload={id:1,kg_price:kg,m3_price:m3,open_time:document.getElementById("settingOpen").value||"10:00",close_time:document.getElementById("settingClose").value||"20:00",updated_at:new Date().toISOString()};
+ const payload={id:1,kg_price:kg,m3_price:m3,open_time:document.getElementById("settingOpen").value||"10:00",close_time:document.getElementById("settingClose").value||"20:00",bank_name:document.getElementById("settingBankName").value.trim(),bank_account:document.getElementById("settingBankAccount").value.trim(),bank_holder:document.getElementById("settingBankHolder").value.trim(),updated_at:new Date().toISOString()};
  const {error}=await db.from("site_settings").upsert(payload);
  if(error){showMessage("settingsInfo","Хадгалж чадсангүй: "+error.message);return}
  siteSettings=payload;showMessage("settingsInfo","Хадгалагдлаа ✓");
