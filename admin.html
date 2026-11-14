@@ -410,7 +410,19 @@ async function adminLogin(){
 }
 
 let preRegistrations=[];
-async function loadPreRegistrations(){const box=document.getElementById("preRegistrationRows");if(!box)return;box.innerHTML='<div class="empty">Ачаалж байна...</div>';const {data,error}=await db.from("customer_pre_registrations").select("*").eq("status","pending").order("created_at",{ascending:false});if(error){box.innerHTML='<div class="empty">Хүснэгт/SQL шалгана уу: '+escapeHTML(error.message)+'</div>';document.getElementById("preRegCount").textContent="!";return}preRegistrations=data||[];document.getElementById("preRegCount").textContent=preRegistrations.length;box.innerHTML=preRegistrations.length?preRegistrations.map(x=>'<div class="parcel"><div class="parcel-top"><b class="tracking">'+escapeHTML(x.tracking_code)+'</b><span class="status-pill">Хүлээгдэж буй</span></div><div class="details"><div class="detail"><small>Утас</small>'+escapeHTML(x.customer_phone)+'</div><div class="detail"><small>Бүртгэсэн</small>'+new Date(x.created_at).toLocaleString("mn-MN")+'</div><div class="detail" style="grid-column:1/-1"><small>Тайлбар</small>'+escapeHTML(x.description||"—")+'</div></div><div class="admin-actions"><button class="primary" onclick="approvePreRegistration(\''+String(x.id)+'\')">✓ Ачаатай холбох</button><button class="delete-btn" onclick="rejectPreRegistration(\''+String(x.id)+'\')">Татгалзах</button></div></div>').join(""):'<div class="empty">Шинэ урьдчилсан бүртгэл алга.</div>'}
+async function loadPreRegistrations(){
+ const box=document.getElementById("preRegistrationRows");if(!box)return;
+ box.innerHTML='<div class="empty">Ачаалж байна...</div>';
+ try{
+  const all=[];let from=0;const size=1000;
+  while(true){
+   const {data,error}=await db.from("customer_pre_registrations").select("*").eq("status","pending").order("created_at",{ascending:false}).range(from,from+size-1);
+   if(error)throw error;const part=data||[];all.push(...part);if(part.length<size)break;from+=size;
+  }
+  preRegistrations=all;document.getElementById("preRegCount").textContent=preRegistrations.length;
+  box.innerHTML=preRegistrations.length?preRegistrations.map(x=>'<div class="parcel"><div class="parcel-top"><b class="tracking">'+escapeHTML(x.tracking_code)+'</b><span class="status-pill">Хүлээгдэж буй</span></div><div class="details"><div class="detail"><small>Утас</small>'+escapeHTML(x.customer_phone)+'</div><div class="detail"><small>Бүртгэсэн</small>'+new Date(x.created_at).toLocaleString("mn-MN")+'</div><div class="detail" style="grid-column:1/-1"><small>Тайлбар</small>'+escapeHTML(x.description||"—")+'</div></div><div class="admin-actions"><button class="primary" onclick="approvePreRegistration(\''+String(x.id)+'\')">✓ Ачаатай холбох</button><button class="delete-btn" onclick="rejectPreRegistration(\''+String(x.id)+'\')">Татгалзах</button></div></div>').join(""):'<div class="empty">Шинэ урьдчилсан бүртгэл алга.</div>';
+ }catch(error){box.innerHTML='<div class="empty">Урьдчилсан бүртгэл татахад алдаа: '+escapeHTML(error.message||error)+'</div>';document.getElementById("preRegCount").textContent="!";console.error(error)}
+}
 async function approvePreRegistration(id){
  const x=preRegistrations.find(a=>String(a.id)===String(id));if(!x)return;
  const {data:current,error:statusError}=await db.from("customer_pre_registrations").select("id,status").eq("id",id).maybeSingle();
