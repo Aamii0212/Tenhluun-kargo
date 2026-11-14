@@ -512,6 +512,18 @@ async function saveParcel(){
  const pieces=Number(document.getElementById("editPieces").value||1),weight=Number(document.getElementById("editWeight").value||0),volume=Number(document.getElementById("editVolume").value||0),manualPrice=document.getElementById("editPrice").value.trim(),price=Number(manualPrice||((weight*siteSettings.kg_price)+(volume*siteSettings.m3_price*500)));
  if(!Number.isInteger(pieces)||pieces<1||!Number.isFinite(weight)||weight<0||!Number.isFinite(volume)||volume<0||!Number.isFinite(price)||price<0){showMessage("adminNotice","Ширхэг бүхэл 1-ээс дээш тоо; жин, эзлэхүүн, үнэ 0-ээс багагүй зөв тоо байна.");return}
  const requestedStatus=document.getElementById("editStatus").value,existingParcel=editingParcelId?(adminParcels.find(p=>String(p.id)===String(editingParcelId))):null;
+ if(existingParcel&&existingParcel.paid_at){
+  const lockedChanges=[
+   ["трак код",tracking,String(existingParcel.tracking_code||"").trim().toUpperCase()],
+   ["утас",phone,cleanPhone(existingParcel.customer_phone||existingParcel.phone||"")],
+   ["ширхэг",pieces,Number(existingParcel.piece_number||1)],
+   ["жин",weight,Number(existingParcel.weight_kg||0)],
+   ["эзлэхүүн",volume,Number(existingParcel.volume_m3||0)],
+   ["үнэ",price,Number(existingParcel.price_mnt||0)],
+   ["салбар",document.getElementById("editBranch").value||null,String(existingParcel.branch_id||"")||null]
+  ].filter(([label,next,prior])=>String(next??"")!==String(prior??""));
+  if(lockedChanges.length){showMessage("adminNotice","Төлбөр баталгаажсан ачааны "+lockedChanges.map(x=>x[0]).join(", ")+"-ийг өөрчлөхгүй. Харилцагчийн нэр, тайлбарыг засаж болно.");return}
+ }
  if(requestedStatus==="received"&&(!existingParcel||classifyStatus(existingParcel.parcel_status)!=="received")){showMessage("adminNotice","Ачааг хүлээлгэн өгсөн төлөвт гараар оруулахгүй. “Хүлээлгэн өгөх” товчоор төлбөр, ажилтны мэдээллийг баталгаажуулна.");return}
  if(existingParcel&&classifyStatus(existingParcel.parcel_status)==="received"&&requestedStatus!=="received"){showMessage("adminNotice","Хүлээлгэн өгсөн ачааны төлөвийг буцаах боломжгүй.");return}
  const payload={tracking_code:tracking,customer_name:document.getElementById("editName").value.trim(),customer_phone:phone,piece_number:pieces,weight_kg:weight,volume_m3:volume,price_mnt:price,parcel_status:requestedStatus,branch_id:document.getElementById("editBranch").value||null,description:document.getElementById("editDescription").value.trim()};
