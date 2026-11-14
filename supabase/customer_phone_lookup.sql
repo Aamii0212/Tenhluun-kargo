@@ -22,8 +22,9 @@ AS $$
   )
   FROM public.parcels p
   LEFT JOIN public.branches b ON b.id = p.branch_id
-  WHERE p.customer_phone = regexp_replace(coalesce(p_phone,''), '[^0-9]', '', 'g')
-  WHERE p.customer_phone = regexp_replace(coalesce(p_phone,''), '[^0-9]', '', 'g')
+  WHERE regexp_replace(coalesce(p.customer_phone,''), '[^0-9]', '', 'g') =
+        regexp_replace(coalesce(p_phone,''), '[^0-9]', '', 'g')
+    AND length(regexp_replace(coalesce(p_phone,''), '[^0-9]', '', 'g')) = 8
   ORDER BY p.created_at DESC;
 $$;
 REVOKE ALL ON FUNCTION public.get_customer_parcels_by_phone(text) FROM PUBLIC;
