@@ -411,7 +411,27 @@ async function adminLogin(){
 
 let preRegistrations=[];
 async function loadPreRegistrations(){const box=document.getElementById("preRegistrationRows");if(!box)return;box.innerHTML='<div class="empty">Ачаалж байна...</div>';const {data,error}=await db.from("customer_pre_registrations").select("*").eq("status","pending").order("created_at",{ascending:false});if(error){box.innerHTML='<div class="empty">Хүснэгт/SQL шалгана уу: '+escapeHTML(error.message)+'</div>';document.getElementById("preRegCount").textContent="!";return}preRegistrations=data||[];document.getElementById("preRegCount").textContent=preRegistrations.length;box.innerHTML=preRegistrations.length?preRegistrations.map(x=>'<div class="parcel"><div class="parcel-top"><b class="tracking">'+escapeHTML(x.tracking_code)+'</b><span class="status-pill">Хүлээгдэж буй</span></div><div class="details"><div class="detail"><small>Утас</small>'+escapeHTML(x.customer_phone)+'</div><div class="detail"><small>Бүртгэсэн</small>'+new Date(x.created_at).toLocaleString("mn-MN")+'</div><div class="detail" style="grid-column:1/-1"><small>Тайлбар</small>'+escapeHTML(x.description||"—")+'</div></div><div class="admin-actions"><button class="primary" onclick="approvePreRegistration(\''+String(x.id)+'\')">✓ Ачаатай холбох</button><button class="delete-btn" onclick="rejectPreRegistration(\''+String(x.id)+'\')">Татгалзах</button></div></div>').join(""):'<div class="empty">Шинэ урьдчилсан бүртгэл алга.</div>'}
-async function approvePreRegistration(id){const x=preRegistrations.find(a=>String(a.id)===String(id));if(!x)return;const {data:found,error:check}=await db.from("parcels").select("id,customer_phone").eq("tracking_code",x.tracking_code).maybeSingle();if(check){alert("Шалгах алдаа: "+check.message);return}if(found){if(!confirm("Трак код аль хэдийн бүртгэлтэй байна. Утас "+(found.customer_phone||"")+". Урьдчилсан бүртгэлийг зөвшөөрсөн гэж тэмдэглэх үү?"))return;const {error}=await db.from("customer_pre_registrations").update({status:"approved",reviewed_at:new Date().toISOString(),admin_note:"Ачаа өмнө бүртгэлтэй"}).eq("id",id);if(error){alert(error.message);return}}else{if(!confirm(x.tracking_code+" кодыг "+x.customer_phone+" утсанд холбож, Эрээнд ирсэн төлөвтэй ачаа бүртгэх үү?"))return;const {error}=await db.from("parcels").insert({tracking_code:x.tracking_code,customer_phone:x.customer_phone,customer_name:"",piece_number:1,weight_kg:0,volume_m3:0,price_mnt:0,parcel_status:"ereen",description:x.description||""});if(error){alert("Ачаа бүртгэх алдаа: "+error.message);return}const {error:reviewError}=await db.from("customer_pre_registrations").update({status:"approved",reviewed_at:new Date().toISOString()}).eq("id",id);if(reviewError){alert("Ачаа бүртгэгдсэн ч хүсэлтийн төлөв шинэчилсэнгүй: "+reviewError.message);await loadAdminParcels();return}}await loadAdminParcels();await loadPreRegistrations();showMessage("adminNotice","Урьдчилсан бүртгэлийг зөвшөөрлөө.")}
+async function approvePreRegistration(id){
+ const x=preRegistrations.find(a=>String(a.id)===String(id));if(!x)return;
+ const {data:found,error:check}=await db.from("parcels").select("id,customer_phone").eq("tracking_code",x.tracking_code).maybeSingle();
+ if(check){alert("Шалгах алдаа: "+check.message);return}
+ if(found){
+  const existingPhone=cleanPhone(found.customer_phone||"");
+  if(existingPhone&&existingPhone!==x.customer_phone){alert("Энэ трак код өөр утасны дугаартай ачаанд бүртгэлтэй байна. Автоматаар холбохгүй.");return}
+  if(!confirm("Трак код өмнө бүртгэлтэй. "+(existingPhone?"Ижил утас байна.":"Утас хоосон тул "+x.customer_phone+" дугаарт холбох")+" бөгөөд хүсэлтийг зөвшөөрөх үү?"))return;
+  if(!existingPhone){
+   const {error:linkError}=await db.from("parcels").update({customer_phone:x.customer_phone}).eq("id",found.id);
+   if(linkError){alert("Утас холбох алдаа: "+linkError.message);return}
+  }
+ }else{
+  if(!confirm(x.tracking_code+" кодыг "+x.customer_phone+" утсанд холбож, Эрээнд ирсэн төлөвтэй ачаа бүртгэх үү?"))return;
+  const {error:insertError}=await db.from("parcels").insert({tracking_code:x.tracking_code,customer_phone:x.customer_phone,customer_name:"",piece_number:1,weight_kg:0,volume_m3:0,price_mnt:0,parcel_status:"ereen",description:x.description||""});
+  if(insertError){alert("Ачаа бүртгэх алдаа: "+insertError.message);return}
+ }
+ const {error:reviewError}=await db.from("customer_pre_registrations").update({status:"approved",reviewed_at:new Date().toISOString(),admin_note:found?"Өмнөх ачаатай холбосон":"Ачаа шинээр бүртгэсэн"}).eq("id",id);
+ if(reviewError){alert("Ачаа холбогдсон ч хүсэлтийн төлөв шинэчилсэнгүй: "+reviewError.message);await loadAdminParcels();return}
+ await loadAdminParcels();await loadPreRegistrations();showMessage("adminNotice","Урьдчилсан бүртгэлийг зөвшөөрлөө.");
+}
 async function rejectPreRegistration(id){const note=prompt("Татгалзсан шалтгаан (заавал биш):","");if(note===null)return;const {error}=await db.from("customer_pre_registrations").update({status:"rejected",admin_note:note,reviewed_at:new Date().toISOString()}).eq("id",id);if(error){alert("Татгалзах алдаа: "+error.message);return}await loadPreRegistrations()}
 
 async function adminLogout(){await db.auth.signOut();document.getElementById("adminDashboard").style.display="none";document.getElementById("adminLogin").style.display="block"}
