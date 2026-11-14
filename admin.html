@@ -556,6 +556,18 @@ document.querySelectorAll("#adminSidebar [data-menu]").forEach(btn=>{
   document.getElementById("adminSidebar").classList.remove("show");
  });
 });
+
+// UX improvements: live feedback, keyboard access, and reliable mobile form focus.
+document.querySelectorAll("#adminDashboard input").forEach(input=>{
+ input.addEventListener("keydown",e=>{
+  if(e.key==="Enter" && input.id==="adminSearch")filterAdminRows();
+ });
+});
+document.querySelectorAll("#adminDashboard details.admin-menu > summary").forEach(summary=>{
+ summary.setAttribute("role","button");summary.setAttribute("tabindex","0");
+ summary.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();summary.parentElement.open=!summary.parentElement.open;}});
+});
+
 </script>
 </body>
 </html>
