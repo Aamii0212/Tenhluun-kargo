@@ -383,7 +383,7 @@ function exportPaymentsCSV(){
  const dateFilter=document.getElementById("paidDateFilter")?.value||"";
  const rows=[["Трак код","Салбар","Үнэ ₮","Төлбөр","Хүлээлгэн өгсөн ажилтан","Огноо"],...adminParcels.filter(p=>p.paid_at&&(!dateFilter||localDateKey(p.paid_at)===dateFilter)).map(p=>[p.tracking_code,adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name||"",p.price_mnt,p.payment_method==="cash"?"Бэлэн":"Шилжүүлэг",p.received_by,p.paid_at])];
  const csv="\uFEFF"+rows.map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\r\n");
- const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="tenhluun-payments.csv";a.click();URL.revokeObjectURL(url);
+ const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="tenhluun-payments.csv";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function renderAdminRows(rows){
  updateAdminStats();
