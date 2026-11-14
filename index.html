@@ -369,7 +369,7 @@ async function loadAdminParcels(){
   adminParcels=all;await loadBranches();renderAdminRows(adminParcels);showMessage("adminNotice","");
  }catch(error){console.error("Ачааны жагсаалт татах:",error);body.innerHTML='<tr><td colspan="7">Ачаа татахад алдаа: '+escapeHTML(error.message||error)+'</td></tr>';showMessage("adminNotice","Ачаа татах алдаа: "+(error.message||error));}
 }
-function localDateKey(value){const d=new Date(value);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
+function localDateKey(value){const d=new Date(value);if(Number.isNaN(d.getTime()))return "";return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
 function updateAdminStats(){
  const total=adminParcels.length,ereen=adminParcels.filter(p=>classifyStatus(p.parcel_status)==="ereen").length,mongolia=adminParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia").length,received=adminParcels.filter(p=>classifyStatus(p.parcel_status)==="received"),revenue=received.reduce((sum,p)=>sum+Number(p.price_mnt||0),0),today=localDateKey(new Date()),selectedDate=document.getElementById("paidDateFilter")?.value||today;
  const paidForDate=adminParcels.filter(p=>p.paid_at&&localDateKey(p.paid_at)===selectedDate),cash=paidForDate.filter(p=>p.payment_method==="cash").reduce((s,p)=>s+Number(p.price_mnt||0),0),transfer=paidForDate.filter(p=>p.payment_method==="transfer").reduce((s,p)=>s+Number(p.price_mnt||0),0);
