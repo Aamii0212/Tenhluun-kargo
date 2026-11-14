@@ -328,6 +328,7 @@ async function adminLogin(){
   const dash=document.getElementById("adminDashboard");dash.classList.remove("hidden");dash.style.display="block";
   dash.scrollIntoView({behavior:"instant",block:"start"});
   await loadSiteSettings();
+  await loadBranches();
   await loadAdminParcels();
   await loadPreRegistrations();
  }catch(e){console.error("Admin login/dashboard:",e);msg.textContent="Алдаа: "+(e.message||"Админ нэвтрэх боломжгүй");}
