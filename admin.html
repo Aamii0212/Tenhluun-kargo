@@ -588,7 +588,18 @@ async function handoverParcel(id){
  if(!updated){showMessage("adminNotice","Ачаа аль хэдийн хүлээлгэн өгөгдсөн эсвэл шинэчлэгдсэн байна.");await loadAdminParcels();return}
  await loadAdminParcels();showMessage("adminNotice","Хүлээлгэн өгч, төлбөрийн мэдээлэл бүртгэлээ.");
 }
-async function deleteParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p||!confirm((p.tracking_code||"Энэ ачаа")+" устгах уу?"))return;const {data:deleted,error}=await db.from("parcels").delete().eq("id",id).select("id").maybeSingle();if(error){showMessage("adminNotice","Устгах алдаа: "+error.message);return}if(!deleted){showMessage("adminNotice","Ачаа устсангүй. Устгах эрх болон RLS тохиргоог шалгана уу.");return}await loadAdminParcels();showMessage("adminNotice","Ачааг устгалаа.")}
+async function deleteParcel(id){
+ const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;
+ const sensitive=!!p.paid_at||classifyStatus(p.parcel_status)==="received";
+ const warning=sensitive?"\\n⚠️ Төлбөртэй эсвэл хүлээлгэн өгсөн ачаа байна. Устгавал түүх алдагдана.":"";
+ if(!confirm((p.tracking_code||"Энэ ачаа")+" устгах уу?"+warning+"\\nЭнэ үйлдлийг буцаах боломжгүй."))return;
+ const typed=prompt("Алдаатай устгал хамгаалахын тулд трак кодыг яг бичнэ үү:",p.tracking_code||"");if(typed===null)return;
+ if(String(typed).trim().toUpperCase()!==String(p.tracking_code||"").trim().toUpperCase()){alert("Трак код таарсангүй. Устгасангүй.");return}
+ const {data:deleted,error}=await db.from("parcels").delete().eq("id",id).select("id").maybeSingle();
+ if(error){showMessage("adminNotice","Устгах алдаа: "+error.message);return}
+ if(!deleted){showMessage("adminNotice","Ачаа устсангүй. Устгах эрх болон RLS тохиргоог шалгана уу.");return}
+ await loadAdminParcels();showMessage("adminNotice","Ачааг устгалаа.");
+}
 
 document.getElementById("customerPhone").addEventListener("keydown",e=>{if(e.key==="Enter")customerLogin()});
 if(true){
