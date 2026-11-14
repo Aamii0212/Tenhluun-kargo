@@ -279,9 +279,10 @@ function cleanPhone(value){return String(value||"").replace(/\D/g,"")}
 function escapeHTML(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function showMessage(id,message){const el=document.getElementById(id);if(el)el.textContent=message}
 function classifyStatus(status){
- const s=String(status||"").toLowerCase().trim();
- if(s.includes("хүлээж ав")||s.includes("хүлээн ав")||s.includes("авсан")||s.includes("delivered")||s.includes("received")||s.includes("picked"))return "received";
- if(s.includes("монгол")||s.includes("mongol")||s.includes("ub_arrived")||s.includes("arrived_mn")||s.includes("in_mongolia")||s.includes("mn_warehouse"))return "mongolia";
+ let s=String(status||"").toLowerCase().trim();
+ s=s.replaceAll("_"," ").replaceAll("-"," ");
+ if(["received","delivered","picked","picked up","handed over","хүлээж ав","хүлээн ав","хүлээлгэн өг","авсан"].some(x=>s.includes(x)))return "received";
+ if(["mongolia","in mongolia","arrived mn","ub arrived","mn warehouse","монгол","улаанбаатар"].some(x=>s.includes(x)))return "mongolia";
  return "ereen";
 }
 function statusLabel(group){if(group==="received")return "Хүлээж авсан";if(group==="mongolia")return "Монголд ирсэн";return "Эрээнд ирсэн"}
