@@ -481,10 +481,13 @@ function renderAdminRows(rows){
 async function confirmParcelPayment(id){
  const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;
  if(p.paid_at){showMessage("adminNotice","Энэ ачааны төлбөр өмнө баталгаажсан.");return}
- if(!confirm((p.tracking_code||"Ачаа")+" — "+Number(p.price_mnt||0).toLocaleString()+"₮ төлбөрийг батлах уу?"))return;
- const {data:paid,error}=await db.from("parcels").update({paid_at:new Date().toISOString(),payment_method:"transfer"}).eq("id",id).is("paid_at",null).select("id").maybeSingle();
+ if(classifyStatus(p.parcel_status)==="received"){showMessage("adminNotice","Хүлээлгэн өгсөн ачааны төлбөрийг энэ товчоор дахин бүртгэхгүй.");return}
+ const amount=Number(p.price_mnt||0);
+ if(!Number.isFinite(amount)||amount<=0){showMessage("adminNotice","Төлбөр батлахын өмнө ачааны үнийг зөв оруулна уу.");return}
+ if(!confirm((p.tracking_code||"Ачаа")+" — "+amount.toLocaleString()+"₮ төлбөрийг бодитоор хүлээн авсан гэж батлах уу?"))return;
+ const {data:paid,error}=await db.from("parcels").update({paid_at:new Date().toISOString(),payment_method:"transfer"}).eq("id",id).is("paid_at",null).neq("parcel_status","received").select("id").maybeSingle();
  if(error){showMessage("adminNotice","Төлбөр батлах алдаа: "+error.message);return}
- if(!paid){showMessage("adminNotice","Төлбөр аль хэдийн баталгаажсан эсвэл ачаа олдсонгүй.");await loadAdminParcels();return}
+ if(!paid){showMessage("adminNotice","Төлбөр аль хэдийн баталгаажсан, ачаа хүлээлгэн өгсөн эсвэл олдсонгүй.");await loadAdminParcels();return}
  await loadAdminParcels();showMessage("adminNotice","Төлбөр баталгаажлаа.");
 }
 function filterAdminRows(){const q=document.getElementById("adminSearch").value.toLowerCase().trim(),bid=document.getElementById("adminBranchFilter").value,st=document.getElementById("adminStatusFilter").value;const pay=document.getElementById("adminPaymentFilter")?.value||"";renderAdminRows(adminParcels.filter(p=>(!bid||String(p.branch_id||"")===bid)&&(!st||classifyStatus(p.parcel_status)===st)&&(!pay||(pay==="paid"?!!p.paid_at:!p.paid_at))&&[p.tracking_code,p.customer_name,p.name,p.customer_phone,p.phone].some(v=>String(v||"").toLowerCase().includes(q))))}
