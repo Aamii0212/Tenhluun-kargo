@@ -9,6 +9,11 @@ create table if not exists public.customer_pre_registrations (
 );
 
 alter table public.customer_pre_registrations enable row level security;
+-- Ижил утас + трак кодоор pending хүсэлтийг давхар үүсгэхээс хамгаална.
+create unique index if not exists customer_pre_reg_pending_unique
+on public.customer_pre_registrations (customer_phone, lower(trim(tracking_code)))
+where status = 'pending';
+
 
 -- Харилцагч зөвхөн хүсэлт шинээр илгээх эрхтэй
 drop policy if exists "public can submit pre registrations" on public.customer_pre_registrations;
