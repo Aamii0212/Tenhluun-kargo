@@ -354,8 +354,9 @@ function exportPreRegistrationsCSV(){
 }
 async function setPreRegStatus(id,status){
  if(!["confirmed","rejected"].includes(status)){alert("Буруу төлөв.");return}
+ const actionButtons=Array.from(document.querySelectorAll("#preRegAdminRows button")).filter(b=>(b.getAttribute("onclick")||"").includes("setPreRegStatus("+Number(id)+","));actionButtons.forEach(b=>{b.disabled=true;b.dataset.originalText=b.textContent;b.textContent="..."});
  const {error}=await db.from("customer_pre_registrations").update({status}).eq("id",id);
- if(error){alert("Төлөв өөрчлөх алдаа: "+error.message);return}await loadPreRegistrations();
+ if(error){actionButtons.forEach(b=>{b.disabled=false;b.textContent=b.dataset.originalText||b.textContent});alert("Төлөв өөрчлөх алдаа: "+error.message);return}await loadPreRegistrations();
 }
 async function deletePreRegistration(id){
  if(!confirm("Энэ урьдчилсан бүртгэлийг устгах уу?"))return;
