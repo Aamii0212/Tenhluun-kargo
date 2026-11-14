@@ -223,10 +223,10 @@ function customerLogout(){
 let siteSettings={kg_price:2500,m3_price:700,open_time:"10:00",close_time:"20:00"};
 function showEreenAddress(){
  const box=document.getElementById("ereenAddressBox");box.style.display=box.style.display==="none"?"block":"none";
- document.getElementById("ereenAddressText").innerHTML='<p><b>腾赫伦</b></p><p>18847960337</p><p id="ereenCopyText">内蒙古自治区锡林郭勒盟二连浩特市<br>利众物流园东门外三颗星货运部</p><button class="primary" onclick="copyEreenAddress()">📋 Хаяг хуулах</button><span id="ereenCopyMsg" style="margin-left:8px"></span>';
+ document.getElementById("ereenAddressText").innerHTML='<p><b>(腾赫伦）</b></p><p>18847960337</p><p id="ereenCopyText">内蒙古自治区 锡林郭勒盟 二连浩特市<br>内蒙古自治区锡林郭勒盟二连浩特市利众物流园<br>东门外三颗星货运部</p><button class="primary" onclick="copyEreenAddress()">📋 Хаяг хуулах</button><span id="ereenCopyMsg" style="margin-left:8px"></span>';
 }
 function copyEreenAddress(){
- const address="内蒙古自治区锡林郭勒盟二连浩特市利众物流园东门外三颗星货运部";
+ const address="(腾赫伦）\\n18847960337\\n内蒙古自治区 锡林郭勒盟 二连浩特市 内蒙古自治区锡林郭\\n勒盟二连浩特市利众物流园 东门外三颗星货运部";const address2=address;
  const t=document.createElement("textarea");t.value=address;t.style.position="fixed";t.style.opacity="0";document.body.appendChild(t);t.focus();t.select();
  let ok=false;try{ok=document.execCommand("copy");}catch(e){}
  t.remove();document.getElementById("ereenCopyMsg").textContent=ok?"Хуулагдлаа ✓":"Хаягийг гараар сонгоод хуулна уу";
