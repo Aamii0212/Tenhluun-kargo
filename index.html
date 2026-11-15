@@ -112,7 +112,6 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
 <section id="customerDashboard" style="display:none">
  <div class="dashboard-head"><div><h2>Миний ачаанууд</h2><div class="muted" id="customerPhoneLabel"></div></div><button class="logout" onclick="customerLogout()">Гарах</button></div>
  <div class="branch-box" style="margin:18px 0"><h3>📦 Захиалсан ачаагаа урьдчилан бүртгүүлэх</h3><p class="muted">Трак кодоо оруулна уу. Агуулахад ирсний дараа ажилтан баталгаажуулна.</p><input id="preRegTracking" placeholder="Трак код"><input id="preRegDescription" placeholder="Барааны нэр / тайлбар (заавал биш)"><button class="primary" onclick="submitPreRegistration()">📨 Бүртгүүлэх</button><div id="preRegMessage" class="message"></div></div>
- <button id="customerRefreshBtn" class="primary" style="padding:9px 13px;margin:10px 0">↻ Ачаа шинэчлэх</button>
  <div class="tabs">
   <button class="tab active" id="tabEreen" onclick="showTab('ereen')"><span class="count" id="countEreen">0</span>Эрээнд ирсэн</button>
   <button class="tab" id="tabMongolia" onclick="showTab('mongolia')"><span class="count" id="countMongolia">0</span>Монголд ирсэн</button>
@@ -180,6 +179,7 @@ async function submitPreRegistration(){
   const {error}=await db.from("customer_pre_registrations").insert({customer_phone:phone,tracking_code:tracking,description:description||null,status:"pending"});
   if(error)throw error;
   showMessage("preRegMessage","✅ Хүсэлт бүртгэгдлээ. Агуулахад ирсний дараа ажилтан баталгаажуулна.");
+  await refreshCustomerParcels(false);
   document.getElementById("preRegTracking").value="";document.getElementById("preRegDescription").value="";
  }catch(e){console.error("Pre-registration error:",e);showMessage("preRegMessage","Бүртгэхэд алдаа: "+(e.message||e.details||"Supabase тохиргоог шалгана уу."))}
  finally{btn.disabled=false;btn.textContent="📨 Бүртгүүлэх"}
@@ -191,18 +191,27 @@ async function customerLogin(){
  try{
   const {data,error}=await db.rpc("get_customer_parcels_by_phone",{p_phone:phone});
   if(error)throw error;
-  currentPhone=phone;customerParcels=data||[];openCustomerDashboard();
+  currentPhone=phone;customerParcels=data||[];openCustomerDashboard();startCustomerRealtime();
   if(!customerParcels.length)showMessage("customerMessage","Ачааны түүх хоосон байна. Бүртгэл амжилттай нээгдлээ.");
   if(pendingTrackingCode){pendingTrackingCode="";}
  }catch(error){console.error("Customer login:",error);showMessage("customerMessage","Алдаа: "+(error.message||"Мэдээлэл авах боломжгүй"))}
  finally{btn.disabled=false;btn.textContent="➜ Нэвтрэх"}
 }
-async function refreshCustomerParcels(showNotice=false){if(!currentPhone)return;const b=document.getElementById("customerRefreshBtn");if(b){b.disabled=true;b.textContent="⏳ Шинэчилж байна..."}try{const {data,error}=await db.rpc("get_customer_parcels_by_phone",{p_phone:currentPhone});if(error)throw error;customerParcels=data||[];openCustomerDashboard();if(showNotice)showMessage("customerMessage","✅ Ачааны мэдээлэл шинэчлэгдлээ")}catch(e){if(showNotice)showMessage("customerMessage","Шинэчлэх алдаа: "+e.message)}finally{if(b){b.disabled=false;b.textContent="↻ Ачаа шинэчлэх"}}}
+let customerRealtimeChannel=null;
+function startCustomerRealtime(){
+ if(!currentPhone||!db.channel)return;
+ if(customerRealtimeChannel)db.removeChannel(customerRealtimeChannel);
+ const phone=currentPhone;
+ customerRealtimeChannel=db.channel("customer-live-"+phone)
+ .on("postgres_changes",{event:"*",schema:"public",table:"parcels",filter:"phone=eq."+phone},()=>refreshCustomerParcels(false))
+ .on("postgres_changes",{event:"*",schema:"public",table:"customer_pre_registrations",filter:"customer_phone=eq."+phone},()=>refreshCustomerParcels(false))
+ .subscribe();
+}
+async function refreshCustomerParcels(){if(!currentPhone)return;try{const {data,error}=await db.rpc("get_customer_parcels_by_phone",{p_phone:currentPhone});if(error)throw error;customerParcels=data||[];openCustomerDashboard()}catch(e){console.error("Customer auto refresh:",e)}}
 function openCustomerDashboard(){
  document.getElementById("publicPage").style.display="none";document.getElementById("pageFooter").style.display="none";
  document.getElementById("customerHeader").style.display="flex";document.getElementById("customerDashboard").style.display="block";
  document.getElementById("customerPhoneLabel").textContent="Утас: "+currentPhone;
- const rb=document.getElementById("customerRefreshBtn");if(rb)rb.onclick=()=>refreshCustomerParcels(true);
  const ereen=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="ereen");
  const mongolia=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia");
  const received=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="received");
