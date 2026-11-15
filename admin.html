@@ -692,26 +692,22 @@ document.querySelectorAll("#adminDashboard details.admin-menu > summary").forEac
 #adminDashboard .admin-workspace details.admin-menu.section-selected{display:block!important}
 </style>
 <script id="single-admin-section-behavior">
-(()=>{const dash=document.getElementById("adminDashboard"),side=document.getElementById("adminSidebar"),work=dash.querySelector(".admin-workspace");
-const all=[...work.querySelectorAll(":scope > details.admin-menu")];
-const findMenu=(key)=>all.find(m=>(m.querySelector(":scope>summary")?.textContent||"").toLowerCase().includes(key));
-window.toggleAdminMenu=function(){side.classList.toggle("show");document.body.classList.toggle("admin-menu-open",side.classList.contains("show"));};
-document.querySelectorAll("#adminSidebar [data-menu]").forEach(btn=>{btn.addEventListener("click",()=>{
-const key=btn.dataset.menuKey||btn.textContent.trim();
-let target;
-if(key.includes("records"))target=findMenu("ачааны бүртгэл");
-else if(key.includes("stats"))target=findMenu("статистик");
-else if(key.includes("branch"))target=findMenu("салбар удирдах");
-else if(key.includes("pre"))target=findMenu("урьдчилсан бүртгэл");
-else if(key.includes("settings"))target=findMenu("үнийн мэдээлэл");
-else if(key.includes("bulk"))target=findMenu("ачааны бүртгэл");
+(()=>{const dash=document.getElementById("adminDashboard"),side=document.getElementById("adminSidebar"),work=dash.querySelector(".admin-workspace"),all=[...work.querySelectorAll(":scope > details.admin-menu")];
+const menu=(txt)=>all.find(m=>(m.querySelector("summary")?.textContent||"").includes(txt));
+window.toggleAdminMenu=()=>{side.classList.toggle("show");document.body.classList.toggle("admin-menu-open",side.classList.contains("show"));};
+document.querySelectorAll("#adminSidebar [data-menu-key]").forEach(btn=>btn.addEventListener("click",()=>{
+const key=btn.dataset.menuKey;let target=null,nested=null;
+if(key==="records")target=work.querySelector(".records-menu");
+if(key==="stats")target=menu("Статистик");
+if(key==="branch")target=menu("Салбар удирдах");
+if(key==="pre")target=menu("Урьдчилсан бүртгэл");
+if(key==="settings")target=menu("Үнийн мэдээлэл");
+if(key==="bulk"){target=work.querySelector(".records-menu");nested=[...target.querySelectorAll("details")].find(x=>x.querySelector("summary")?.textContent.includes("Эрээнд ирсэн")); }
 all.forEach(m=>{m.classList.remove("section-selected");m.style.display="none";m.open=false;});
-if(target){target.style.display="block";target.classList.add("section-selected");target.open=true;
-if(key.includes("bulk")){const nested=[...target.querySelectorAll("details.admin-menu")].find(x=>x.textContent.includes("Эрээнд ирсэн"));if(nested)nested.open=true;}
-}
-dash.classList.remove("all-admin-menus");side.classList.remove("show");document.body.classList.remove("admin-menu-open");
-});});
-})();
+if(target){target.style.display="block";target.classList.add("section-selected");target.open=true;}
+if(nested){nested.open=true;nested.scrollIntoView({behavior:"smooth",block:"center"});}
+side.classList.remove("show");document.body.classList.remove("admin-menu-open");
+}));})();
 </script><style id="restore-admin-submenus">
 /* Nested tools inside parcel records remain expandable when records is selected */
 #adminDashboard .records-menu.section-selected .admin-toolbar{display:flex!important;flex-wrap:wrap}
