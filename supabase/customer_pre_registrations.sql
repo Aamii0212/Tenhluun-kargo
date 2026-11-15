@@ -20,6 +20,21 @@ alter table public.customer_pre_registrations add column if not exists reviewed_
 alter table public.customer_pre_registrations drop constraint if exists customer_pre_registrations_status_check;
 alter table public.customer_pre_registrations add constraint customer_pre_registrations_status_check check (status in ('pending','confirmed','approved','rejected'));
 
+-- Трак код/тайлбарын уртыг DB түвшинд мөн хязгаарлана.
+alter table public.customer_pre_registrations
+  drop constraint if exists customer_pre_registrations_tracking_code_check;
+alter table public.customer_pre_registrations
+  add constraint customer_pre_registrations_tracking_code_check
+  check (length(trim(tracking_code)) between 1 and 100
+    and tracking_code !~ '[[:cntrl:]]');
+
+alter table public.customer_pre_registrations
+  drop constraint if exists customer_pre_registrations_description_check;
+alter table public.customer_pre_registrations
+  add constraint customer_pre_registrations_description_check
+  check (description is null or (length(description) <= 1000
+    and description !~ '[[:cntrl:]]'));
+
 alter table public.customer_pre_registrations enable row level security;
 -- Ижил утас + трак кодоор pending хүсэлтийг давхар үүсгэхээс хамгаална.
 create unique index if not exists customer_pre_reg_pending_unique
