@@ -621,23 +621,28 @@ async function bulkRegisterParcels(){
 }
 async function bulkMarkEreen(){
  const box=document.getElementById("bulkTrackingCodes"),out=document.getElementById("bulkEreenResult");
- const codes=[...new Set(box.value.split(/[\\s,;]+/).map(x=>x.trim().toUpperCase()).filter(Boolean))];
- if(!codes.length){showMessage("bulkEreenResult","Трак кодоо нэг нэг мөрөөр эсвэл таслалаар оруулна уу.");return}
- if(codes.length>500){showMessage("bulkEreenResult","Нэг удаад 500 хүртэл трак код оруулна.");return}
- if(!confirm(codes.length+" трак кодыг шалгаж, олдсон ачааг “Эрээнд ирсэн” төлөвт оруулах уу?"))return;
- out.textContent="⏳ Трак кодуудыг шалгаж байна...";
+ const codes=[...new Set(box.value.split(/[\\s,;]+/).map(x=>x.trim()).filter(Boolean))];
+ if(!codes.length){out.textContent="Трак кодоо оруулна уу.";return}
+ if(codes.length>500){out.textContent="Нэг удаад 500 хүртэл код оруулна.";return}
+ if(!confirm(codes.length+" кодыг Эрээнд ирсэн төлөвт хадгалах уу?"))return;
+ out.textContent="⏳ Код бүрийг шалгаж, төлөв хадгалж байна...";
  try{
-  const {data:existing,error:findError}=await db.from("parcels").select("id,tracking_code,parcel_status").in("tracking_code",codes);
-  if(findError)throw findError;
-  const rows=existing||[],foundSet=new Set(rows.map(p=>String(p.tracking_code||"").toUpperCase()));
-  const notFound=codes.filter(x=>!foundSet.has(x));
-  const received=rows.filter(p=>classifyStatus(p.parcel_status)==="received");
-  const updateIds=rows.filter(p=>classifyStatus(p.parcel_status)!=="received").map(p=>p.id);
-  let changed=0;
-  if(updateIds.length){const {data,error}=await db.from("parcels").update({parcel_status:"ereen"}).in("id",updateIds).select("id");if(error)throw error;changed=(data||[]).length;}
+  let changed=0,already=0,missing=[],failed=[];
+  for(const code of codes){
+   const {data:rows,error}=await db.from("parcels").select("id,tracking_code,parcel_status").ilike("tracking_code",code);
+   if(error){failed.push(code+" (хайлт: "+error.message+")");continue}
+   if(!rows?.length){missing.push(code);continue}
+   for(const p of rows){
+    if(classifyStatus(p.parcel_status)==="received"){already++;continue}
+    const {data:updated,error:updateError}=await db.from("parcels").update({parcel_status:"ereen"}).eq("id",p.id).select("id,parcel_status");
+    if(updateError){failed.push(code+" ("+updateError.message+")");continue}
+    if(updated?.length&&classifyStatus(updated[0].parcel_status)==="ereen")changed++;
+    else failed.push(code+" (Supabase update зөвшөөрөөгүй эсвэл хадгалалт баталгаажаагүй)");
+   }
+  }
   await loadAdminParcels();
-  out.innerHTML="<b>✅ Эрээнд ирсэн болгосон: "+changed+" ачаа</b><br>Хүлээлгэн өгсөн тул алгассан: "+received.length+"<br>Бүртгэл олдоогүй: "+notFound.length+(notFound.length?"<br><small>"+escapeHTML(notFound.join(", "))+"</small>":"");
- }catch(error){showMessage("bulkEreenResult","❌ Шинэчлэхэд алдаа: "+escapeHTML(error.message||String(error)))}
+  out.innerHTML="<b>✅ Эрээнд ирсэн төлөвт хадгалсан: "+changed+"</b><br>Өмнө нь хүлээж авсан: "+already+"<br>Олдоогүй: "+missing.length+(missing.length?"<br>"+escapeHTML(missing.join(", ")):"")+"<br>Алдаа: "+failed.length+(failed.length?"<br>"+escapeHTML(failed.join("; ")):"");
+ }catch(e){out.textContent="❌ Алдаа: "+(e.message||e)}
 }
 async function handoverParcel(id){
  const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;
