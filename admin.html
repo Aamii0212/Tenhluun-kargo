@@ -378,9 +378,12 @@ async function loadSiteSettings(){
 }
 async function saveSiteSettings(){
  const kgRaw=document.getElementById("settingKg").value.trim(),m3Raw=document.getElementById("settingM3").value.trim();
- const kg=Number(kgRaw),m3=Number(m3Raw);
+ const kg=Number(kgRaw),m3=Number(m3Raw),openTime=document.getElementById("settingOpen").value||"10:00",closeTime=document.getElementById("settingClose").value||"20:00";
+ const bankName=document.getElementById("settingBankName").value.trim(),bankAccount=document.getElementById("settingBankAccount").value.trim(),bankHolder=document.getElementById("settingBankHolder").value.trim();
  if(kgRaw===""||m3Raw===""||!Number.isFinite(kg)||!Number.isFinite(m3)||kg<0||m3<0){showMessage("settingsInfo","Кг болон м³ үнэ 0-ээс багагүй зөв тоо оруулна.");return}
- const payload={id:1,kg_price:kg,m3_price:m3,open_time:document.getElementById("settingOpen").value||"10:00",close_time:document.getElementById("settingClose").value||"20:00",bank_name:document.getElementById("settingBankName").value.trim(),bank_account:document.getElementById("settingBankAccount").value.trim(),bank_holder:document.getElementById("settingBankHolder").value.trim(),updated_at:new Date().toISOString()};
+ if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(openTime)||!/^([01]\d|2[0-3]):[0-5]\d$/.test(closeTime)){showMessage("settingsInfo","Ажлын цаг HH:MM (00:00–23:59) форматаар байна.");return}
+ if(bankName.length>100||bankAccount.length>50||bankHolder.length>120||/[\u0000-\u001f\u007f]/.test(bankName+bankAccount+bankHolder)){showMessage("settingsInfo","Дансны мэдээллийн урт хэтэрсэн эсвэл хориотой тэмдэгт байна.");return}
+ const payload={id:1,kg_price:kg,m3_price:m3,open_time:openTime,close_time:closeTime,bank_name:bankName,bank_account:bankAccount,bank_holder:bankHolder,updated_at:new Date().toISOString()};
  const {error}=await db.from("site_settings").upsert(payload);
  if(error){showMessage("settingsInfo","Хадгалж чадсангүй: "+error.message);return}
  siteSettings=payload;showMessage("settingsInfo","Хадгалагдлаа ✓");
