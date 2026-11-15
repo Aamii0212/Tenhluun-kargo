@@ -606,7 +606,7 @@ document.addEventListener("click",e=>{const side=document.getElementById("adminS
 // Admin sidebar navigation: open the matching existing section without changing its functions.
 document.querySelectorAll("#adminSidebar [data-menu]").forEach(btn=>{
  btn.addEventListener("click",()=>{
-  const menus=[...document.querySelectorAll("#adminDashboard .admin-workspace details.admin-menu")];
+  const menus=[...document.querySelectorAll("#adminDashboard .admin-workspace > details.admin-menu")];
   const target=menus[Number(btn.dataset.menu)];
   if(target){menus.forEach(d=>d.open=false);target.open=true;target.scrollIntoView({behavior:"smooth",block:"start"});}
   document.querySelectorAll("#adminSidebar .side-link").forEach(b=>b.classList.remove("active"));btn.classList.add("active");
@@ -626,7 +626,7 @@ document.querySelectorAll("#adminDashboard details.admin-menu > summary").forEac
 });
 
 </script>
-<script id="admin-records-first-order">(()=>{const w=document.querySelector("#adminDashboard .admin-workspace"),r=w?.querySelector(".records-menu"),first=w?.querySelector("details.admin-menu:not(.records-menu)");if(r&&first)w.insertBefore(r,first);const map={"📦 Ачааны бүртгэл":0,"🔎 Ачаа хайх":0,"📊 Статистик":3,"🏢 Салбар удирдах":4,"📥 Урьдчилсан бүртгэл":5,"⚙️ Үнэ ба тохиргоо":1,"📷 QR бүртгэл":2,"✍️ Гараар ачаа бүртгэх":6,"📦 Бөөнөөр Эрээнд":0};document.querySelectorAll("#adminSidebar .side-link").forEach(b=>{const k=b.textContent.trim().replace(/^\S+\s*/,"");if(map[k]!==undefined)b.dataset.menu=map[k]})})();</script><script id="records-summary-refresh">
+<script id="admin-records-first-order">(()=>{const w=document.querySelector("#adminDashboard .admin-workspace"),r=w?.querySelector(".records-menu"),first=w?.querySelector(":scope > details.admin-menu:not(.records-menu)");if(r&&first)w.insertBefore(r,first);const map={"📦 Ачааны бүртгэл":0,"🔎 Ачаа хайх":0,"📊 Статистик":3,"🏢 Салбар удирдах":4,"📥 Урьдчилсан бүртгэл":5,"⚙️ Үнэ ба тохиргоо":1,"📷 QR бүртгэл":2,"✍️ Гараар ачаа бүртгэх":6,"📦 Бөөнөөр Эрээнд":0};document.querySelectorAll("#adminSidebar .side-link").forEach(b=>{const k=b.textContent.trim().replace(/^\S+\s*/,"");if(map[k]!==undefined)b.dataset.menu=map[k]})})();</script><script id="records-summary-refresh">
 (()=>{const original=window.renderAdminRows;window.renderAdminRows=function(rows){const total=adminParcels||[];const count=(s)=>total.filter(p=>classifyStatus(p.parcel_status)===s).length;const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=String(v)};set("recordsAll",total.length);set("recordsEreen",count("ereen"));set("recordsMongolia",count("mongolia"));set("recordsReceived",count("received"));return original(rows)}})();
 </script><style id="single-admin-section-view">
 #adminDashboard.all-admin-menus .admin-workspace details.admin-menu:not(.records-menu){display:none!important}
@@ -635,7 +635,7 @@ document.querySelectorAll("#adminDashboard details.admin-menu > summary").forEac
 <script id="single-admin-section-behavior">
 (()=> {
  const dash=document.getElementById("adminDashboard");
- const menus=[...dash.querySelectorAll(".admin-workspace details.admin-menu")];
+ const menus=[...dash.querySelectorAll(".admin-workspace > details.admin-menu")];
  menus.forEach((m,i)=>{if(i===0)m.classList.add("section-selected");});
  const toggle=window.toggleAdminMenu;
  window.toggleAdminMenu=function(){
@@ -654,6 +654,22 @@ document.querySelectorAll("#adminDashboard details.admin-menu > summary").forEac
      document.body.classList.remove("admin-menu-open");
    });
  });
+})();
+</script><style id="restore-admin-submenus">
+/* Nested tools inside parcel records remain expandable when records is selected */
+#adminDashboard .records-menu.section-selected .admin-toolbar{display:flex!important;flex-wrap:wrap}
+#adminDashboard .records-menu.section-selected > .admin-menu{display:block!important}
+#adminDashboard .records-menu.section-selected > .admin-menu>summary{display:flex!important}
+#adminDashboard .records-menu.section-selected > .admin-menu[open]{display:block!important}
+</style>
+<script id="fix-admin-menu-targets">
+(()=>{const d=document.getElementById("adminDashboard"),w=d.querySelector(".admin-workspace");
+const m=[...w.querySelectorAll(":scope > details.admin-menu")];
+document.querySelectorAll("#adminSidebar [data-menu]").forEach(b=>{b.onclick=null;b.addEventListener("click",()=>{
+const n=Number(b.dataset.menu),t=m[n];m.forEach(x=>{x.classList.remove("section-selected");x.style.display="none";x.open=false});
+if(t){t.style.display="block";t.classList.add("section-selected");t.open=true;}
+d.classList.remove("all-admin-menus");document.getElementById("adminSidebar").classList.remove("show");document.body.classList.remove("admin-menu-open");
+});});
 })();
 </script></body>
 </html>
