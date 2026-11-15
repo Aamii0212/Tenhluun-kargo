@@ -174,7 +174,7 @@ function statusLabel(group){if(group==="received")return "Хүлээж авса�
 
 async function submitPreRegistration(){
  const phone=cleanPhone(currentPhone||""),tracking=document.getElementById("preRegTracking").value.trim().toUpperCase(),description=document.getElementById("preRegDescription").value.trim();
- if(phone.length!==8||!tracking){showMessage("preRegMessage","Нэвтэрсэн утасны дугаар эсвэл трак код буруу байна.");return}
+ if(phone.length!==8||tracking.length<3||tracking.length>100||/[\u0000-\u001f\u007f]/.test(tracking)||description.length>1000||/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(description)){showMessage("preRegMessage","Трак код 3–100 тэмдэгт, тайлбар 1000-аас ихгүй байна. Хориотой тэмдэгт ашиглахгүй.");return}
  const btn=document.querySelector('button[onclick="submitPreRegistration()"]');btn.disabled=true;btn.textContent="БҮРТГЭЖ БАЙНА...";
  try{
   const {error}=await db.from("customer_pre_registrations").insert({customer_phone:phone,tracking_code:tracking,description:description||null,status:"pending"});
