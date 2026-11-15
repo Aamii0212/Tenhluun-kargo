@@ -196,6 +196,11 @@ details.admin-menu{background:#fff;border:1px solid #f1dce8;border-radius:14px;m
 .admin-menu:not(.records-menu){background:#fff;border:1px solid #e5e8ef;border-radius:13px;margin:10px 0;padding:0 13px 12px}
 .admin-menu:not(.records-menu)>summary{color:#394150!important}
 @media(max-width:850px){.admin-layout{grid-template-columns:minmax(0,1fr)!important}.admin-sidebar{display:none!important}.admin-sidebar.show{display:block!important;position:fixed!important;z-index:10001;left:8px;top:60px;bottom:8px;overflow:auto;width:min(270px,85vw)}#adminDashboard{padding:10px!important}.records-menu{padding:0 10px 12px!important}.records-menu .admin-toolbar{display:grid;grid-template-columns:1fr 1fr}.records-menu .admin-toolbar input{grid-column:1/-1;min-width:0}.records-menu .admin-toolbar button{font-size:12px;padding:10px 8px}.dashboard-head{padding:10px!important}}
+</style><style id="records-summary-style">
+.records-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:12px 0}
+.records-summary>div{background:#f8fafc;border:1px solid #e8ebf2;border-radius:11px;padding:12px 13px;display:flex;flex-direction:column;gap:5px}
+.records-summary small{font-size:11px;color:#798293;font-weight:700}.records-summary b{font-size:20px;color:#252b38}
+@media(max-width:520px){.records-summary{gap:6px}.records-summary>div{padding:9px 7px}.records-summary small{font-size:9px}.records-summary b{font-size:17px}}
 </style></head>
 <body>
 <header id="customerHeader">
@@ -286,7 +291,7 @@ details.admin-menu{background:#fff;border:1px solid #f1dce8;border-radius:14px;m
   <select id="editBranch"><option value="">Салбар сонгох</option></select><input id="editDescription" placeholder="Тайлбар / барааны нэр">
   <div class="admin-actions"><button class="primary" onclick="saveParcel()">Хадгалах</button><button class="logout" onclick="cancelParcelForm()">Болих</button></div>
  </div>
- <div id="adminParcelRows" class="record-cards"><div class="empty">Ачаа ачаалж байна...</div></div>
+ <div class="records-summary" id="recordsSummary"><div><small>Нийт бүртгэл</small><b id="recordsAll">0</b></div><div><small>🇨🇳 Эрээнд</small><b id="recordsEreen">0</b></div><div><small>🇲🇳 Монголд</small><b id="recordsMongolia">0</b></div><div><small>✓ Олгосон</small><b id="recordsReceived">0</b></div></div><div id="adminParcelRows" class="record-cards"><div class="empty">Ачаа ачаалж байна...</div></div>
  <div id="adminCount" class="muted"></div></details>
 </div></div></section>
 </main>
@@ -598,5 +603,7 @@ document.querySelectorAll("#adminDashboard details.admin-menu > summary").forEac
 });
 
 </script>
-<script id="admin-records-first-order">(()=>{const w=document.querySelector("#adminDashboard .admin-workspace"),r=w?.querySelector(".records-menu"),first=w?.querySelector("details.admin-menu:not(.records-menu)");if(r&&first)w.insertBefore(r,first);const map={"📦 Ачааны бүртгэл":0,"🔎 Ачаа хайх":0,"📊 Статистик":3,"🏢 Салбар удирдах":4,"📥 Урьдчилсан бүртгэл":5,"⚙️ Үнэ ба тохиргоо":1,"📷 QR бүртгэл":2,"✍️ Гараар ачаа бүртгэх":6,"📦 Бөөнөөр Эрээнд":0};document.querySelectorAll("#adminSidebar .side-link").forEach(b=>{const k=b.textContent.trim().replace(/^\S+\s*/,"");if(map[k]!==undefined)b.dataset.menu=map[k]})})();</script></body>
+<script id="admin-records-first-order">(()=>{const w=document.querySelector("#adminDashboard .admin-workspace"),r=w?.querySelector(".records-menu"),first=w?.querySelector("details.admin-menu:not(.records-menu)");if(r&&first)w.insertBefore(r,first);const map={"📦 Ачааны бүртгэл":0,"🔎 Ачаа хайх":0,"📊 Статистик":3,"🏢 Салбар удирдах":4,"📥 Урьдчилсан бүртгэл":5,"⚙️ Үнэ ба тохиргоо":1,"📷 QR бүртгэл":2,"✍️ Гараар ачаа бүртгэх":6,"📦 Бөөнөөр Эрээнд":0};document.querySelectorAll("#adminSidebar .side-link").forEach(b=>{const k=b.textContent.trim().replace(/^\S+\s*/,"");if(map[k]!==undefined)b.dataset.menu=map[k]})})();</script><script id="records-summary-refresh">
+(()=>{const original=window.renderAdminRows;window.renderAdminRows=function(rows){const total=window.adminParcels||[];const count=(s)=>total.filter(p=>classifyStatus(p.parcel_status)===s).length;const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=String(v)};set("recordsAll",total.length);set("recordsEreen",count("ereen"));set("recordsMongolia",count("mongolia"));set("recordsReceived",count("received"));return original(rows)}})();
+</script></body>
 </html>
