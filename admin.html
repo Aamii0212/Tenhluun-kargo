@@ -592,7 +592,7 @@ async function bulkRegisterParcels(){
  for(let n=0;n<lines.length;n++){
   const parts=lines[n].split(/[,;\t]+/).map(x=>x.trim());
   const phone=cleanPhone(parts[0]||""),tracking=(parts[1]||"").trim().toUpperCase(),name=(parts[2]||"").trim(),key=tracking.toLowerCase();
-  if(phone.length!==8||!tracking){bad.push(n+1);continue}
+  if(!/^\\d{8}$/.test(phone)||!tracking){bad.push(n+1);continue}
   if(seenInput.has(key)){bad.push(n+1);continue}seenInput.add(key);
   records.push({tracking_code:tracking,customer_phone:phone,customer_name:name,piece_number:1,weight_kg:0,volume_m3:0,price_mnt:0,parcel_status:"ereen"});
  }
