@@ -216,6 +216,14 @@ details.admin-menu{background:#fff;border:1px solid #f1dce8;border-radius:14px;m
  #adminDashboard .records-quickbar{position:sticky;top:65px;z-index:30}
  #adminDashboard .records-quickbar input{font-size:15px}
 }
+</style><style id="remove-menu-duplicates">
+/* Prevent menu tools from appearing twice on the main screen */
+#adminDashboard .admin-workspace>.admin-menu:not(.records-menu){display:none!important}
+#adminDashboard.all-admin-menus .admin-workspace>.admin-menu:not(.records-menu){display:block!important}
+#adminDashboard .records-menu>.admin-menu{display:none!important}
+#adminDashboard.all-admin-menus .records-menu>.admin-menu{display:block!important}
+#adminDashboard .records-menu .admin-toolbar{display:none!important}
+#adminDashboard .records-menu>summary{display:none!important}
 </style></head>
 <body>
 <header id="customerHeader">
