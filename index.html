@@ -176,9 +176,18 @@ async function submitPreRegistration(){
  if(phone.length!==8||!tracking){showMessage("preRegMessage","Нэвтэрсэн утасны дугаар эсвэл трак код буруу байна.");return}
  const btn=document.querySelector('button[onclick="submitPreRegistration()"]');btn.disabled=true;btn.textContent="БҮРТГЭЖ БАЙНА...";
  try{
-  const {error}=await db.from("customer_pre_registrations").insert({customer_phone:phone,tracking_code:tracking,description:description||null,status:"pending"});
-  if(error)throw error;
-  showMessage("preRegMessage","✅ Хүсэлт бүртгэгдлээ. Агуулахад ирсний дараа ажилтан баталгаажуулна.");
+  const {error:regError}=await db.from("customer_pre_registrations").insert({customer_phone:phone,tracking_code:tracking,description:description||null,status:"pending"});
+  if(regError)throw regError;
+  // If admin imported this code already, link it to this customer's phone immediately.
+  const {data:existing,error:findError}=await db.from("parcels").select("id,parcel_status").ilike("tracking_code",tracking);
+  if(findError)throw findError;
+  if(existing?.length){
+   const {error:linkError}=await db.from("parcels").update({customer_phone:phone}).eq("id",existing[0].id);
+   if(linkError)throw linkError;
+   const {error:approveError}=await db.from("customer_pre_registrations").update({status:"approved",reviewed_at:new Date().toISOString()}).eq("customer_phone",phone).eq("tracking_code",tracking).eq("status","pending");
+   if(approveError)throw approveError;
+  }
+  showMessage("preRegMessage",existing?.length?"✅ Трак код таны ачаатай холбогдлоо.":"✅ Хүсэлт бүртгэгдлээ. Агуулахад ирэхэд автоматаар холбогдоно.");
   await refreshCustomerParcels(false);
   document.getElementById("preRegTracking").value="";document.getElementById("preRegDescription").value="";
  }catch(e){console.error("Pre-registration error:",e);showMessage("preRegMessage","Бүртгэхэд алдаа: "+(e.message||e.details||"Supabase тохиргоог шалгана уу."))}
