@@ -328,13 +328,13 @@ background:#e83e9b!important;color:#fff!important;border:2px solid #e83e9b!impor
  <div class="admin-layout">
  <aside class="admin-sidebar" id="adminSidebar">
   <div class="side-title">ҮНДСЭН ЦЭС</div>
-  <button class="side-link active" data-menu="0">📦 Ачааны бүртгэл</button>
-  <button class="side-link" data-menu="3">📊 Статистик</button>
+  <button class="side-link active" data-menu-key="records">📦 Ачааны бүртгэл</button>
+  <button class="side-link" data-menu-key="stats">📊 Статистик</button>
   <div class="side-title">УДИРДЛАГА</div>
-  <button class="side-link" data-menu="4">🏢 Салбар удирдах</button>
-  <button class="side-link" data-menu="5">📥 Урьдчилсан бүртгэл</button>
-  <button class="side-link" data-menu="1">⚙️ Үнэ ба тохиргоо</button>
-  <button class="side-link" data-menu="0">📦 Бөөнөөр Эрээнд</button>
+  <button class="side-link" data-menu-key="branch">🏢 Салбар удирдах</button>
+  <button class="side-link" data-menu-key="pre">📥 Урьдчилсан бүртгэл</button>
+  <button class="side-link" data-menu-key="settings">⚙️ Үнэ ба тохиргоо</button>
+  <button class="side-link" data-menu-key="bulk">📦 Бөөнөөр Эрээнд</button>
  </aside>
  <div class="admin-workspace">
   <div class="admin-mobile-nav"><button type="button" onclick="toggleAdminMenu()">☰</button><span>Тэнхлүүн Карго · Админ</span></div>
@@ -692,27 +692,25 @@ document.querySelectorAll("#adminDashboard details.admin-menu > summary").forEac
 #adminDashboard .admin-workspace details.admin-menu.section-selected{display:block!important}
 </style>
 <script id="single-admin-section-behavior">
-(()=> {
- const dash=document.getElementById("adminDashboard");
- const menus=[...dash.querySelectorAll(".admin-workspace > details.admin-menu")];
- menus.forEach((m,i)=>{if(i===0)m.classList.add("section-selected");});
- const toggle=window.toggleAdminMenu;
- window.toggleAdminMenu=function(){
-   const side=document.getElementById("adminSidebar");
-   side.classList.toggle("show");
-   document.body.classList.toggle("admin-menu-open",side.classList.contains("show"));
-   dash.classList.remove("all-admin-menus");
- };
- document.querySelectorAll("#adminSidebar [data-menu]").forEach(btn=>{
-   btn.addEventListener("click",()=>{
-     const target=menus[Number(btn.dataset.menu)];
-     menus.forEach(m=>{m.classList.remove("section-selected");m.style.display="none";});
-     if(target){target.style.display="block";target.classList.add("section-selected");target.open=true;}
-     dash.classList.remove("all-admin-menus");
-     document.getElementById("adminSidebar").classList.remove("show");
-     document.body.classList.remove("admin-menu-open");
-   });
- });
+(()=>{const dash=document.getElementById("adminDashboard"),side=document.getElementById("adminSidebar"),work=dash.querySelector(".admin-workspace");
+const all=[...work.querySelectorAll(":scope > details.admin-menu")];
+const findMenu=(key)=>all.find(m=>(m.querySelector(":scope>summary")?.textContent||"").toLowerCase().includes(key));
+window.toggleAdminMenu=function(){side.classList.toggle("show");document.body.classList.toggle("admin-menu-open",side.classList.contains("show"));};
+document.querySelectorAll("#adminSidebar [data-menu]").forEach(btn=>{btn.addEventListener("click",()=>{
+const key=btn.dataset.menuKey||btn.textContent.trim();
+let target;
+if(key.includes("records"))target=findMenu("ачааны бүртгэл");
+else if(key.includes("stats"))target=findMenu("статистик");
+else if(key.includes("branch"))target=findMenu("салбар удирдах");
+else if(key.includes("pre"))target=findMenu("урьдчилсан бүртгэл");
+else if(key.includes("settings"))target=findMenu("үнийн мэдээлэл");
+else if(key.includes("bulk"))target=findMenu("ачааны бүртгэл");
+all.forEach(m=>{m.classList.remove("section-selected");m.style.display="none";m.open=false;});
+if(target){target.style.display="block";target.classList.add("section-selected");target.open=true;
+if(key.includes("bulk")){const nested=[...target.querySelectorAll("details.admin-menu")].find(x=>x.textContent.includes("Эрээнд ирсэн"));if(nested)nested.open=true;}
+}
+dash.classList.remove("all-admin-menus");side.classList.remove("show");document.body.classList.remove("admin-menu-open");
+});});
 })();
 </script><style id="restore-admin-submenus">
 /* Nested tools inside parcel records remain expandable when records is selected */
@@ -721,16 +719,7 @@ document.querySelectorAll("#adminDashboard details.admin-menu > summary").forEac
 #adminDashboard .records-menu.section-selected > .admin-menu>summary{display:flex!important}
 #adminDashboard .records-menu.section-selected > .admin-menu[open]{display:block!important}
 </style>
-<script id="fix-admin-menu-targets">
-(()=>{const d=document.getElementById("adminDashboard"),w=d.querySelector(".admin-workspace");
-const m=[...w.querySelectorAll(":scope > details.admin-menu")];
-document.querySelectorAll("#adminSidebar [data-menu]").forEach(b=>{b.onclick=null;b.addEventListener("click",()=>{
-const n=Number(b.dataset.menu),t=m[n];m.forEach(x=>{x.classList.remove("section-selected");x.style.display="none";x.open=false});
-if(t){t.style.display="block";t.classList.add("section-selected");t.open=true;}
-d.classList.remove("all-admin-menus");document.getElementById("adminSidebar").classList.remove("show");document.body.classList.remove("admin-menu-open");
-});});
-})();
-</script><div id="scanReg" style="display:none;position:fixed;inset:0;background:white;z-index:99999;overflow:auto"><h2 style="padding:16px;border-bottom:1px solid #eee"><button onclick="scanRegClose()">✕</button> Ачаа бүртгэл</h2><main style="padding:16px 16px 100px"><label>Ачаа ирсэн огноо</label><input id="srDate" type="date"><div id="srPhones"></div><button onclick="srPhone()">＋ Утас нэмэх</button><p><button onclick="srScan()" style="background:#e9b43e;color:white">▥ Бар код уншуулах</button></p><div id="srCam"></div><p id="srMsg"></p></main><footer style="position:fixed;bottom:0;background:white;padding:12px;width:100%"><button onclick="scanRegClose()">Цуцлах</button><button onclick="srSave()" style="background:#e9b43e;color:white">Хадгалах</button></footer></div>
+<div id="scanReg" style="display:none;position:fixed;inset:0;background:white;z-index:99999;overflow:auto"><h2 style="padding:16px;border-bottom:1px solid #eee"><button onclick="scanRegClose()">✕</button> Ачаа бүртгэл</h2><main style="padding:16px 16px 100px"><label>Ачаа ирсэн огноо</label><input id="srDate" type="date"><div id="srPhones"></div><button onclick="srPhone()">＋ Утас нэмэх</button><p><button onclick="srScan()" style="background:#e9b43e;color:white">▥ Бар код уншуулах</button></p><div id="srCam"></div><p id="srMsg"></p></main><footer style="position:fixed;bottom:0;background:white;padding:12px;width:100%"><button onclick="scanRegClose()">Цуцлах</button><button onclick="srSave()" style="background:#e9b43e;color:white">Хадгалах</button></footer></div>
 <script>
 let srReader;
 function scanRegOpen(){document.getElementById('scanReg').style.display='block';document.getElementById('srDate').value=new Date().toISOString().slice(0,10);if(!document.querySelector('#srPhones section'))srPhone()}
