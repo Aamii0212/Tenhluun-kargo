@@ -628,5 +628,32 @@ document.querySelectorAll("#adminDashboard details.admin-menu > summary").forEac
 </script>
 <script id="admin-records-first-order">(()=>{const w=document.querySelector("#adminDashboard .admin-workspace"),r=w?.querySelector(".records-menu"),first=w?.querySelector("details.admin-menu:not(.records-menu)");if(r&&first)w.insertBefore(r,first);const map={"📦 Ачааны бүртгэл":0,"🔎 Ачаа хайх":0,"📊 Статистик":3,"🏢 Салбар удирдах":4,"📥 Урьдчилсан бүртгэл":5,"⚙️ Үнэ ба тохиргоо":1,"📷 QR бүртгэл":2,"✍️ Гараар ачаа бүртгэх":6,"📦 Бөөнөөр Эрээнд":0};document.querySelectorAll("#adminSidebar .side-link").forEach(b=>{const k=b.textContent.trim().replace(/^\S+\s*/,"");if(map[k]!==undefined)b.dataset.menu=map[k]})})();</script><script id="records-summary-refresh">
 (()=>{const original=window.renderAdminRows;window.renderAdminRows=function(rows){const total=adminParcels||[];const count=(s)=>total.filter(p=>classifyStatus(p.parcel_status)===s).length;const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=String(v)};set("recordsAll",total.length);set("recordsEreen",count("ereen"));set("recordsMongolia",count("mongolia"));set("recordsReceived",count("received"));return original(rows)}})();
+</script><style id="single-admin-section-view">
+#adminDashboard.all-admin-menus .admin-workspace details.admin-menu:not(.records-menu){display:none!important}
+#adminDashboard .admin-workspace details.admin-menu.section-selected{display:block!important}
+</style>
+<script id="single-admin-section-behavior">
+(()=> {
+ const dash=document.getElementById("adminDashboard");
+ const menus=[...dash.querySelectorAll(".admin-workspace details.admin-menu")];
+ menus.forEach((m,i)=>{if(i===0)m.classList.add("section-selected");});
+ const toggle=window.toggleAdminMenu;
+ window.toggleAdminMenu=function(){
+   const side=document.getElementById("adminSidebar");
+   side.classList.toggle("show");
+   document.body.classList.toggle("admin-menu-open",side.classList.contains("show"));
+   dash.classList.remove("all-admin-menus");
+ };
+ document.querySelectorAll("#adminSidebar [data-menu]").forEach(btn=>{
+   btn.addEventListener("click",()=>{
+     const target=menus[Number(btn.dataset.menu)];
+     menus.forEach(m=>{m.classList.remove("section-selected");m.style.display="none";});
+     if(target){target.style.display="block";target.classList.add("section-selected");target.open=true;}
+     dash.classList.remove("all-admin-menus");
+     document.getElementById("adminSidebar").classList.remove("show");
+     document.body.classList.remove("admin-menu-open");
+   });
+ });
+})();
 </script></body>
 </html>
