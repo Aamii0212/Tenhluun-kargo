@@ -637,7 +637,7 @@ async function bulkMarkEreen(){
    let p=rows?.[0];
    if(p){
     if(classifyStatus(p.parcel_status)!=="received"){
-     const {data,error}=await db.from("parcels").update({parcel_status:"ereen"}).eq("id",p.id).select("id").maybeSingle();
+     const patch={parcel_status:"ereen"};if(pre?.[0]?.customer_phone)patch.customer_phone=pre[0].customer_phone;const {data,error}=await db.from("parcels").update(patch).eq("id",p.id).select("id").maybeSingle();
      if(error)throw error;if(!data)throw Error("Өөрчлөлт хадгалагдсангүй (RLS/эрх)");
     }
    }else{
