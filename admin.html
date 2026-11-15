@@ -620,30 +620,18 @@ async function bulkRegisterParcels(){
  out.innerHTML="<b>Бүртгэл амжилттай: "+inserted+"</b><br>Давхардсан/давтсан: "+duplicate+"<br>Алдаатай мөр: "+bad.length+(bad.length?" ("+escapeHTML(bad.join(", "))+")":"");
 }
 async function bulkMarkEreen(){
- const box=document.getElementById("bulkTrackingCodes"),out=document.getElementById("bulkEreenResult");
- const codes=[...new Set(box.value.split(/[\\s,;]+/).map(x=>x.trim()).filter(Boolean))];
- if(!codes.length){out.textContent="Трак кодоо оруулна уу.";return}
- if(codes.length>500){out.textContent="Нэг удаад 500 хүртэл код оруулна.";return}
- if(!confirm(codes.length+" кодыг Эрээнд ирсэн төлөвт хадгалах уу?"))return;
- out.textContent="⏳ Код бүрийг шалгаж, төлөв хадгалж байна...";
- try{
-  let changed=0,already=0,missing=[],failed=[];
-  for(const code of codes){
-   const {data:rows,error}=await db.from("parcels").select("id,tracking_code,parcel_status").ilike("tracking_code",code);
-   if(error){failed.push(code+" (хайлт: "+error.message+")");continue}
-   if(!rows?.length){missing.push(code);continue}
-   for(const p of rows){
-    if(classifyStatus(p.parcel_status)==="received"){already++;continue}
-    const {data:updated,error:updateError}=await db.from("parcels").update({parcel_status:"ereen"}).eq("id",p.id).select("id,parcel_status");
-    if(updateError){failed.push(code+" ("+updateError.message+")");continue}
-    if(updated?.length&&classifyStatus(updated[0].parcel_status)==="ereen")changed++;
-    else failed.push(code+" (Supabase update зөвшөөрөөгүй эсвэл хадгалалт баталгаажаагүй)");
-   }
-  }
-  await loadAdminParcels();
-  out.innerHTML="<b>✅ Эрээнд ирсэн төлөвт хадгалсан: "+changed+"</b><br>Өмнө нь хүлээж авсан: "+already+"<br>Олдоогүй: "+missing.length+(missing.length?"<br>"+escapeHTML(missing.join(", ")):"")+"<br>Алдаа: "+failed.length+(failed.length?"<br>"+escapeHTML(failed.join("; ")):"");
- }catch(e){out.textContent="❌ Алдаа: "+(e.message||e)}
-}
+ const box=document.getElementById("bulkTrackingCodes"),out=document.getElementById("bulkEreenResult"),codes=[...new Set(box.value.split(/[\\s,;]+/).map(x=>x.trim().toUpperCase()).filter(Boolean))];
+ if(!codes.length){out.textContent="Трак кодоо оруулна уу.";return}if(codes.length>500){out.textContent="500 хүртэл код оруулна.";return}
+ if(!confirm(codes.length+" кодыг Эрээнд ирсэн төлөвт оруулах уу?"))return;out.textContent="⏳ Хадгалж байна...";
+ try{let changed=0,linked=0,missing=[],failed=[];
+ for(const code of codes){let {data:pre,error:pe}=await db.from("customer_pre_registrations").select("*").eq("tracking_code",code).eq("status","pending");if(pe){failed.push(code+": "+pe.message);continue}
+ let {data:rows,error}=await db.from("parcels").select("id,tracking_code,customer_phone,parcel_status").ilike("tracking_code",code);if(error){failed.push(code+": "+error.message);continue}
+ let p=rows?.[0];if(!p&&pre?.length){let x=pre[0],z=await db.from("parcels").insert({tracking_code:code,customer_phone:x.customer_phone,customer_name:"",piece_number:1,weight_kg:0,volume_m3:0,price_mnt:0,parcel_status:"ereen",description:x.description||""}).select("id").maybeSingle();if(z.error||!z.data){failed.push(code+": "+(z.error?.message||"insert баталгаажаагүй"));continue}p=z.data;changed++}
+ else if(p&&classifyStatus(p.parcel_status)!=="received"){let z=await db.from("parcels").update({parcel_status:"ereen",...(pre?.length&&!p.customer_phone?{customer_phone:pre[0].customer_phone}:{})}).eq("id",p.id).select("id").maybeSingle();if(z.error||!z.data){failed.push(code+": "+(z.error?.message||"update баталгаажаагүй"));continue}changed++}
+ if(p&&pre?.length){let z=await db.from("customer_pre_registrations").update({status:"approved",reviewed_at:new Date().toISOString()}).eq("tracking_code",code).eq("status","pending");if(z.error)failed.push(code+" хэрэглэгч: "+z.error.message);else linked+=pre.length}
+ if(!p&&!pre?.length)missing.push(code)}
+ await loadAdminParcels();await loadPreRegistrations();out.innerHTML="<b>Эрээнд ирсэн: "+changed+"</b><br>Хэрэглэгчтэй холбосон: "+linked+"<br>Олдоогүй: "+missing.length+(missing.length?"<br>"+escapeHTML(missing.join(", ")):"")+"<br>Алдаа: "+failed.length+(failed.length?"<br>"+escapeHTML(failed.join("; ")):"")
+ }catch(x){out.textContent="❌ "+(x.message||x)}}
 async function handoverParcel(id){
  const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;
  if(!confirm((p.tracking_code||"Ачаа")+"-г хүлээлгэн өгч, төлбөр бүртгэх үү?"))return;
@@ -728,6 +716,12 @@ function scanRegClose(){if(srReader){srReader.stop().catch(()=>{});srReader=null
 function srPhone(){let s=document.createElement('section');s.style.cssText='border:1px solid #ddd;padding:12px;margin:12px 0';s.innerHTML='<label>Утасны дугаар</label><input class="srTel" maxlength="8" inputmode="numeric" placeholder="85525391"><div class="srCodes"></div><button onclick="srCode(this)">＋ Код нэмэх</button>';document.getElementById('srPhones').appendChild(s);srCode(s.querySelector('button'))}
 function srCode(b,code=''){let d=document.createElement('div');d.style.cssText='display:flex;gap:5px';d.innerHTML='<input class="srTrack" placeholder="Трак код" style="flex:1;min-width:0"><input class="srPrice" type="number" placeholder="₮" style="width:85px"><button onclick="this.parentElement.remove()">×</button>';d.querySelector('.srTrack').value=code;b.closest('section').querySelector('.srCodes').appendChild(d)}
 async function srScan(){const cam=document.getElementById('srCam');cam.innerHTML='<div id="srReader" style="width:100%;max-width:420px;margin:10px auto;border-radius:12px;overflow:hidden"></div><p style="text-align:center;color:#888">Бар кодыг хүрээн дотор байрлуулна уу</p>';srReader=new Html5Qrcode('srReader');try{await srReader.start({facingMode:'environment'},{fps:15,qrbox:{width:260,height:110},aspectRatio:1.5},async v=>{const section=[...document.querySelectorAll('#srPhones section')].pop();const input=section.querySelector('.srCodes>div:last-child .srTrack');input.value=String(v).trim();input.focus();document.getElementById('srMsg').textContent='✓ Код уншигдлаа: '+String(v).trim();try{await srReader.stop()}catch(e){}srReader=null;cam.innerHTML='<div style="padding:12px;background:#f5f5f5;border-radius:10px;color:#198754;text-align:center">✓ Код талбарт автоматаар орлоо</div>';},()=>{})}catch(e){document.getElementById('srMsg').textContent='Камерын зөвшөөрөл өгнө үү.'}}
-async function srSave(){let msg=document.getElementById('srMsg'),n=0;msg.textContent='Хадгалж байна';for(let s of document.querySelectorAll('#srPhones section')){let tel=s.querySelector('.srTel').value.replace(/\D/g,''),note=s.querySelector('.srNote').value;if(tel.length!==8){msg.textContent='Утас 8 оронтой байх ёстой';return}for(let row of s.querySelectorAll('.srCodes>div')){let code=row.querySelector('.srTrack').value.trim().toUpperCase(),price=Number(row.querySelector('.srPrice').value||0);if(!code)continue;let q=await db.from('parcels').select('id').ilike('tracking_code',code).limit(1).maybeSingle();if(q.error||q.data){msg.textContent=q.error?q.error.message:code+' давхардсан';return}let z=await db.from('parcels').insert({tracking_code:code,customer_phone:tel,customer_name:'',piece_number:1,weight_kg:0,volume_m3:0,price_mnt:price,parcel_status:'ereen',branch_id:null,description:note}).select('id').maybeSingle();if(z.error||!z.data){msg.textContent=z.error?.message||'Бүртгэл баталгаажаагүй';return}n++}}if(!n){msg.textContent='Трак код оруулна уу';return}msg.textContent=n+' ачаа бүртгэлээ';await loadAdminParcels();setTimeout(scanRegClose,900)}
+async function srSave(){let msg=document.getElementById('srMsg'),n=0,u=0,err=[];msg.textContent='Хадгалж байна...';
+for(let sec of document.querySelectorAll('#srPhones section')){let tel=sec.querySelector('.srTel').value.replace(/\\D/g,'');if(tel.length!==8){msg.textContent='Утас 8 оронтой байх ёстой';return}
+for(let row of sec.querySelectorAll('.srCodes>div')){let code=row.querySelector('.srTrack').value.trim(),price=Number(row.querySelector('.srPrice').value||0);if(!code)continue;
+let q=await db.from('parcels').select('id,customer_phone').ilike('tracking_code',code).limit(1).maybeSingle();if(q.error){err.push(code+': '+q.error.message);continue}
+if(q.data){let z=await db.from('parcels').update({parcel_status:'mongolia',price_mnt:price,customer_phone:q.data.customer_phone||tel}).eq('id',q.data.id).select('id').maybeSingle();if(z.error||!z.data){err.push(code+': '+(z.error?.message||'хадгалсангүй'));continue}u++}
+else{let z=await db.from('parcels').insert({tracking_code:code,customer_phone:tel,customer_name:'',piece_number:1,weight_kg:0,volume_m3:0,price_mnt:price,parcel_status:'mongolia',branch_id:null}).select('id').maybeSingle();if(z.error||!z.data){err.push(code+': '+(z.error?.message||'хадгалсангүй'));continue}n++}}}
+if(!n&&!u){msg.textContent='❌ Хадгалсангүй. '+err.join(' | ');return}msg.textContent='✅ Монголд ирсэн: '+(n+u)+' ачаа (шинэ '+n+', төлөв/үнэ шинэчилсэн '+u+')'+(err.length?' Алдаа: '+err.join(' | '):'');await loadAdminParcels();setTimeout(scanRegClose,1500)}
 </script><style id="phone-border-pink-hardfix-v2">html body #scanReg #srPhones section input.srTel{-webkit-appearance:none!important;appearance:none!important;border:2px solid #e83e9b!important;border-color:#e83e9b!important;outline:0!important;box-shadow:inset 0 0 0 1px #e83e9b!important;background:#fff!important}html body #scanReg #srPhones section input.srTel:focus{border:2px solid #e83e9b!important;box-shadow:0 0 0 2px #f8c5e2!important}</style><script id="sidebar-search-cleanup">document.addEventListener("DOMContentLoaded",()=>{const b=[...document.querySelectorAll("#adminSidebar .side-link")].find(x=>x.textContent.includes("Ачаа хайх"));if(b)b.addEventListener("click",()=>setTimeout(()=>{const i=document.getElementById("adminSearch");if(i){i.focus();i.scrollIntoView({behavior:"smooth",block:"center"})}},80))});</script></body>
 </html>
