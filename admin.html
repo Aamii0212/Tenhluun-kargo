@@ -201,6 +201,21 @@ details.admin-menu{background:#fff;border:1px solid #f1dce8;border-radius:14px;m
 .records-summary>div{background:#f8fafc;border:1px solid #e8ebf2;border-radius:11px;padding:12px 13px;display:flex;flex-direction:column;gap:5px}
 .records-summary small{font-size:11px;color:#798293;font-weight:700}.records-summary b{font-size:20px;color:#252b38}
 @media(max-width:520px){.records-summary{gap:6px}.records-summary>div{padding:9px 7px}.records-summary small{font-size:9px}.records-summary b{font-size:17px}}
+</style><style id="simple-code-search-menu">
+/* Clean admin home: tracking-code search + parcel results */
+#adminDashboard .records-quickbar{display:flex!important;gap:8px;padding:10px;background:#fff;border:1px solid #e8eaf0;border-radius:14px}
+#adminDashboard .records-quickbar input{flex:1;width:100%;min-width:0;margin:0;padding:15px 14px;font-size:16px;border:1px solid #e4e7ee;border-radius:11px}
+#adminDashboard .records-quickbar button{min-width:48px;font-size:24px;padding:8px 14px}
+#adminDashboard .admin-mobile-nav span{font-size:15px}
+#adminDashboard .admin-workspace details.admin-menu:not(.records-menu){display:none!important}
+#adminDashboard.all-admin-menus .admin-workspace details.admin-menu:not(.records-menu){display:block!important}
+#adminDashboard .admin-workspace details.records-menu>summary{display:none!important}
+#adminDashboard .admin-workspace details.records-menu{padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+#adminDashboard .admin-workspace details.records-menu .admin-toolbar{display:none!important}
+@media(max-width:760px){
+ #adminDashboard .records-quickbar{position:sticky;top:65px;z-index:30}
+ #adminDashboard .records-quickbar input{font-size:15px}
+}
 </style></head>
 <body>
 <header id="customerHeader">
@@ -268,7 +283,7 @@ details.admin-menu{background:#fff;border:1px solid #f1dce8;border-radius:14px;m
  </aside>
  <div class="admin-workspace">
   <div class="admin-mobile-nav"><button type="button" onclick="toggleAdminMenu()">☰</button><span>Тэнхлүүн Карго · Админ</span></div>
-  <div class="records-quickbar"><button onclick="newParcelForm()">＋ Бүртгэх</button><input aria-label="Ачаа хайх" placeholder="🔎 Трак код / нэр / утас..." oninput="document.getElementById('adminSearch').value=this.value;filterAdminRows()"><button onclick="loadAdminParcels()">↻</button></div>
+  <div class="records-quickbar"><input aria-label="Трак кодоор хайх" placeholder="📦 Трак код уншуулах / кодоор хайх..." oninput="document.getElementById('adminSearch').value=this.value;filterAdminRows()"><button type="button" onclick="document.querySelector('.records-quickbar input').focus()" title="Код хайх">⌕</button></div>
 <details class="admin-menu"><summary>⚙️ Үнийн мэдээлэл / ажлын цаг / Эрээн хаяг</summary><div class="admin-editor"><h3>⚙️ Үнийн мэдээлэл ба ажлын цаг</h3><div class="admin-editor"><h3>📍 Эрээн агуулахын хаяг</h3><input id="settingEreenAddress" placeholder="Эрээн дэх агуулахын бүтэн хаяг"><input id="settingEreenContact" placeholder="Хүлээн авах хүн / утас"><button class="primary" onclick="saveEreenAddress()">Хаяг хадгалах</button><span id="ereenSettingsInfo" class="muted"></span></div>
  <div class="admin-editor"><h3>🏦 Төлбөрийн дансны мэдээлэл</h3><input id="settingBankName" placeholder="Банкны нэр"><input id="settingBankAccount" placeholder="Дансны дугаар"><input id="settingBankHolder" placeholder="Данс эзэмшигчийн нэр"><span id="bankSettingsInfo" class="muted"></span></div>
  <div class="admin-fields"><input id="settingKg" type="number" min="0" placeholder="1 кг үнэ ₮"><input id="settingM3" type="number" min="0" placeholder="1 м³ үнэ юань"><input id="settingOpen" type="time" value="10:00"><input id="settingClose" type="time" value="20:00"></div>
