@@ -194,7 +194,9 @@ async function customerLogin(){
  try{
   const {data,error}=await db.rpc("get_customer_parcels_by_phone",{p_phone:phone});
   if(error)throw error;
-  currentPhone=phone;customerParcels=data||[];openCustomerDashboard();startCustomerRealtime();
+  const {data:pre,error:preError}=await db.from("customer_pre_registrations").select("tracking_code,description,status,created_at").eq("customer_phone",phone).eq("status","pending");
+  if(preError)throw preError;
+  currentPhone=phone;customerParcels=[...(data||[]),...(pre||[]).map(x=>({tracking_code:x.tracking_code,description:x.description,parcel_status:"registered",price_mnt:0,piece_number:1,weight_kg:0,volume_m3:0,paid_at:null,created_at:x.created_at}))];openCustomerDashboard();startCustomerRealtime();
   if(!customerParcels.length)showMessage("customerMessage","Ачааны түүх хоосон байна. Бүртгэл амжилттай нээгдлээ.");
   if(pendingTrackingCode){pendingTrackingCode="";}
  }catch(error){console.error("Customer login:",error);showMessage("customerMessage","Алдаа: "+(error.message||"Мэдээлэл авах боломжгүй"))}
@@ -215,6 +217,7 @@ function openCustomerDashboard(){
  document.getElementById("publicPage").style.display="none";document.getElementById("pageFooter").style.display="none";
  document.getElementById("customerHeader").style.display="flex";document.getElementById("customerDashboard").style.display="block";
  document.getElementById("customerPhoneLabel").textContent="Утас: "+currentPhone;
+ const registered=customerParcels.filter(p=>p.parcel_status==="registered");document.getElementById("countRegistered").textContent=registered.length;
  const registered=customerParcels.filter(p=>p.parcel_status==="registered");document.getElementById("countRegistered").textContent=registered.length;
  const ereen=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="ereen");
  const mongolia=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia");
