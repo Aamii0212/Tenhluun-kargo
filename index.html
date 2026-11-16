@@ -236,6 +236,7 @@ function dedupeCustomerParcels(items){
  }
  return [...byCode.values()];
 }
+let customerActiveTab="ereen";
 function openCustomerDashboard(){
  customerParcels=dedupeCustomerParcels(customerParcels);
  document.getElementById("publicPage").style.display="none";document.getElementById("pageFooter").style.display="none";
@@ -250,9 +251,10 @@ function openCustomerDashboard(){
  const branchInfo=document.getElementById("branchInfo");
  if(first){branchInfo.style.display="block";branchInfo.innerHTML=`<h3>Холбогдох салбар</h3><p><b>${escapeHTML(first.branch_name||"Салбар")}</b></p><p>${escapeHTML(first.branch_address||"")}</p><p>${escapeHTML(first.branch_hours||"")}</p>${first.branch_location?`<a href="${escapeHTML(first.branch_location)}" target="_blank" rel="noopener">Байршил харах</a>`:""}`}
  else{branchInfo.style.display="none"}
- showTab("ereen");
+ showTab(customerActiveTab);
 }
 function showTab(tab){
+ customerActiveTab=tab;
  const tabIds={registered:"tabRegistered",ereen:"tabEreen",mongolia:"tabMongolia",received:"tabReceived"};
  Object.keys(tabIds).forEach(name=>document.getElementById(tabIds[name]).classList.toggle("active",name===tab));
  const parcels=customerParcels.filter(p=>tab==="registered"?p.parcel_status==="registered":classifyStatus(p.parcel_status)===tab),list=document.getElementById("parcelList");
