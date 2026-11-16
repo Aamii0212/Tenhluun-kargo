@@ -526,11 +526,14 @@ async function bulkMarkEreen(){
  if(codes.length>500){showMessage("bulkEreenResult","Нэг удаад 500 хүртэл трак код оруулна.");return}
  if(!confirm(codes.length+" трак кодыг шалгаж, олдсон ачааг “Эрээнд ирсэн” төлөвт оруулах уу?"))return;
  out.textContent="Шалгаж, хадгалж байна...";
- const {data,error}=await db.from("parcels").update({parcel_status:"ereen"}).neq("parcel_status","received").in("tracking_code",codes).select("tracking_code");
+ // Зөвхөн "Бүртгүүлсэн" ачааг ахиулна. Монголд ирсэн/хүлээлгэн өгсөн төлөвийг буцаахгүй.
+ const {data,error}=await db.from("parcels").update({parcel_status:"ereen"}).eq("parcel_status","registered").in("tracking_code",codes).select("tracking_code");
  if(error){showMessage("bulkEreenResult","Хадгалах алдаа: "+error.message);return}
- const found=(data||[]).map(p=>String(p.tracking_code));const foundSet=new Set(found);const missing=codes.filter(x=>!foundSet.has(x));
+ const found=(data||[]).map(p=>String(p.tracking_code).toUpperCase());const foundSet=new Set(found);
+ const skipped=codes.filter(x=>!foundSet.has(x)&&adminParcels.some(p=>String(p.tracking_code||"").toUpperCase()===x));
+ const missing=codes.filter(x=>!foundSet.has(x)&&!skipped.includes(x));
  await loadAdminParcels();
- out.innerHTML="<b>Амжилттай: "+found.length+" код.</b> Олдоогүй: "+missing.length+(missing.length?"<br>"+escapeHTML(missing.join(", ")):"");
+ out.innerHTML="<b>Эрээнд ирсэн болгосон: "+found.length+".</b> Өмнөх төлөвтэй тул алгассан: "+skipped.length+"; олдоогүй: "+missing.length+(skipped.length?"<br>Алгассан: "+escapeHTML(skipped.join(", ")):"")+(missing.length?"<br>Олдоогүй: "+escapeHTML(missing.join(", ")):"");
 }
 async function handoverParcel(id){
  const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;
