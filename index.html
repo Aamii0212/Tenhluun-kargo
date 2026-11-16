@@ -505,7 +505,10 @@ async function saveParcel(){
  if(!codes.length||phone.length!==8){showMessage("adminNotice","Трак код болон 8 оронтой утас заавал оруулна.");return}
  const requestedStatus=document.getElementById("editStatus").value,existingParcel=editingParcelId?adminParcels.find(p=>String(p.id)===String(editingParcelId)):null;
  if(requestedStatus==="received"&&(!existingParcel||classifyStatus(existingParcel.parcel_status)!=="received")){showMessage("adminNotice","Ачааг хүлээлгэн өгсөн төлөвт гараар оруулахгүй.");return}
- if(existingParcel&&classifyStatus(existingParcel.parcel_status)==="received"&&requestedStatus!=="received"){showMessage("adminNotice","Хүлээлгэн өгсөн ачааны төлөвийг буцаах боломжгүй.");return}
+ if(existingParcel){
+  const current=classifyStatus(existingParcel.parcel_status),rank={registered:0,ereen:1,mongolia:2,received:3};
+  if((rank[requestedStatus]??-1)<(rank[current]??-1)){showMessage("adminNotice","Ачааны төлөвийг өмнөх шат руу буцаах боломжгүй. Одоогийн төлөв: "+adminStatusLabel(current));return}
+ }
  if(editingParcelId&&codes.length!==1){showMessage("adminNotice","Засварлах үед нэг трак код оруулна.");return}
  const priceInputs=[...document.querySelectorAll("#trackingPriceRows .tracking-price")],prices=priceInputs.map(x=>x.value.trim());
  if(prices.length!==codes.length||prices.some(x=>x===""||Number(x)<0)){showMessage("adminNotice","Трак код бүрийн үнийг тус тус оруулна уу.");return}
