@@ -414,9 +414,17 @@ function exportPreRegistrationsCSV(){
 }
 async function setPreRegStatus(id,status){
  if(!["confirmed","rejected"].includes(status)){alert("Буруу төлөв.");return}
- const actionButtons=Array.from(document.querySelectorAll("#preRegAdminRows button")).filter(b=>(b.getAttribute("onclick")||"").includes("setPreRegStatus("+Number(id)+","));actionButtons.forEach(b=>{b.disabled=true;b.dataset.originalText=b.textContent;b.textContent="..."});
- const {error}=await db.from("customer_pre_registrations").update({status}).eq("id",id);
- if(error){actionButtons.forEach(b=>{b.disabled=false;b.textContent=b.dataset.originalText||b.textContent});alert("Төлөв өөрчлөх алдаа: "+error.message);return}await loadPreRegistrations();
+ const actionButtons=Array.from(document.querySelectorAll("#preRegAdminRows button")).filter(b=>(b.getAttribute("onclick")||"").includes("setPreRegStatus("+Number(id)+","));
+ actionButtons.forEach(b=>{b.disabled=true;b.dataset.originalText=b.textContent;b.textContent="..."});
+ try{
+  if(status==="confirmed"){
+   const {data:reg,error:re}=await db.from("customer_pre_registrations").select("*").eq("id",id).maybeSingle();if(re)throw re;if(!reg)throw new Error("Бүртгэл олдсонгүй");
+   const {data:exists,error:ee}=await db.from("parcels").select("id").eq("tracking_code",reg.tracking_code).maybeSingle();if(ee)throw ee;
+   if(!exists){const {error:ie}=await db.from("parcels").insert({tracking_code:String(reg.tracking_code||"").toUpperCase(),customer_phone:cleanPhone(reg.customer_phone),price_mnt:0,parcel_status:"registered",description:reg.description||null});if(ie)throw ie}
+  }
+  const {error}=await db.from("customer_pre_registrations").update({status}).eq("id",id);if(error)throw error;
+  await loadPreRegistrations();await loadAdminParcels();showMessage("adminNotice",status==="confirmed"?"Баталсан код ачааны жагсаалтад нэмэгдлээ. Үнэ, төлөвийг админаас тохируулна уу.":"Урьдчилсан бүртгэлээс татгалзлаа.");
+ }catch(error){actionButtons.forEach(b=>{b.disabled=false;b.textContent=b.dataset.originalText||b.textContent});alert("Шийдвэрлэх алдаа: "+(error.message||error))}
 }
 async function deletePreRegistration(id){
  if(!confirm("Энэ урьдчилсан бүртгэлийг устгах уу?"))return;
