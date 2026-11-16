@@ -176,22 +176,12 @@ async function submitPreRegistration(){
  if(phone.length!==8||!tracking){showMessage("preRegMessage","Нэвтэрсэн утасны дугаар эсвэл трак код буруу байна.");return}
  const btn=document.querySelector('button[onclick="submitPreRegistration()"]');btn.disabled=true;btn.textContent="БҮРТГЭЖ БАЙНА...";
  try{
-  const {error:regError}=await db.from("customer_pre_registrations").insert({customer_phone:phone,tracking_code:tracking,description:description||null,status:"pending"});
-  if(regError)throw regError;
-  // Customer preregistration should be visible in the customer parcel list immediately.
-  const {data:existing,error:findError}=await db.from("parcels").select("id,parcel_status").ilike("tracking_code",tracking);
-  if(findError)throw findError;
-  if(existing?.length){
-   const {error:linkError}=await db.from("parcels").update({customer_phone:phone}).eq("id",existing[0].id);
-   if(linkError)throw linkError;
-   const {error:approveError}=await db.from("customer_pre_registrations").update({status:"approved",reviewed_at:new Date().toISOString()}).eq("customer_phone",phone).eq("tracking_code",tracking).eq("status","pending");
-   if(approveError)throw approveError;
-  }else{
-   const {error:createError}=await db.from("parcels").insert({tracking_code:tracking,customer_phone:phone,customer_name:"",piece_number:1,weight_kg:0,volume_m3:0,price_mnt:0,parcel_status:"ereen",description:description||""});
-   if(createError)throw createError;
-  }
-  showMessage("preRegMessage","✅ Трак код бүртгэгдлээ. Төлөв: Эрээнд ирсэн.");
-  await refreshCustomerParcels(false);
+  const {data:dupe,error:de}=await db.from("customer_pre_registrations").select("id").eq("customer_phone",phone).eq("tracking_code",tracking).in("status",["pending","approved"]);
+  if(de)throw de;if(dupe?.length){showMessage("preRegMessage","⚠️ Энэ трак код таны дугаарт бүртгэгдсэн байна.");return}
+  const {error}=await db.from("customer_pre_registrations").insert({customer_phone:phone,tracking_code:tracking,description:description||null,status:"pending"});
+  if(error)throw error;
+  showMessage("preRegMessage","✅ Бүртгүүлсэн. Агуулахад ирээгүй — ажилтан Эрээнд ирсэн болгох хүртэл энэ төлөвт харагдана.");
+  await refreshCustomerParcels();
   document.getElementById("preRegTracking").value="";document.getElementById("preRegDescription").value="";
  }catch(e){console.error("Pre-registration error:",e);showMessage("preRegMessage","Бүртгэхэд алдаа: "+(e.message||e.details||"Supabase тохиргоог шалгана уу."))}
  finally{btn.disabled=false;btn.textContent="📨 Бүртгүүлэх"}
