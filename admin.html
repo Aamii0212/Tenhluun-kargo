@@ -621,7 +621,7 @@ async function bulkRegisterParcels(){
 }
 async function bulkMarkEreen(){
  const box=document.getElementById("bulkTrackingCodes"),out=document.getElementById("bulkEreenResult");
- const codes=[...new Set(box.value.split(/[\\s,;]+/).map(x=>x.trim().toUpperCase()).filter(Boolean))];
+ const codes=[...new Set(box.value.split(/[\s,;]+/).map(x=>x.trim().toUpperCase()).filter(Boolean))];
  if(!codes.length){out.textContent="Трак кодоо оруулна уу.";return}
  if(codes.length>500){out.textContent="500 хүртэл код оруулна.";return}
  if(!confirm(codes.length+" кодыг Эрээнд ирсэн төлөвт оруулах уу?"))return;
