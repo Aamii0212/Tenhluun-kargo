@@ -113,6 +113,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
  <div class="dashboard-head"><div><h2>Миний ачаанууд</h2><div class="muted" id="customerPhoneLabel"></div></div><button class="logout" onclick="customerLogout()">Гарах</button></div>
  <div class="branch-box" style="margin:18px 0"><h3>📦 Захиалсан ачаагаа урьдчилан бүртгүүлэх</h3><p class="muted">Трак кодоо оруулна уу. Агуулахад ирсний дараа ажилтан баталгаажуулна.</p><input id="preRegTracking" placeholder="Трак код"><input id="preRegDescription" placeholder="Барааны нэр / тайлбар (заавал биш)"><button class="primary" onclick="submitPreRegistration()">📨 Бүртгүүлэх</button><div id="preRegMessage" class="message"></div></div>
  <div class="tabs">
+  <button class="tab" id="tabRegistered" onclick="showTab('registered')"><span class="count" id="countRegistered">0</span>Бүртгүүлсэн</button>
   <button class="tab active" id="tabEreen" onclick="showTab('ereen')"><span class="count" id="countEreen">0</span>Эрээнд ирсэн</button>
   <button class="tab" id="tabMongolia" onclick="showTab('mongolia')"><span class="count" id="countMongolia">0</span>Монголд ирсэн</button>
   <button class="tab" id="tabReceived" onclick="showTab('received')"><span class="count" id="countReceived">0</span>Хүлээж авсан</button>
@@ -209,11 +210,12 @@ function startCustomerRealtime(){
  .on("postgres_changes",{event:"*",schema:"public",table:"customer_pre_registrations",filter:"customer_phone=eq."+phone},()=>refreshCustomerParcels(false))
  .subscribe();
 }
-async function refreshCustomerParcels(){if(!currentPhone)return;try{const {data,error}=await db.rpc("get_customer_parcels_by_phone",{p_phone:currentPhone});if(error)throw error;customerParcels=data||[];openCustomerDashboard()}catch(e){console.error("Customer auto refresh:",e)}}
+async function refreshCustomerParcels(){if(!currentPhone)return;try{const {data,error}=await db.rpc("get_customer_parcels_by_phone",{p_phone:currentPhone});if(error)throw error;const {data:pre,error:pe}=await db.from("customer_pre_registrations").select("tracking_code,description,status,created_at").eq("customer_phone",currentPhone).eq("status","pending");if(pe)throw pe;customerParcels=[...(data||[]),...(pre||[]).map(p=>({...p,parcel_status:"registered",price_mnt:0,piece_number:1,weight_kg:0,volume_m3:0,paid_at:null}))];openCustomerDashboard()}catch(e){console.error("Customer auto refresh:",e)}}
 function openCustomerDashboard(){
  document.getElementById("publicPage").style.display="none";document.getElementById("pageFooter").style.display="none";
  document.getElementById("customerHeader").style.display="flex";document.getElementById("customerDashboard").style.display="block";
  document.getElementById("customerPhoneLabel").textContent="Утас: "+currentPhone;
+ const registered=customerParcels.filter(p=>p.parcel_status==="registered");document.getElementById("countRegistered").textContent=registered.length;
  const ereen=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="ereen");
  const mongolia=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia");
  const received=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="received");
@@ -225,15 +227,15 @@ function openCustomerDashboard(){
  showTab("ereen");
 }
 function showTab(tab){
- const tabIds={ereen:"tabEreen",mongolia:"tabMongolia",received:"tabReceived"};
+ const tabIds={registered:"tabRegistered",ereen:"tabEreen",mongolia:"tabMongolia",received:"tabReceived"};
  Object.keys(tabIds).forEach(name=>document.getElementById(tabIds[name]).classList.toggle("active",name===tab));
- const parcels=customerParcels.filter(p=>classifyStatus(p.parcel_status)===tab),list=document.getElementById("parcelList");
+ const parcels=customerParcels.filter(p=>tab==="registered"?p.parcel_status==="registered":classifyStatus(p.parcel_status)===tab),list=document.getElementById("parcelList");
  if(!parcels.length){list.innerHTML='<div class="empty">Энэ хэсэгт одоогоор ачаа байхгүй байна.</div>';return}
  if(tab==="mongolia"){
   const due=parcels.filter(p=>!p.paid_at&&Number(p.price_mnt||0)>0),total=due.reduce((s,p)=>s+Number(p.price_mnt||0),0);
   list.innerHTML='<div class="branch-box"><h3>💳 Төлбөрийн мэдээлэл</h3><p>Төлбөр төлөөгүй '+due.length+' ачаа</p><h2 style="color:#ed168b">'+total.toLocaleString('mn-MN')+' ₮</h2>'+(due.length?'<button class="primary" onclick="showCustomerPayment()">Нийт төлбөр төлөх</button>':'<p>Төлбөр төлөх ачаа байхгүй.</p>')+'<div id="customerPaymentBox" style="display:none;margin-top:12px"></div></div>';
  }
- list.innerHTML+=parcels.map(p=>`<div class="parcel"><div class="parcel-top"><div class="tracking">${escapeHTML(p.tracking_code||"Трак кодгүй")}</div><span class="status-pill">${statusLabel(tab)}</span><span class="status-pill" style="background:${p.paid_at?"#e7f8ed":"#fff0f6"};color:${p.paid_at?"#16834a":"#d41478"}">${p.paid_at?"✓ Төлсөн":"Төлбөр дутуу"}</span></div><div class="details"><div class="detail"><small>Ширхэг</small><b>${escapeHTML(p.piece_number??1)}</b></div><div class="detail"><small>Жин</small><b>${escapeHTML(p.weight_kg??"-")} кг</b></div><div class="detail"><small>Эзлэхүүн</small><b>${escapeHTML(p.volume_m3??"-")} м³</b></div><div class="detail"><small>Төлбөр</small><b>${escapeHTML(p.price_mnt??"-")} ₮</b></div></div>${p.description?`<p>${escapeHTML(p.description)}</p>`:""}${p.arrived_at?`<p class="muted">Ирсэн огноо: ${escapeHTML(new Date(p.arrived_at).toLocaleDateString("mn-MN"))}</p>`:""}</div>`).join("");
+ list.innerHTML+=parcels.map(p=>`<div class="parcel"><div class="parcel-top"><div class="tracking">${escapeHTML(p.tracking_code||"Трак кодгүй")}</div><span class="status-pill">${tab==="registered"?"Бүртгүүлсэн":statusLabel(tab)}</span><span class="status-pill" style="background:${p.paid_at?"#e7f8ed":"#fff0f6"};color:${p.paid_at?"#16834a":"#d41478"}">${p.paid_at?"✓ Төлсөн":"Төлбөр дутуу"}</span></div><div class="details"><div class="detail"><small>Ширхэг</small><b>${escapeHTML(p.piece_number??1)}</b></div><div class="detail"><small>Жин</small><b>${escapeHTML(p.weight_kg??"-")} кг</b></div><div class="detail"><small>Эзлэхүүн</small><b>${escapeHTML(p.volume_m3??"-")} м³</b></div><div class="detail"><small>Төлбөр</small><b>${escapeHTML(p.price_mnt??"-")} ₮</b></div></div>${p.description?`<p>${escapeHTML(p.description)}</p>`:""}${p.arrived_at?`<p class="muted">Ирсэн огноо: ${escapeHTML(new Date(p.arrived_at).toLocaleDateString("mn-MN"))}</p>`:""}</div>`).join("");
 }
 async function showCustomerPayment(){const due=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia"&&!p.paid_at&&Number(p.price_mnt||0)>0),total=due.reduce((s,p)=>s+Number(p.price_mnt||0),0),box=document.getElementById("customerPaymentBox");if(!box)return;box.style.display="block";box.textContent="Дансны мэдээлэл ачаалж байна...";try{const {data,error}=await db.from("site_settings").select("bank_name,bank_account,bank_holder").eq("id",1).maybeSingle();if(error)throw error;box.innerHTML='<div class="detail"><h3>🏦 '+escapeHTML(data?.bank_name||"Банк")+'</h3><p>Данс: <b>'+escapeHTML(data?.bank_account||"Админ данс оруулаагүй")+'</b></p><p>Данс эзэмшигч: <b>'+escapeHTML(data?.bank_holder||"—")+'</b></p><p>Гүйлгээний утга: <b>'+escapeHTML(currentPhone)+' / '+due.map(p=>escapeHTML(p.tracking_code)).join(", ")+'</b></p><p>Төлөх дүн: <b style="color:#ed168b">'+total.toLocaleString("mn-MN")+' ₮</b></p><p class="muted">Шилжүүлсний дараа баримтаа салбарын ажилтанд үзүүлнэ үү.</p></div>'}catch(e){box.textContent="Дансны мэдээлэл татах алдаа: "+(e.message||e)}}
 function customerLogout(){
