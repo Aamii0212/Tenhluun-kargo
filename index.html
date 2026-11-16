@@ -93,7 +93,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
   </div>
   <p class="muted">Анх удаа нэвтрэхдээ утасны дугаар, захиалагчийн нэрээ оруулна уу. Дараа нь зөвхөн утсаараа нэвтэрнэ.</p>
   <input id="customerPhone" type="tel" inputmode="numeric" maxlength="8" placeholder="☎ Утасны дугаар оруулах..." autocomplete="tel" onkeydown="if(event.key===\'Enter\')customerLogin()">
-  <input id="customerName" type="text" placeholder="Захиалагчийн нэрээ хийнэ үү" autocomplete="name">
+  <input id="customerName" type="text" placeholder="Захиалагчийн нэрээ хийнэ үү" autocomplete="name" style="display:none">
   <button class="primary" id="customerLoginButton" onclick="customerLogin()">➜ Нэвтрэх</button>
   <div id="customerMessage" class="message"></div>
   <p class="muted trust">🔒 Таны мэдээлэл хамгаалагдсан</p>
@@ -517,6 +517,13 @@ async function handoverParcel(id){
 async function deleteParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p||!confirm((p.tracking_code||"Энэ ачаа")+" устгах уу?"))return;const {error}=await db.from("parcels").delete().eq("id",id);if(error){showMessage("adminNotice","Устгах алдаа: "+error.message);return}await loadAdminParcels();showMessage("adminNotice","Ачааг устгалаа.")}
 
 document.getElementById("customerPhone").addEventListener("keydown",e=>{if(e.key==="Enter")customerLogin()});
+document.getElementById("customerPhone").addEventListener("blur",async()=>{
+ const phone=cleanPhone(document.getElementById("customerPhone").value).slice(-8),nameInput=document.getElementById("customerName");
+ if(phone.length!==8)return;
+ try{const {data,error}=await db.rpc("get_customer_profile",{p_phone:phone});if(error)throw error;
+  nameInput.style.display=data?"none":"block";nameInput.value="";
+ }catch(e){nameInput.style.display="block"}
+});
 document.getElementById("adminEmail").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("adminPassword").focus()});
 document.getElementById("adminPassword").addEventListener("keydown",e=>{if(e.key==="Enter")adminLogin()});
 document.getElementById("adminSearch").addEventListener("keydown",e=>{if(e.key==="Escape"){e.target.value="";filterAdminRows()}});
