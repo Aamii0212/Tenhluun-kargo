@@ -178,8 +178,12 @@ async function submitPreRegistration(){
  if(phone.length!==8||!tracking){showMessage("preRegMessage","Нэвтэрсэн утасны дугаар эсвэл трак код буруу байна.");return}
  const btn=document.querySelector('button[onclick="submitPreRegistration()"]');btn.disabled=true;btn.textContent="БҮРТГЭЖ БАЙНА...";
  try{
-  const {data:dupe,error:de}=await db.from("customer_pre_registrations").select("id").eq("customer_phone",phone).eq("tracking_code",tracking).in("status",["pending","approved"]);
-  if(de)throw de;if(dupe?.length){showMessage("preRegMessage","⚠️ Энэ трак код таны дугаарт бүртгэгдсэн байна.");return}
+  // Давхардсан трак кодыг бүх хэрэглэгчийн урьдчилсан бүртгэл болон агуулахын ачаанаас шалгана.
+  const {data:dupe,error:de}=await db.from("customer_pre_registrations").select("id").eq("tracking_code",tracking).in("status",["pending","approved","confirmed"]).limit(1);
+  if(de)throw de;
+  const {data:existing,error:ee}=await db.from("parcels").select("id").eq("tracking_code",tracking).limit(1);
+  if(ee)throw ee;
+  if(dupe?.length||existing?.length){showMessage("preRegMessage","⚠️ Энэ трак код бүртгэгдсэн байна. Давхар бүртгэх боломжгүй.");return}
   const {error}=await db.from("customer_pre_registrations").insert({customer_phone:phone,tracking_code:tracking,description:description||null,status:"pending"});
   if(error)throw error;
   showMessage("preRegMessage","✅ Бүртгүүлсэн. Агуулахад ирээгүй — ажилтан Эрээнд ирсэн болгох хүртэл энэ төлөвт харагдана.");
