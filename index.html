@@ -218,7 +218,6 @@ function openCustomerDashboard(){
  document.getElementById("customerHeader").style.display="flex";document.getElementById("customerDashboard").style.display="block";
  document.getElementById("customerPhoneLabel").textContent="Утас: "+currentPhone;
  const registered=customerParcels.filter(p=>p.parcel_status==="registered");document.getElementById("countRegistered").textContent=registered.length;
- const registered=customerParcels.filter(p=>p.parcel_status==="registered");document.getElementById("countRegistered").textContent=registered.length;
  const ereen=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="ereen");
  const mongolia=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia");
  const received=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="received");
