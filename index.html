@@ -130,7 +130,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
  <div id="adminMessage" class="message"></div>
 </section>
 <section id="adminDashboard" class="hidden">
- <div class="dashboard-head"><h2>📦 Админ удирдлага</h2><div style="display:flex;gap:8px;flex-wrap:wrap"><a href="employee.html" target="_blank" style="display:inline-block;background:#ed168b;color:white;padding:12px 15px;border-radius:12px;text-decoration:none;font-weight:bold">📷 Баркод / Ажилтны үйлдэл</a><button class="logout" onclick="adminLogout()">Гарах</button></div></div>
+ <div class="dashboard-head"><div style="display:flex;align-items:center;gap:12px"><button type="button" id="adminMenuOpen" aria-label="Админ цэс нээх" style="background:#fce7f3;color:#c51b78;font-size:24px;padding:12px 17px">☰</button><h2>📦 Админ удирдлага</h2></div><button class="logout" onclick="adminLogout()">Гарах</button></div>
  <div class="admin-editor"><h3>⚙️ Үнийн мэдээлэл ба ажлын цаг</h3><div class="admin-fields"><input id="settingKg" type="number" min="0" placeholder="1 кг үнэ ₮"><input id="settingM3" type="number" min="0" placeholder="1 м³ үнэ юань"><input id="settingOpen" type="time" value="10:00"><input id="settingClose" type="time" value="20:00"></div>
  <div class="admin-actions"><button class="primary" onclick="saveSiteSettings()">Үнэ, цаг хадгалах</button><span id="settingsInfo" class="muted"></span></div></div>
  <div class="admin-stats" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0"><div class="branch-box"><small>📦 Нийт ачаа</small><h2 id="statTotal">0</h2></div><div class="branch-box"><small>📝 Бүртгүүлсэн</small><h2 id="statRegistered">0</h2></div><div class="branch-box"><small>🆕 Өнөөдөр бүртгэсэн</small><h2 id="statToday">0</h2></div><div class="branch-box"><small>🇨🇳 Эрээний агуулах</small><h2 id="statEreen">0</h2></div><div class="branch-box"><small>🇲🇳 Монголд ирсэн</small><h2 id="statMongolia">0</h2></div><div class="branch-box"><small>✅ Хүлээж авсан</small><h2 id="statReceived">0</h2></div><div class="branch-box" style="grid-column:1/-1"><small>💰 Хүлээж авсан ачааны нийт дүн</small><h2 id="statRevenue">0 ₮</h2><small>Бүх хүлээлгэн өгсөн ачааны дүн</small></div><div class="branch-box"><small id="paidDateLabel">Сонгосон өдрийн төлбөр</small><h2 id="statTodayPaid">0 ₮</h2></div><div class="branch-box"><small>💵 Бэлэн мөнгө</small><h2 id="statCash">0 ₮</h2></div><div class="branch-box"><small>🏦 Шилжүүлэг</small><h2 id="statTransfer">0 ₮</h2></div></div><div class="admin-editor"><h3>📨 Хэрэглэгчийн урьдчилсан бүртгэл</h3><p>Хэрэглэгчийн урьдчилан бүртгүүлсэн трак кодыг шалгаж баталгаажуулна.</p><button class="logout" onclick="loadPreRegistrations()">↻ Бүртгэл шинэчлэх</button> <button class="edit-btn" onclick="exportPreRegistrationsCSV()">⬇ CSV татах</button><input id="preRegSearch" placeholder="Утас эсвэл трак кодоор хайх..." oninput="filterPreRegAdminRows()" style="width:100%;margin-top:10px;padding:12px;border:1px solid #e5d5e0;border-radius:9px"><select id="preRegStatusFilter" onchange="filterPreRegAdminRows()" style="width:100%;margin-top:8px;padding:12px;border:1px solid #e5d5e0;border-radius:9px"><option value="">Бүх төлөв</option><option value="pending">Хүлээгдэж буй</option><option value="confirmed">Баталгаажсан</option><option value="rejected">Татгалзсан</option></select><button class="logout" style="margin-top:8px" onclick="clearPreRegAdminFilters()">✕ Шүүлт арилгах</button><div id="preRegAdminRows" style="margin-top:12px">Шинэчлэх товч дарна уу.</div></div>
@@ -616,5 +616,52 @@ if(location.hash==="#admin"||new URLSearchParams(location.search).get("admin")==
  obs.observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['style','class']});
 })();
 </script>
+
+<style id="admin-hamburger-layout">
+#adminDashboard #adminMenuShade{display:none;position:fixed;inset:0;background:#17121a88;z-index:9998}
+#adminDashboard #adminMenuDrawer{position:fixed;z-index:9999;top:0;left:0;bottom:0;width:min(88vw,390px);overflow:auto;background:#fff;padding:18px 14px 30px;box-shadow:8px 0 30px #17121a22;transform:translateX(-105%);transition:transform .22s ease}
+#adminDashboard.admin-menu-visible #adminMenuShade{display:block}
+#adminDashboard.admin-menu-visible #adminMenuDrawer{transform:translateX(0)}
+#adminDashboard #adminMenuDrawer .admin-fold{display:block!important;margin:9px 0!important}
+#adminDashboard #adminMenuDrawer .admin-fold>summary{display:flex!important}
+#adminDashboard #adminMenuDrawer .admin-fold-body{display:block}
+#adminDashboard #adminMenuDrawer .admin-fold[open] .admin-fold-body{display:block}
+#adminDashboard #adminMenuDrawer .admin-fold:not([open]) .admin-fold-body{display:none}
+#adminDashboard #adminMenuDrawer .admin-fold-body>*{max-width:100%}
+#adminDashboard #adminMenuDrawer .admin-toolbar{display:flex;flex-wrap:wrap}
+#adminDashboard #adminMenuDrawer .admin-toolbar input{min-width:100%}
+#adminDashboard #adminMenuDrawer .admin-stats{display:grid!important}
+#adminDashboard #adminMenuDrawer .admin-fields{display:grid}
+#adminDashboard #adminMenuDrawer .admin-table-wrap{overflow:auto}
+#adminDashboard #adminMenuDrawer .admin-editor{margin:8px 0}
+#adminDashboard .admin-home-note{padding:30px 18px;background:#fff;border:1px solid #f1dce8;border-radius:16px;text-align:center;color:#777;margin-top:16px}
+</style>
+<script id="admin-hamburger-menu">
+(function(){
+function setup(){
+ const dash=document.getElementById('adminDashboard'),head=dash?.querySelector('.dashboard-head');
+ if(!dash||!head||dash.dataset.hamburgerReady==='1'||dash.dataset.compact!=='1')return;
+ dash.dataset.hamburgerReady='1';
+ const folds=[...dash.querySelectorAll(':scope > details.admin-fold')];
+ const shade=document.createElement('div');shade.id='adminMenuShade';
+ const drawer=document.createElement('aside');drawer.id='adminMenuDrawer';drawer.setAttribute('aria-label','Админ удирдлагын цэс');
+ drawer.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 14px"><strong style="font-size:19px;color:#211820">☰ Үндсэн цэс</strong><button type="button" id="adminMenuClose" class="logout">✕ Хаах</button></div><a href="employee.html" target="_blank" style="display:block;padding:13px;margin:0 0 12px;background:#ed168b;color:#fff;border-radius:12px;text-decoration:none;font-weight:800;text-align:center">📷 Баркод / Ажилтны үйлдэл</a>';
+ folds.forEach(f=>drawer.appendChild(f));
+ dash.append(shade,drawer);
+ const note=document.createElement('div');note.className='admin-home-note';note.innerHTML='<div style="font-size:30px;margin-bottom:8px">📦</div><b>Ачааны удирдлага</b><p style="margin:8px 0 0">Бүртгэл болон бусад удирдлагыг ☰ цэснээс сонгоно уу.</p>';
+ dash.appendChild(note);
+ function close(){dash.classList.remove('admin-menu-visible')}
+ head.querySelector('#adminMenuOpen')?.addEventListener('click',()=>dash.classList.add('admin-menu-visible'));
+ drawer.querySelector('#adminMenuClose')?.addEventListener('click',close);
+ shade.addEventListener('click',close);
+ drawer.querySelectorAll('details.admin-fold>summary').forEach(sum=>sum.addEventListener('click',()=>{const f=sum.parentElement;setTimeout(()=>{if(f.open)f.scrollIntoView({block:'nearest',behavior:'smooth'})},30)}));
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+}
+const run=()=>{setup();if(!document.getElementById('adminDashboard')?.dataset.hamburgerReady) setTimeout(setup,250)};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,100));else setTimeout(run,100);
+new MutationObserver(()=>run()).observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['style','class']});
+})();
+</script>
+
 </body>
 </html>
