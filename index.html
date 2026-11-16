@@ -91,8 +91,9 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
    <div class="login-icon">✈️</div>
    <div><h2>Нэвтрэх</h2><div class="muted">Тэнхлүүн Карго · Ачаагаа хянах</div></div>
   </div>
-  <p class="muted">Бүртгэлтэй утасны дугаараа оруулан ачааны мэдээллээ авна уу.</p>
+  <p class="muted">Анх удаа нэвтрэхдээ утасны дугаар, захиалагчийн нэрээ оруулна уу. Дараа нь зөвхөн утсаараа нэвтэрнэ.</p>
   <input id="customerPhone" type="tel" inputmode="numeric" maxlength="8" placeholder="☎ Утасны дугаар оруулах..." autocomplete="tel" onkeydown="if(event.key===\'Enter\')customerLogin()">
+  <input id="customerName" type="text" placeholder="Захиалагчийн нэрээ хийнэ үү" autocomplete="name">
   <button class="primary" id="customerLoginButton" onclick="customerLogin()">➜ Нэвтрэх</button>
   <div id="customerMessage" class="message"></div>
   <p class="muted trust">🔒 Таны мэдээлэл хамгаалагдсан</p>
@@ -189,16 +190,26 @@ async function submitPreRegistration(){
 }
 async function customerLogin(){
  const phone=cleanPhone(document.getElementById("customerPhone").value).slice(-8);
+ const name=document.getElementById("customerName").value.trim();
  if(phone.length!==8){showMessage("customerMessage","8 оронтой утасны дугаараа оруулна уу.");return}
  const btn=document.getElementById("customerLoginButton");btn.disabled=true;btn.textContent="ШАЛГАЖ БАЙНА...";showMessage("customerMessage","");
  try{
+  let profile;
+  if(name){
+   const {data,error}=await db.rpc("save_customer_profile",{p_phone:phone,p_name:name});
+   if(error)throw error;profile=data;
+  }else{
+   const {data,error}=await db.rpc("get_customer_profile",{p_phone:phone});
+   if(error)throw error;profile=data;
+   if(!profile){showMessage("customerMessage","Анх удаа нэвтрэх бол захиалагчийн нэрээ оруулна уу.");return}
+  }
+  currentPhone=phone;window.currentCustomerName=profile?.customer_name||name;
   const {data,error}=await db.rpc("get_customer_parcels_by_phone",{p_phone:phone});
   if(error)throw error;
   const {data:pre,error:preError}=await db.rpc("get_customer_preregistrations_by_phone",{p_phone:phone});
   if(preError)throw preError;
-  currentPhone=phone;customerParcels=[...(data||[]),...(pre||[]).map(x=>({tracking_code:x.tracking_code,description:x.description,parcel_status:"registered",price_mnt:0,piece_number:1,weight_kg:0,volume_m3:0,paid_at:null,created_at:x.created_at}))];openCustomerDashboard();startCustomerRealtime();
-  if(!customerParcels.length)showMessage("customerMessage","Ачааны түүх хоосон байна. Бүртгэл амжилттай нээгдлээ.");
-  if(pendingTrackingCode){pendingTrackingCode="";}
+  customerParcels=[...(data||[]),...(pre||[]).map(x=>({tracking_code:x.tracking_code,description:x.description,parcel_status:"registered",price_mnt:0,piece_number:1,weight_kg:0,volume_m3:0,paid_at:null,created_at:x.created_at}))];openCustomerDashboard();startCustomerRealtime();
+  if(pendingTrackingCode)pendingTrackingCode="";
  }catch(error){console.error("Customer login:",error);showMessage("customerMessage","Алдаа: "+(error.message||"Мэдээлэл авах боломжгүй"))}
  finally{btn.disabled=false;btn.textContent="➜ Нэвтрэх"}
 }
