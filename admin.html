@@ -709,6 +709,7 @@ document.querySelectorAll("#adminDashboard details.admin-menu > summary").forEac
 #adminDashboard .admin-workspace details.admin-menu.section-selected #preRegistrationBox{display:block!important;visibility:visible!important}
 #adminDashboard .admin-workspace details.admin-menu.section-selected .admin-stats{display:grid!important;visibility:visible!important}
 </style>
+<style id="admin-home-hide-duplicate">#adminDashboard .admin-workspace>details.admin-menu:not(.section-selected){display:none!important}</style>
 <script id="single-admin-section-behavior">
 (()=>{const side=document.getElementById("adminSidebar"),workspace=document.querySelector("#adminDashboard .admin-workspace");if(!side||!workspace)return;
 window.toggleAdminMenu=()=>{side.classList.toggle("show");document.body.classList.toggle("admin-menu-open",side.classList.contains("show"));};
