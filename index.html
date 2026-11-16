@@ -229,10 +229,10 @@ function startCustomerRealtime(){
 }
 async function refreshCustomerParcels(){if(!currentPhone)return;try{const {data,error}=await db.rpc("get_customer_parcels_by_phone",{p_phone:currentPhone});if(error)throw error;const {data:pre,error:pe}=await db.rpc("get_customer_preregistrations_by_phone",{p_phone:currentPhone});if(pe)throw pe;customerParcels=[...(data||[]),...(pre||[]).map(p=>({...p,parcel_status:"registered",price_mnt:0,piece_number:1,weight_kg:0,volume_m3:0,paid_at:null}))];openCustomerDashboard()}catch(e){console.error("Customer auto refresh:",e)}}
 function dedupeCustomerParcels(items){
- const byCode=new Map();
- for(const p of (items||[])){const code=String(p.tracking_code||"").trim().toUpperCase();if(!code)continue;const prev=byCode.get(code);
-  // Агуулахын бодит parcel нь урьдчилсан бүртгэлээс давуу.
-  if(!prev||prev.parcel_status==="registered"&&p.parcel_status!=="registered")byCode.set(code,{...p,tracking_code:code});
+ const byCode=new Map(),rank={registered:0,ereen:1,mongolia:2,received:3};
+ for(const p of (items||[])){const code=String(p.tracking_code||"").trim().toUpperCase();if(!code)continue;const group=p.parcel_status==="registered"?"registered":classifyStatus(p.parcel_status),prev=byCode.get(code),prevGroup=prev?(prev.parcel_status==="registered"?"registered":classifyStatus(prev.parcel_status)):null;
+  // Нэг кодын хамгийн сүүлийн шатны төлөвийг л хэрэглэгчид харуулна.
+  if(!prev||(rank[group]||0)>(rank[prevGroup]||0))byCode.set(code,{...p,tracking_code:code});
  }
  return [...byCode.values()];
 }
