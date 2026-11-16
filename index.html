@@ -227,7 +227,7 @@ async function refreshCustomerParcels(){if(!currentPhone)return;try{const {data,
 function openCustomerDashboard(){
  document.getElementById("publicPage").style.display="none";document.getElementById("pageFooter").style.display="none";
  document.getElementById("customerHeader").style.display="flex";document.getElementById("customerDashboard").style.display="block";
- document.getElementById("customerPhoneLabel").textContent="Утас: "+currentPhone;
+ document.getElementById("customerPhoneLabel").textContent=(window.currentCustomerName?window.currentCustomerName+" · ":"")+"Утас: "+currentPhone;
  const registered=customerParcels.filter(p=>p.parcel_status==="registered");document.getElementById("countRegistered").textContent=registered.length;
  const ereen=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="ereen");
  const mongolia=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia");
