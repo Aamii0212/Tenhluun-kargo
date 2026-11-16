@@ -719,6 +719,10 @@ select("records");
 #adminDashboard .admin-workspace>details.admin-menu.section-selected{display:block!important}
 #adminDashboard .admin-workspace>details.admin-menu.section-selected[open]{display:block!important}
 #adminDashboard .admin-workspace>details.admin-menu.section-selected>summary{display:block!important}
+#adminDashboard .admin-workspace>details.admin-menu.section-selected> :not(summary){display:block!important}
+#adminDashboard .admin-workspace>details.admin-menu.section-selected .admin-editor,
+#adminDashboard .admin-workspace>details.admin-menu.section-selected .branch-box{display:block!important}
+#adminDashboard .admin-workspace>details.admin-menu.section-selected .admin-stats{display:grid!important}
 </style><style id="restore-admin-submenus">
 /* Nested tools inside parcel records remain expandable when records is selected */
 #adminDashboard .records-menu.section-selected .admin-toolbar{display:flex!important;flex-wrap:wrap}
