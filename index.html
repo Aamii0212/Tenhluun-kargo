@@ -342,6 +342,8 @@ function openAdminLoginPage(){document.getElementById("publicPage").style.displa
 if(new URLSearchParams(location.search).get("admin")==="1"){openAdminLoginPage()}
 function showAdminLogin(){
  document.getElementById("publicPage").style.display="none";
+ document.getElementById("customerDashboard").style.display="none";
+ document.getElementById("customerHeader").style.display="none";
  document.getElementById("pageFooter").style.display="none";
  document.getElementById("customerHeader").style.display="none";
  document.getElementById("passwordResetPanel").style.display="none";
