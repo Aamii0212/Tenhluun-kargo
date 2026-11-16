@@ -29,3 +29,6 @@ revoke all on function public.save_customer_profile(text,text) from public;
 revoke all on function public.get_customer_profile(text) from public;
 grant execute on function public.save_customer_profile(text,text) to anon, authenticated;
 grant execute on function public.get_customer_profile(text) to anon, authenticated;
+
+-- Refresh PostgREST function cache after applying this script.
+notify pgrst, 'reload schema';
