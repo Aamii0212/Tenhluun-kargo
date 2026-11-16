@@ -212,7 +212,7 @@ function startCustomerRealtime(){
  if(customerRealtimeChannel)db.removeChannel(customerRealtimeChannel);
  const phone=currentPhone;
  customerRealtimeChannel=db.channel("customer-live-"+phone)
- .on("postgres_changes",{event:"*",schema:"public",table:"parcels",filter:"phone=eq."+phone},()=>refreshCustomerParcels(false))
+ .on("postgres_changes",{event:"*",schema:"public",table:"parcels",filter:"customer_phone=eq."+phone},()=>refreshCustomerParcels(false))
  .on("postgres_changes",{event:"*",schema:"public",table:"customer_pre_registrations",filter:"customer_phone=eq."+phone},()=>refreshCustomerParcels(false))
  .subscribe();
 }
