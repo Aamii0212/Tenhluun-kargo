@@ -709,6 +709,12 @@ document.querySelectorAll("#adminDashboard details.admin-menu > summary").forEac
 #adminDashboard .admin-workspace details.admin-menu.section-selected{display:block!important}
 #adminDashboard .admin-workspace details.admin-menu.section-selected .admin-editor,
 #adminDashboard .admin-workspace details.admin-menu.section-selected>section{display:block}
+</style><style id="admin-selected-content-fix">
+#adminDashboard .admin-workspace details.admin-menu.section-selected>*:not(summary){display:block!important;visibility:visible!important}
+#adminDashboard .admin-workspace details.admin-menu.section-selected .admin-editor,
+#adminDashboard .admin-workspace details.admin-menu.section-selected .branch-box,
+#adminDashboard .admin-workspace details.admin-menu.section-selected #preRegistrationBox{display:block!important;visibility:visible!important}
+#adminDashboard .admin-workspace details.admin-menu.section-selected .admin-stats{display:grid!important;visibility:visible!important}
 </style>
 <script id="single-admin-section-behavior">
 (()=>{const dash=document.getElementById("adminDashboard");if(!dash)return;const side=document.getElementById("adminSidebar"),work=dash.querySelector(".admin-workspace"),menus=[...work.querySelectorAll("details.admin-menu")];const find=t=>menus.find(m=>(m.querySelector("summary")?.textContent||"").includes(t));
