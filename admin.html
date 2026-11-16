@@ -678,17 +678,7 @@ if(true){
 function toggleAdminMenu(){const side=document.getElementById("adminSidebar");side.classList.toggle("show");document.body.classList.toggle("admin-menu-open",side.classList.contains("show"));document.getElementById("adminDashboard").classList.toggle("all-admin-menus");}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){document.getElementById("adminSidebar").classList.remove("show");document.body.classList.remove("admin-menu-open");document.body.classList.remove("admin-menu-open")}});
 document.addEventListener("click",e=>{const side=document.getElementById("adminSidebar");if(side&&side.classList.contains("show")&&!side.contains(e.target)&&!e.target.closest(".admin-mobile-nav button")){side.classList.remove("show");document.body.classList.remove("admin-menu-open")}});
-// Admin sidebar navigation: open the matching existing section without changing its functions.
-document.querySelectorAll("#adminSidebar [data-menu]").forEach(btn=>{
- btn.addEventListener("click",()=>{
-  const menus=[...document.querySelectorAll("#adminDashboard .admin-workspace > details.admin-menu")];
-  const target=menus[Number(btn.dataset.menu)];
-  if(target){menus.forEach(d=>d.open=false);target.open=true;target.scrollIntoView({behavior:"smooth",block:"start"});}
-  document.querySelectorAll("#adminSidebar .side-link").forEach(b=>b.classList.remove("active"));btn.classList.add("active");
-  document.getElementById("adminSidebar").classList.remove("show");
- });
-});
-
+// Sidebar section switching is handled by single-admin-section-behavior only.
 // UX improvements: live feedback, keyboard access, and reliable mobile form focus.
 document.querySelectorAll("#adminDashboard input").forEach(input=>{
  input.addEventListener("keydown",e=>{
@@ -701,7 +691,7 @@ document.querySelectorAll("#adminDashboard details.admin-menu > summary").forEac
 });
 
 </script>
-<script id="admin-records-first-order">(()=>{const w=document.querySelector("#adminDashboard .admin-workspace"),r=w?.querySelector(".records-menu"),first=w?.querySelector(":scope > details.admin-menu:not(.records-menu)");if(r&&first)w.insertBefore(r,first);const map={"📦 Ачааны бүртгэл":0,"🔎 Ачаа хайх":0,"📊 Статистик":2,"🏢 Салбар удирдах":5,"📥 Урьдчилсан бүртгэл":6,"⚙️ Үнэ ба тохиргоо":0,"📷 QR бүртгэл":1,"✍️ Гараар ачаа бүртгэх":7,"📦 Бөөнөөр Эрээнд":4};document.querySelectorAll("#adminSidebar .side-link").forEach(b=>{const k=b.textContent.trim().replace(/^\S+\s*/,"");if(map[k]!==undefined)b.dataset.menu=map[k]})})();</script><script id="records-summary-refresh">
+<script id="admin-records-first-order">(()=>{const w=document.querySelector("#adminDashboard .admin-workspace"),r=w?.querySelector(".records-menu"),first=w?.querySelector(":scope > details.admin-menu:not(.records-menu)");if(r&&first)w.insertBefore(r,first);})();</script><script id="records-summary-refresh">
 (()=>{const original=window.renderAdminRows;window.renderAdminRows=function(rows){const total=adminParcels||[];const count=(s)=>total.filter(p=>classifyStatus(p.parcel_status)===s).length;const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=String(v)};set("recordsAll",total.length);set("recordsEreen",count("ereen"));set("recordsMongolia",count("mongolia"));set("recordsReceived",count("received"));return original(rows)}})();
 </script><style id="single-admin-section-view">
 #adminDashboard .admin-workspace details.admin-menu{display:none!important}
