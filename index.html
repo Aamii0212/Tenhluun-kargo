@@ -260,6 +260,7 @@ function showTab(tab){
  const tabIds={registered:"tabRegistered",ereen:"tabEreen",mongolia:"tabMongolia",received:"tabReceived"};
  Object.keys(tabIds).forEach(name=>document.getElementById(tabIds[name]).classList.toggle("active",name===tab));
  const parcels=customerParcels.filter(p=>classifyStatus(p.parcel_status)===tab),list=document.getElementById("parcelList");
+ list.innerHTML=""; // Өмнөх табын ачааг арилгаж, зөвхөн сонгосон төлөвийг харуулна
  if(!parcels.length){list.innerHTML='<div class="empty">Энэ хэсэгт одоогоор ачаа байхгүй байна.</div>';return}
  if(tab==="mongolia"){
   const due=parcels.filter(p=>!p.paid_at&&Number(p.price_mnt||0)>0),total=due.reduce((s,p)=>s+Number(p.price_mnt||0),0);
