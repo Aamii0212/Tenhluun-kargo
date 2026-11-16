@@ -710,7 +710,7 @@ document.querySelectorAll("#adminDashboard details.admin-menu > summary").forEac
 <script id="single-admin-section-behavior">
 (()=>{const dash=document.getElementById("adminDashboard");if(!dash)return;const side=document.getElementById("adminSidebar"),work=dash.querySelector(".admin-workspace");const menus=[...work.querySelectorAll("details.admin-menu")];
 const findMenu=(text)=>menus.find(m=>(m.querySelector("summary")?.textContent||"").includes(text));
-window.toggleAdminMenu=()=>{side.classList.toggle("show");document.body.classList.toggle("admin-menu-open",side.classList.contains("show));};
+window.toggleAdminMenu=()=>{side.classList.toggle("show");document.body.classList.toggle("admin-menu-open",side.classList.contains("show"));};
 document.querySelectorAll("#adminSidebar [data-menu-key]").forEach(btn=>{btn.onclick=()=>{const key=btn.dataset.menuKey;let target=null;
 if(key==="records")target=work.querySelector("details.records-menu");
 if(key==="stats")target=findMenu("Статистик харах");
