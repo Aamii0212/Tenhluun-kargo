@@ -597,6 +597,13 @@ if(location.hash==="#admin"||new URLSearchParams(location.search).get("admin")==
    const body=document.createElement('div');body.className='admin-fold-body';
    node.parentNode.insertBefore(fold,node);fold.append(summary,body);body.appendChild(node);
   });
+  // Нэг админ хэсэг нээхэд бусад accordion-ийг хаана.
+  dash.querySelectorAll('details.admin-fold').forEach(fold=>{
+   fold.addEventListener('toggle',()=>{
+    if(!fold.open)return;
+    dash.querySelectorAll('details.admin-fold').forEach(other=>{if(other!==fold)other.open=false});
+   });
+  });
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',compactAdmin);else compactAdmin();
  const obs=new MutationObserver(()=>{const d=document.getElementById('adminDashboard');if(d&&d.style.display!=='none')compactAdmin()});
