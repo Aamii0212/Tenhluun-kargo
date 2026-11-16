@@ -703,8 +703,23 @@ document.querySelectorAll("#adminDashboard details.admin-menu > summary").forEac
 #adminDashboard .admin-workspace details.admin-menu.section-selected .admin-stats{display:grid!important;visibility:visible!important}
 </style>
 <script id="single-admin-section-behavior">
-(()=>{const side=document.getElementById("adminSidebar");if(!side)return;window.toggleAdminMenu=()=>{side.classList.toggle("show");document.body.classList.toggle("admin-menu-open",side.classList.contains("show"));};const map={records:".records-menu",stats:"#menu-stats",branch:"#menu-branch",pre:"#menu-pre",settings:"#menu-settings",bulk:"#menu-bulk"};side.querySelectorAll("[data-menu-key]").forEach(btn=>btn.addEventListener("click",e=>{e.preventDefault();const sel=map[btn.dataset.menuKey],el=sel?.startsWith("#")?document.querySelector(sel):document.querySelector(sel);if(!el){console.error("Missing admin section",sel);return;}el.open=true;el.scrollIntoView({behavior:"smooth",block:"start"});side.classList.remove("show");document.body.classList.remove("admin-menu-open");}));})();
-</script><style id="restore-admin-submenus">
+(()=>{const side=document.getElementById("adminSidebar"),workspace=document.querySelector("#adminDashboard .admin-workspace");if(!side||!workspace)return;
+window.toggleAdminMenu=()=>{side.classList.toggle("show");document.body.classList.toggle("admin-menu-open",side.classList.contains("show"));};
+const map={records:".records-menu",stats:"#menu-stats",branch:"#menu-branch",pre:"#menu-pre",settings:"#menu-settings",bulk:"#menu-bulk"};
+function select(key){const target=workspace.querySelector(map[key]);if(!target){console.error("Admin menu section missing:",key);return;}
+workspace.querySelectorAll(":scope > details.admin-menu").forEach(d=>{d.open=d===target;d.classList.toggle("section-selected",d===target);});
+side.querySelectorAll("[data-menu-key]").forEach(b=>b.classList.toggle("active",b.dataset.menuKey===key));
+target.scrollIntoView({behavior:"smooth",block:"start"});side.classList.remove("show");document.body.classList.remove("admin-menu-open");
+}
+side.querySelectorAll("[data-menu-key]").forEach(btn=>{btn.onclick=e=>{e.preventDefault();e.stopImmediatePropagation();select(btn.dataset.menuKey);};});
+select("records");
+})();
+</script><style id="admin-section-exclusive-view">
+#adminDashboard .admin-workspace>details.admin-menu{display:none!important}
+#adminDashboard .admin-workspace>details.admin-menu.section-selected{display:block!important}
+#adminDashboard .admin-workspace>details.admin-menu.section-selected[open]{display:block!important}
+#adminDashboard .admin-workspace>details.admin-menu.section-selected>summary{display:block!important}
+</style><style id="restore-admin-submenus">
 /* Nested tools inside parcel records remain expandable when records is selected */
 #adminDashboard .records-menu.section-selected .admin-toolbar{display:flex!important;flex-wrap:wrap}
 #adminDashboard .records-menu.section-selected > .admin-menu{display:block!important}
