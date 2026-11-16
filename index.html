@@ -210,7 +210,7 @@ async function customerLogin(){
   if(preError)throw preError;
   customerParcels=[...(data||[]),...(pre||[]).map(x=>({tracking_code:x.tracking_code,description:x.description,parcel_status:"registered",price_mnt:0,piece_number:1,weight_kg:0,volume_m3:0,paid_at:null,created_at:x.created_at}))];openCustomerDashboard();startCustomerRealtime();
   if(pendingTrackingCode)pendingTrackingCode="";
- }catch(error){console.error("Customer login:",error);showMessage("customerMessage","Алдаа: "+(error.message||"Мэдээлэл авах боломжгүй"))}
+ }catch(error){console.error("Customer login:",error);showMessage("customerMessage",/save_customer_profile|schema cache|Could not find the function/i.test(error.message||"")?"Supabase дээр customer_profiles SQL ажиллуулаагүй байна. SQL Editor дээр customer_profiles.sql файлыг RUN хийнэ үү.":"Алдаа: "+(error.message||"Мэдээлэл авах боломжгүй"))}
  finally{btn.disabled=false;btn.textContent="➜ Нэвтрэх"}
 }
 let customerRealtimeChannel=null;
@@ -517,6 +517,7 @@ async function handoverParcel(id){
 async function deleteParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p||!confirm((p.tracking_code||"Энэ ачаа")+" устгах уу?"))return;const {error}=await db.from("parcels").delete().eq("id",id);if(error){showMessage("adminNotice","Устгах алдаа: "+error.message);return}await loadAdminParcels();showMessage("adminNotice","Ачааг устгалаа.")}
 
 document.getElementById("customerPhone").addEventListener("keydown",e=>{if(e.key==="Enter")customerLogin()});
+document.getElementById("customerName").addEventListener("keydown",e=>{if(e.key==="Enter")customerLogin();});
 document.getElementById("customerPhone").addEventListener("blur",async()=>{
  const phone=cleanPhone(document.getElementById("customerPhone").value).slice(-8),nameInput=document.getElementById("customerName");
  if(phone.length!==8)return;
