@@ -707,12 +707,17 @@ document.querySelectorAll("#adminDashboard details.admin-menu > summary").forEac
 #adminDashboard .admin-workspace details.admin-menu.section-selected .admin-stats{display:grid!important;visibility:visible!important}
 </style>
 <script id="single-admin-section-behavior">
-(()=>{const dash=document.getElementById("adminDashboard");if(!dash)return;const side=document.getElementById("adminSidebar"),work=dash.querySelector(".admin-workspace"),menus=[...work.querySelectorAll("details.admin-menu")];const find=t=>menus.find(m=>(m.querySelector("summary")?.textContent||"").includes(t));
+(()=>{const dash=document.getElementById("adminDashboard"),side=document.getElementById("adminSidebar");if(!dash||!side)return;
+const label={records:".records-menu",stats:"Статистик харах",branch:"Салбар удирдах",pre:"Урьдчилсан бүртгэл",settings:"Үнийн мэдээлэл",bulk:"Олон трак код Эрээнд ирсэн болгох"};
 window.toggleAdminMenu=()=>{side.classList.toggle("show");document.body.classList.toggle("admin-menu-open",side.classList.contains("show"));};
-document.querySelectorAll("#adminSidebar [data-menu-key]").forEach(btn=>btn.onclick=()=>{const k=btn.dataset.menuKey;let target=k==="records"?work.querySelector(".records-menu"):k==="stats"?find("Статистик харах"):k==="branch"?find("Салбар удирдах"):k==="pre"?find("Урьдчилсан бүртгэл"):k==="settings"?find("Үнийн мэдээлэл"):k==="bulk"?find("Олон трак код Эрээнд ирсэн болгох"):null;
-menus.forEach(m=>{m.classList.remove("section-selected");m.style.setProperty("display","none","important");m.open=false;});
-if(target){target.classList.add("section-selected");target.style.setProperty("display","block","important");target.open=true;target.scrollIntoView({behavior:"smooth",block:"start"});}
-document.querySelectorAll("#adminSidebar .side-link").forEach(x=>x.classList.toggle("active",x===btn));side.classList.remove("show");document.body.classList.remove("admin-menu-open");});})();
+side.addEventListener("click",function(e){const btn=e.target.closest("[data-menu-key]");if(!btn)return;e.preventDefault();e.stopPropagation();const key=btn.dataset.menuKey,work=dash.querySelector(".admin-workspace"),menus=[...work.querySelectorAll("details.admin-menu")];let target=key==="records"?work.querySelector(".records-menu"):menus.find(m=>(m.querySelector("summary")?.textContent||"").includes(label[key]||"__missing__"));
+if(!target){console.error("Admin menu not found",key);return;}
+menus.forEach(m=>{m.classList.remove("section-selected");m.open=false;m.style.display="none";});
+target.classList.add("section-selected");target.open=true;target.style.display="block";
+target.querySelectorAll(":scope > *:not(summary)").forEach(el=>{el.style.display="";el.style.visibility="visible";});
+side.querySelectorAll(".side-link").forEach(x=>x.classList.toggle("active",x===btn));side.classList.remove("show");document.body.classList.remove("admin-menu-open");target.scrollIntoView({behavior:"smooth",block:"start"});
+},true);
+})();
 </script><style id="restore-admin-submenus">
 /* Nested tools inside parcel records remain expandable when records is selected */
 #adminDashboard .records-menu.section-selected .admin-toolbar{display:flex!important;flex-wrap:wrap}
