@@ -147,7 +147,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
    <label for="editPhone">Утасны дугаар</label><input id="editPhone" inputmode="numeric" maxlength="8" placeholder="8 оронтой утас *">
    <label for="editTracking">Трак код</label><div class="parcel-scan-row"><textarea id="editTracking" rows="2" placeholder="Трак код" oninput="renderTrackingPrices()"></textarea><button type="button" class="parcel-scan-button" onclick="scanTracking()" aria-label="Камераар баркод уншуулах">▥</button></div>
    <div class="parcel-price-label">Трак код тус бүрийн үнэ (₮)</div><div id="trackingPriceRows"></div>
-   <button type="button" class="parcel-add-code" onclick="document.getElementById('editTracking').focus()">＋ Код нэмэх</button>
+   <button type="button" class="parcel-add-code" onclick="addTrackingCodeRow()">＋ Код нэмэх</button>
   </div>
   <select id="editStatus" aria-label="Ачааны төлөв"><option value="registered">Бүртгүүлсэн</option><option value="ereen">Эрээнд ирсэн</option><option value="mongolia">Монголд ирсэн</option></select>
   <select id="editBranch"><option value="">Салбар сонгох</option></select>
@@ -484,6 +484,7 @@ async function removeBranch(id){const b=adminBranches.find(x=>String(x.id)===Str
 function newParcelForm(){editingParcelId=null;document.getElementById("editorTitle").textContent="Шинэ ачаа бүртгэх";["editTracking","editPhone"].forEach(id=>document.getElementById(id).value="");renderTrackingPrices();document.getElementById("editStatus").value="mongolia";document.getElementById("editBranch").value="";const arrival=document.getElementById("parcelArrivalDate");if(arrival){const now=new Date();arrival.value=[now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),String(now.getDate()).padStart(2,"0")].join("-")}document.getElementById("parcelEditor").style.display="block";const fold=document.getElementById("parcelEditor").closest("details.admin-fold");if(fold)fold.open=true;document.getElementById("parcelEditor").scrollIntoView({behavior:"smooth"})}
 function editParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;editingParcelId=p.id;document.getElementById("editorTitle").textContent="Ачаа засах";document.getElementById("editTracking").value=p.tracking_code||"";document.getElementById("editPhone").value=p.customer_phone||p.phone||"";renderTrackingPrices();document.getElementById("editStatus").value=classifyStatus(p.parcel_status);document.getElementById("editBranch").value=p.branch_id||"";document.getElementById("parcelEditor").style.display="block";document.getElementById("parcelEditor").scrollIntoView({behavior:"smooth"})}
 function cancelParcelForm(){document.getElementById("parcelEditor").style.display="none";editingParcelId=null}
+function addTrackingCodeRow(){const input=document.getElementById("editTracking");input.value=(input.value.trimEnd()?input.value.trimEnd()+"\n":"");input.focus();renderTrackingPrices()}
 function renderTrackingPrices(){
  const codes=[...new Set(document.getElementById("editTracking").value.split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean))],box=document.getElementById("trackingPriceRows");
  if(!box)return;const old={};box.querySelectorAll("[data-code]").forEach(el=>old[el.dataset.code]=el.value);
