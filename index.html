@@ -493,14 +493,20 @@ function exportPaymentsCSV(){
  const csv="\uFEFF"+rows.map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\r\n");
  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="tenhluun-payments.csv";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-function renderAdminRows(rows){
- updateAdminStats();
- const body=document.getElementById("adminParcelRows");
- if(!rows.length){body.innerHTML='<tr><td colspan="7">Монголд ирсэн, хүлээлгэн өгөх ачаа олдсонгүй.</td></tr>'}
- else body.innerHTML=rows.map(p=>'<tr><td>'+escapeHTML(adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name||"-")+'</td><td><b>'+escapeHTML(p.tracking_code||"-")+'</b></td><td>'+escapeHTML(p.customer_name||p.name||"-")+'<br><small>'+escapeHTML(p.customer_phone||p.phone||"-")+'</small></td><td><span class="status-admin">'+adminStatusLabel(classifyStatus(p.parcel_status))+'</span></td><td>'+escapeHTML(p.weight_kg??"-")+' кг</td><td>'+escapeHTML(p.price_mnt??"-")+' ₮</td><td>'+(classifyStatus(p.parcel_status)!=="received"?'<button class="primary" onclick="handoverParcel(\''+String(p.id).replace(/'/g,"\\'")+'\')">Хүлээлгэн өгөх</button>':'<b>✓ Өгсөн</b>')+' <button class="edit-btn" onclick="editParcel(\''+String(p.id).replace(/'/g,"\\'")+'\')">Засах</button><button class="delete-btn" onclick="deleteParcel(\''+String(p.id).replace(/'/g,"\\'")+'\')">Устгах</button></td></tr>').join("");
- document.getElementById("adminCount").textContent="Нийт "+rows.length+" ачаа";
+function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа одоогоор алга.") {
+  updateAdminStats();
+  const body=document.getElementById("adminParcelRows");
+  if(!rows.length){body.innerHTML='<tr><td colspan="7">'+escapeHTML(emptyText)+'</td></tr>'}
+  else body.innerHTML=rows.map(p=>{const status=classifyStatus(p.parcel_status),action=status==="mongolia"?'<button class="primary" onclick="handoverParcel(\\''+String(p.id).replace(/'/g,"\\\\'")+'\\')">Хүлээлгэн өгөх</button>':status==="received"?'<b>✓ Хүлээлгэн өгсөн</b>':'<small>Монголд ирсний дараа хүлээлгэн өгнө</small>';return '<tr><td>'+escapeHTML(adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name||"-")+'</td><td><b>'+escapeHTML(p.tracking_code||"-")+'</b></td><td>'+escapeHTML(p.customer_name||p.name||"-")+'<br><small>'+escapeHTML(p.customer_phone||p.phone||"-")+'</small></td><td><span class="status-admin">'+adminStatusLabel(status)+'</span></td><td>'+escapeHTML(p.weight_kg??"-")+' кг</td><td>'+escapeHTML(p.price_mnt??"-")+' ₮</td><td>'+action+' <button class="edit-btn" onclick="editParcel(\\''+String(p.id).replace(/'/g,"\\\\'")+'\\')">Засах</button><button class="delete-btn" onclick="deleteParcel(\\''+String(p.id).replace(/'/g,"\\\\'")+'\\')">Устгах</button></td></tr>'}).join("");
+  document.getElementById("adminCount").textContent="Хайлтын үр дүн: "+rows.length+" ачаа";
 }
-async function filterAdminRows(){const raw=document.getElementById("adminSearch").value.trim(),q=raw.toLowerCase(),digits=cleanPhone(raw),bid=document.getElementById("adminBranchFilter")?.value||"";const rows=adminParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia"&&(!bid||String(p.branch_id||"")===bid)&&( !raw||[p.tracking_code,p.customer_name,p.name,adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name].some(v=>String(v||"").toLowerCase().includes(q))||(digits.length>0&&[p.customer_phone,p.phone].some(v=>cleanPhone(v).includes(digits)))));renderAdminRows(rows)}
+async function filterAdminRows(){
+ const raw=document.getElementById("adminSearch").value.trim(),q=raw.toLowerCase(),digits=cleanPhone(raw),bid=document.getElementById("adminBranchFilter")?.value||"";
+ if(!selectedAdminBranchId){renderAdminRows([],"Хайлт хийхийн өмнө дээрээс ажиллах салбараа сонгоно уу.");document.getElementById("adminCount").textContent="Салбар сонгоогүй";return}
+ const rows=adminParcels.filter(p=>(!bid||String(p.branch_id||"")===bid)&&(!raw?classifyStatus(p.parcel_status)==="mongolia":true)&&(!raw||[p.tracking_code,p.customer_name,p.name,adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name].some(v=>String(v||"").toLowerCase().includes(q))||(digits.length>0&&[p.customer_phone,p.phone].some(v=>cleanPhone(v).includes(digits)))));
+ const empty=raw?"Энэ салбарт "+raw+" дугаартай ачаа олдсонгүй. Утасны дугаараа шалгаад дахин хайна уу.":"Монголд ирсэн ачаа одоогоор алга.";
+ renderAdminRows(rows,empty);
+}
 async function loadBranches(){
  const {data,error}=await db.from("branches").select("*").order("name");if(error){showMessage("adminNotice","Салбарын жагсаалт татах алдаа: "+error.message);return}adminBranches=data||[];
  const opts='<option value="">Салбар сонгох</option>'+adminBranches.map(b=>'<option value="'+escapeHTML(b.id)+'">'+escapeHTML(b.name)+'</option>').join("");
