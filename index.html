@@ -514,7 +514,7 @@ async function filterAdminRows(){
  const rows=adminParcels.filter(p=>(!bid||String(p.branch_id||"")===bid)&&(!raw?classifyStatus(p.parcel_status)==="mongolia":true)&&(!raw||[p.tracking_code,p.customer_name,p.name,adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name].some(v=>String(v||"").toLowerCase().includes(q))||(digits.length>0&&[p.customer_phone,p.phone].some(v=>cleanPhone(v).includes(digits)))));
  const empty=raw?"Энэ салбарт "+raw+" дугаартай ачаа олдсонгүй. Утасны дугаараа шалгаад дахин хайна уу.":"Монголд ирсэн ачаа одоогоор алга.";
  renderAdminRows(rows,empty);
- if(raw){say(rows.length?"✓ "+raw+" — "+rows.length+" ачаа олдлоо.":"✕ "+raw+" дугаараар ачаа олдсонгүй. Дугаараа шалгаад дахин хайна уу.",rows.length>0);}
+ if(raw){say(rows.length?"✓ "+raw+" — "+rows.length+" ачаа олдлоо.":"✕ Ачаа олдсонгүй. "+raw+" дугаараа шалгаад дахин хайна уу.",rows.length>0);}
 }
 async function loadBranches(){
  const {data,error}=await db.from("branches").select("*").order("name");if(error){showMessage("adminNotice","Салбарын жагсаалт татах алдаа: "+error.message);return}adminBranches=data||[];
@@ -751,7 +751,7 @@ new MutationObserver(()=>run()).observe(document.documentElement,{subtree:true,a
 #adminDashboard .records-quickbar{display:flex!important;align-items:center;gap:8px;background:#fff;border:1px solid #f1dce8;border-radius:14px;padding:10px;margin:10px 0 14px;box-shadow:0 3px 12px #e72b9410}
 #adminDashboard .records-quickbar input{flex:1;min-width:0;width:0;margin:0;padding:13px 14px;background:#f8f9fb;border:1px solid #e5e7eb;border-radius:11px;font-size:16px}
 #adminDashboard .records-quickbar button{width:48px;height:48px;flex:0 0 48px;padding:0;border-radius:11px;background:#ed168b;color:#fff;font-size:22px}
-#adminDashboard #searchFeedback{display:none}
+/* Хайлтын хариуг JavaScript-ийн дагуу харуулна. */
 #adminDashboard #adminMenuShade{display:none;position:fixed;inset:0;background:#17121a88;z-index:9998}
 #adminDashboard #adminMenuDrawer{position:fixed;z-index:9999;top:0;left:0;bottom:0;width:min(88vw,390px);overflow:auto;background:#fff;padding:18px 14px 30px;box-shadow:8px 0 30px #17121a22;transform:translateX(-105%);transition:transform .22s ease}
 #adminDashboard.admin-menu-visible #adminMenuShade{display:block}
