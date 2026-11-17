@@ -34,6 +34,7 @@ BEGIN
     IF EXISTS (
       SELECT 1 FROM public.customer_pre_registrations r
       WHERE upper(regexp_replace(btrim(coalesce(r.tracking_code, '')), '\s+', '', 'g')) = normalized_code
+        AND coalesce(r.status, 'pending') <> 'confirmed'
     ) THEN
       RAISE EXCEPTION 'Энэ трак код урьдчилан бүртгэгдсэн байна: %', normalized_code
         USING ERRCODE = '23505';
