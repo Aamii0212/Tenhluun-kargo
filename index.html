@@ -183,7 +183,7 @@ function classifyStatus(status){
 function statusLabel(group){if(group==="registered")return "Бүртгүүлсэн";if(group==="received")return "Хүлээж авсан";if(group==="mongolia")return "Монголд ирсэн";return "Эрээнд ирсэн"}
 
 async function submitPreRegistration(){
- const phone=cleanPhone(currentPhone||""),tracking=String(document.getElementById("preRegTracking").value||"").replace(/\\s+/g,"").toUpperCase(),description=document.getElementById("preRegDescription").value.trim();
+ const phone=cleanPhone(currentPhone||""),tracking=String(document.getElementById("preRegTracking").value||"").replace(/\s+/g,"").toUpperCase(),description=document.getElementById("preRegDescription").value.trim();
  if(phone.length!==8||!tracking){showMessage("preRegMessage","Нэвтэрсэн утасны дугаар эсвэл трак код буруу байна.");return}
  const btn=document.querySelector('button[onclick="submitPreRegistration()"]');btn.disabled=true;btn.textContent="БҮРТГЭЖ БАЙНА...";
  try{
@@ -426,7 +426,7 @@ async function setPreRegStatus(id,status){
  try{
   if(status==="confirmed"){
    const {data:reg,error:re}=await db.from("customer_pre_registrations").select("*").eq("id",id).maybeSingle();if(re)throw re;if(!reg)throw new Error("Бүртгэл олдсонгүй");
-   const normalizedCode=String(reg.tracking_code||"").replace(/\\s+/g,"").toUpperCase();
+   const normalizedCode=String(reg.tracking_code||"").replace(/\s+/g,"").toUpperCase();
    const {data:sameCodeRegs,error:sre}=await db.from("customer_pre_registrations").select("id,tracking_code").ilike("tracking_code",normalizedCode);if(sre)throw sre;
    if((sameCodeRegs||[]).length>1)throw new Error("Энэ трак код урьдчилсан бүртгэлд давхар байна. Давхардсан хүсэлтүүдийг эхлээд шалгаж цэгцэлнэ үү.");
    const {data:exists,error:ee}=await db.from("parcels").select("id").ilike("tracking_code",normalizedCode).limit(1);if(ee)throw ee;
@@ -539,7 +539,7 @@ async function saveParcel(){
  showMessage("adminNotice",codes.length+" ачааг шалгаж хадгалж байна...");
  const {data:duplicates,error:dupError}=await db.from("parcels").select("tracking_code").in("tracking_code",codes);
  if(dupError){showMessage("adminNotice","Трак код шалгах алдаа: "+dupError.message);return}
- const duplicateCodes=(duplicates||[]).map(x=>x.tracking_code).filter(code=>!editingParcelId||String(code).replace(/\\s+/g,"").toUpperCase()!==String(existingParcel?.tracking_code||"").replace(/\\s+/g,"").toUpperCase());
+ const duplicateCodes=(duplicates||[]).map(x=>x.tracking_code).filter(code=>!editingParcelId||String(code).replace(/\s+/g,"").toUpperCase()!==String(existingParcel?.tracking_code||"").replace(/\s+/g,"").toUpperCase());
  if(duplicateCodes.length){showMessage("adminNotice","Бүртгэлтэй трак код байна: "+duplicateCodes.join(", "));return}
  if(!editingParcelId){
   const {data:preDuplicates,error:preError}=await db.from("customer_pre_registrations").select("tracking_code").in("tracking_code",codes);
