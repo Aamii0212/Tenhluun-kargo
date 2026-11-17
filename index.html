@@ -131,7 +131,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
  <div id="adminMessage" class="message"></div>
 </section>
 <section id="adminDashboard" class="hidden">
- <div class="dashboard-head"><h2>📦 Админ удирдлага</h2><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><a href="employee.html" target="_blank" style="display:inline-block;background:#ed168b;color:#fff;padding:12px 15px;border-radius:12px;text-decoration:none;font-weight:800">📷 Баркод / Ажилтны үйлдэл</a><button class="logout" onclick="adminLogout()">Гарах</button></div></div>
+ <div class="dashboard-head"><h2>📦 Админ удирдлага</h2><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><label for="adminActiveBranch" style="font-weight:700">Ажиллах салбар</label><select id="adminActiveBranch" onchange="selectAdminBranch(this.value)" style="padding:12px;border:1px solid #e9a2ca;border-radius:12px;background:#fff;min-width:150px"><option value="">Салбар сонгох</option></select><button class="logout" onclick="adminLogout()">Гарах</button></div></div><div id="branchRequiredNotice" class="message">Ачаа бүртгэхийн өмнө ажиллах салбараа сонгоно уу.</div>
  <div class="admin-mobile-nav admin-home-keep"><button type="button" id="adminMenuOpen" aria-label="Админ цэс нээх">☰</button><span>Тэнхлүүн Карго · Админ</span></div>
  <div class="records-quickbar admin-home-keep"><input id="quickAdminSearch" aria-label="Утасны дугаар эсвэл трак кодоор хайх" placeholder="Монголд ирсэн ачаа: утас / трак код..." oninput="document.getElementById('adminSearch').value=this.value;filterAdminRows()" onkeydown="if(event.key==='Enter'){document.getElementById('adminSearch').value=this.value;filterAdminRows()}"><button type="button" aria-label="Хайх" title="Хайх" onclick="document.getElementById('adminSearch').value=document.getElementById('quickAdminSearch').value;filterAdminRows()">🔍</button><button type="button" aria-label="Баркод скан хийх" title="Баркод скан хийх" onclick="newParcelForm();scanTracking()">▥</button></div>
  <div class="admin-editor"><h3>⚙️ Үнийн мэдээлэл ба ажлын цаг</h3><div class="admin-fields"><input id="settingKg" type="number" min="0" placeholder="1 кг үнэ ₮"><input id="settingM3" type="number" min="0" placeholder="1 м³ үнэ юань"><input id="settingOpen" type="time" value="10:00"><input id="settingClose" type="time" value="20:00"></div>
@@ -144,14 +144,17 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
  <div id="parcelEditor" class="admin-editor" style="display:none">
   <div class="parcel-editor-heading"><button type="button" class="parcel-close" onclick="cancelParcelForm()" aria-label="Хаах">×</button><h3 id="editorTitle">Ачаа бүртгэл</h3></div>
   <div class="parcel-arrival-date"><label>Ачаа ирсэн огноо</label><input id="parcelArrivalDate" type="date" aria-label="Ачаа ирсэн огноо"></div>
-  <div class="parcel-entry-card">
-   <label for="editPhone">Утасны дугаар</label><input id="editPhone" inputmode="numeric" maxlength="8" placeholder="8 оронтой утас *">
-   <label for="editTracking">Трак код</label><div class="parcel-scan-row"><textarea id="editTracking" rows="2" placeholder="Трак код" oninput="renderTrackingPrices()"></textarea><button type="button" class="parcel-scan-button" onclick="scanTracking()" aria-label="Камераар баркод уншуулах">▥</button></div>
-   <div class="parcel-price-label">Трак код тус бүрийн үнэ (₮)</div><div id="trackingPriceRows"></div>
-   <button type="button" class="parcel-add-code" onclick="addTrackingCodeRow()">＋ Код нэмэх</button>
+  <div id="parcelPhoneGroups">
+   <div class="parcel-entry-card parcel-phone-group" data-phone-group="1">
+    <div class="parcel-group-heading"><label>Утасны дугаар</label><span class="parcel-group-index">1</span></div>
+    <input class="parcel-phone-input" id="editPhone" inputmode="numeric" maxlength="8" placeholder="8 оронтой утас *">
+    <label for="editTracking">Трак код</label><div class="parcel-scan-row"><textarea class="parcel-tracking-input" id="editTracking" rows="2" placeholder="Нэг эсвэл олон трак код" oninput="renderTrackingPrices(this)"></textarea><button type="button" class="parcel-scan-button" onclick="scanTracking(this)" aria-label="Камераар баркод уншуулах">▥</button></div>
+    <div class="parcel-price-label">Трак код тус бүрийн үнэ (₮)</div><div class="tracking-price-rows" id="trackingPriceRows"></div>
+    <button type="button" class="parcel-add-code" onclick="addTrackingCodeRow(this)">＋ Код нэмэх</button>
+   </div>
   </div>
-  <select id="editStatus" aria-label="Ачааны төлөв"><option value="registered">Бүртгүүлсэн</option><option value="ereen">Эрээнд ирсэн</option><option value="mongolia">Монголд ирсэн</option></select>
-  <select id="editBranch"><option value="">Салбар сонгох</option></select>
+  <button type="button" class="parcel-add-phone" onclick="addPhoneGroup()">＋ Утас нэмэх</button>
+  <input type="hidden" id="editStatus" value="mongolia">
   <div id="scanNotice" class="message"></div>
   <div class="admin-actions parcel-editor-actions"><button class="logout" onclick="cancelParcelForm()">Цуцлах</button><button class="primary" onclick="saveParcel()">Хадгалах</button></div>
  </div>
@@ -394,12 +397,13 @@ async function adminLogin(){
   const dash=document.getElementById("adminDashboard");dash.classList.remove("hidden");dash.style.display="block";
   dash.scrollIntoView({behavior:"instant",block:"start"});
   await loadSiteSettings();
+  selectedAdminBranchId=sessionStorage.getItem("tenhluun_active_branch")||"";
   await loadBranches();
   await loadAdminParcels();
   await loadPreRegistrations();
  }catch(e){console.error("Admin login/dashboard:",e);msg.textContent="Алдаа: "+(e.message||"Админ нэвтрэх боломжгүй");}
 }
-async function adminLogout(){await db.auth.signOut();document.getElementById("adminDashboard").style.display="none";document.getElementById("adminLogin").style.display="block"}
+async function adminLogout(){await db.auth.signOut();sessionStorage.removeItem("tenhluun_active_branch");selectedAdminBranchId="";document.getElementById("adminDashboard").style.display="none";document.getElementById("adminLogin").style.display="block"}
 
 let adminParcels=[],editingParcelId=null,adminBranches=[];
 function adminStatusLabel(s){return s==="registered"?"Бүртгүүлсэн":s==="received"?"Хүлээж авсан":s==="mongolia"?"Монголд ирсэн":"Эрээнд ирсэн"}
@@ -447,17 +451,9 @@ async function deletePreRegistration(id){
 }
 async function loadAdminParcels(){
  const body=document.getElementById("adminParcelRows");if(!body)return;
+ if(!selectedAdminBranchId){adminParcels=[];body.innerHTML='<tr><td colspan="7">Эхлээд ажиллах салбараа сонгоно уу.</td></tr>';updateAdminStats();document.getElementById("adminCount").textContent="Салбар сонгоогүй";return}
  body.innerHTML='<tr><td colspan="7">Ачаа ачаалж байна...</td></tr>';
- try{
-  // Supabase 1000 мөрийн хязгаарыг давж бүх ачааг хэсэгчлэн татна.
-  const all=[];let from=0;const batchSize=1000;
-  while(true){
-   const {data,error}=await db.from("parcels").select("*").order("created_at",{ascending:false}).range(from,from+batchSize-1);
-   if(error)throw error;const part=data||[];all.push(...part);
-   if(part.length<batchSize)break;from+=batchSize;
-  }
-  adminParcels=all;await loadBranches();renderAdminRows(adminParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia"));showMessage("adminNotice","");
- }catch(error){console.error("Ачааны жагсаалт татах:",error);body.innerHTML='<tr><td colspan="7">Ачаа татахад алдаа: '+escapeHTML(error.message||error)+'</td></tr>';showMessage("adminNotice","Ачаа татах алдаа: "+(error.message||error));}
+ try{const all=[];let from=0;const batchSize=1000;while(true){const {data,error}=await db.from("parcels").select("*").eq("branch_id",selectedAdminBranchId).order("created_at",{ascending:false}).range(from,from+batchSize-1);if(error)throw error;const part=data||[];all.push(...part);if(part.length<batchSize)break;from+=batchSize}adminParcels=all;renderAdminRows(adminParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia"));updateAdminStats();showMessage("adminNotice","")}catch(error){console.error("Ачааны жагсаалт татах:",error);body.innerHTML='<tr><td colspan="7">Ачаа татахад алдаа: '+escapeHTML(error.message||error)+'</td></tr>';showMessage("adminNotice","Ачаа татах алдаа: "+(error.message||error))}
 }
 function localDateKey(value){const d=new Date(value);if(Number.isNaN(d.getTime()))return "";return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
 function updateAdminStats(){
@@ -482,75 +478,47 @@ function renderAdminRows(rows){
  document.getElementById("adminCount").textContent="Нийт "+rows.length+" ачаа";
 }
 async function filterAdminRows(){const raw=document.getElementById("adminSearch").value.trim(),q=raw.toLowerCase(),digits=cleanPhone(raw),bid=document.getElementById("adminBranchFilter")?.value||"";const rows=adminParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia"&&(!bid||String(p.branch_id||"")===bid)&&( !raw||[p.tracking_code,p.customer_name,p.name,adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name].some(v=>String(v||"").toLowerCase().includes(q))||(digits.length>0&&[p.customer_phone,p.phone].some(v=>cleanPhone(v).includes(digits)))));renderAdminRows(rows)}
-async function loadBranches(){const {data,error}=await db.from("branches").select("*").order("name");if(error){showMessage("adminNotice","Салбарын хүснэгт үүсгээгүй байна. SQL зааврыг README-д нэмсэн.");return}adminBranches=data||[];const opts='<option value="">Салбар сонгох</option>'+adminBranches.map(b=>'<option value="'+escapeHTML(b.id)+'">'+escapeHTML(b.name)+'</option>').join("");document.getElementById("editBranch").innerHTML=opts;document.getElementById("adminBranchFilter").innerHTML='<option value="">Бүх салбар</option>'+adminBranches.map(b=>'<option value="'+escapeHTML(b.id)+'">'+escapeHTML(b.name)+'</option>').join("");document.getElementById("branchList").innerHTML=adminBranches.map(b=>'<div style="padding:8px;border-bottom:1px solid #eee">'+escapeHTML(b.name)+' — '+escapeHTML(b.address||"Хаяггүй")+' <button onclick="renameBranch(\''+String(b.id)+'\')" class="edit-btn">Нэр/мэдээлэл засах</button> <button onclick="removeBranch(\''+String(b.id)+'\')" class="delete-btn">Устгах</button></div>').join("")||"Салбар нэмээгүй байна."}
+async function loadBranches(){
+ const {data,error}=await db.from("branches").select("*").order("name");if(error){showMessage("adminNotice","Салбарын жагсаалт татах алдаа: "+error.message);return}adminBranches=data||[];
+ const opts='<option value="">Салбар сонгох</option>'+adminBranches.map(b=>'<option value="'+escapeHTML(b.id)+'">'+escapeHTML(b.name)+'</option>').join("");
+ const active=document.getElementById("adminActiveBranch");if(active){active.innerHTML=opts;if(selectedAdminBranchId&&adminBranches.some(b=>String(b.id)===String(selectedAdminBranchId)))active.value=selectedAdminBranchId;else{selectedAdminBranchId="";active.value=""}}
+ const filter=document.getElementById("adminBranchFilter");if(filter){filter.innerHTML='<option value="">Бүх салбар</option>'+adminBranches.map(b=>'<option value="'+escapeHTML(b.id)+'">'+escapeHTML(b.name)+'</option>').join("");filter.value=selectedAdminBranchId}
+ const list=document.getElementById("branchList");if(list)list.innerHTML=adminBranches.map(b=>'<div style="padding:8px;border-bottom:1px solid #eee">'+escapeHTML(b.name)+' — '+escapeHTML(b.address||"Хаяггүй")+' <button onclick="renameBranch(\\''+String(b.id)+'\\')" class="edit-btn">Нэр/мэдээлэл засах</button> <button onclick="removeBranch(\\''+String(b.id)+'\\')" class="delete-btn">Устгах</button></div>').join("")||"Салбар нэмээгүй байна.";updateBranchNotice();
+}
+let selectedAdminBranchId="";
+function updateBranchNotice(){const n=document.getElementById("branchRequiredNotice");if(n)n.textContent=selectedAdminBranchId?"Одоо сонгосон салбар: "+(adminBranches.find(b=>String(b.id)===String(selectedAdminBranchId))?.name||"")+" · Бүртгэх бүх ачаа энэ салбарт хадгалагдана.":"Ачаа бүртгэхийн өмнө ажиллах салбараа сонгоно уу."}
+async function selectAdminBranch(id){if(!adminBranches.some(b=>String(b.id)===String(id))){selectedAdminBranchId="";sessionStorage.removeItem("tenhluun_active_branch");updateBranchNotice();await loadAdminParcels();return}selectedAdminBranchId=String(id);sessionStorage.setItem("tenhluun_active_branch",selectedAdminBranchId);const filter=document.getElementById("adminBranchFilter");if(filter)filter.value=selectedAdminBranchId;updateBranchNotice();cancelParcelForm();await loadAdminParcels()}
 async function addBranch(){const name=document.getElementById("newBranchName").value.trim();if(!name){showMessage("adminNotice","Салбарын нэр оруулна уу.");return}if(adminBranches.some(b=>String(b.name||"").trim().toLocaleLowerCase()===name.toLocaleLowerCase())){showMessage("adminNotice","Ийм нэртэй салбар бүртгэлтэй байна.");return}const {error}=await db.from("branches").insert({name,address:document.getElementById("newBranchAddress").value.trim(),phone:document.getElementById("newBranchPhone").value.trim()});if(error){showMessage("adminNotice","Салбар нэмэх алдаа: "+error.message);return}document.getElementById("newBranchName").value="";document.getElementById("newBranchAddress").value="";document.getElementById("newBranchPhone").value="";await loadBranches();showMessage("adminNotice","Салбар нэмлээ.")}
 async function renameBranch(id){const b=adminBranches.find(x=>String(x.id)===String(id));if(!b)return;const name=prompt("Салбарын нэр:",b.name);if(name===null||!name.trim())return;if(adminBranches.some(x=>String(x.id)!==String(id)&&String(x.name||"").trim().toLocaleLowerCase()===name.trim().toLocaleLowerCase())){showMessage("adminNotice","Ийм нэртэй өөр салбар байна.");return}const address=prompt("Салбарын хаягийг гараар оруулна уу:",b.address||"");if(address===null)return;const phone=prompt("Салбарын утас:",b.phone||"");if(phone===null)return;const {error}=await db.from("branches").update({name:name.trim(),address,phone}).eq("id",id);if(error){showMessage("adminNotice","Засах алдаа: "+error.message);return}await loadBranches()}
 async function removeBranch(id){const b=adminBranches.find(x=>String(x.id)===String(id));if(!b||!confirm(b.name+" салбарыг устгах уу? Энэ салбарын ачаанууд устахгүй, салбаргүй болно."))return;const {error:parcelError}=await db.from("parcels").update({branch_id:null}).eq("branch_id",id);if(parcelError){showMessage("adminNotice","Ачааг салбараас салгах алдаа: "+parcelError.message);return}const {error}=await db.from("branches").delete().eq("id",id);if(error){showMessage("adminNotice","Салбар устгах алдаа: "+error.message);return}await loadBranches();await loadAdminParcels();showMessage("adminNotice","Салбар устгалаа. Ачаанууд хадгалагдсан.")}
 function revealParcelEditor(){const editor=document.getElementById("parcelEditor");const fold=editor?.closest("details.admin-fold");if(fold){fold.style.display="block";fold.open=true}if(editor){editor.style.display="block";editor.scrollIntoView({behavior:"smooth",block:"start"})}}
-function newParcelForm(){editingParcelId=null;document.getElementById("editorTitle").textContent="Ачаа бүртгэл";["editTracking","editPhone"].forEach(id=>document.getElementById(id).value="");renderTrackingPrices();document.getElementById("editStatus").value="mongolia";document.getElementById("editBranch").value="";const arrival=document.getElementById("parcelArrivalDate");if(arrival){const now=new Date();arrival.value=[now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),String(now.getDate()).padStart(2,"0")].join("-")}revealParcelEditor()}
-function editParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;editingParcelId=p.id;document.getElementById("editorTitle").textContent="Ачаа засах";document.getElementById("editTracking").value=p.tracking_code||"";document.getElementById("editPhone").value=p.customer_phone||p.phone||"";renderTrackingPrices();const priceInput=document.querySelector("#trackingPriceRows .tracking-price");if(priceInput)priceInput.value=p.price_mnt??"";document.getElementById("editStatus").value=classifyStatus(p.parcel_status);document.getElementById("editBranch").value=p.branch_id||"";revealParcelEditor()}
+function parcelToday(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
+function newParcelForm(){if(!selectedAdminBranchId){showMessage("adminNotice","Эхлээд ажиллах салбараа сонгоно уу.");return}editingParcelId=null;document.getElementById("editorTitle").textContent="Ачаа бүртгэл";document.getElementById("parcelArrivalDate").value=parcelToday();document.getElementById("parcelPhoneGroups").innerHTML=parcelPhoneGroupHTML(1);revealParcelEditor()}
+function parcelPhoneGroupHTML(index,phone="",tracking="",prices={}){return '<div class="parcel-entry-card parcel-phone-group" data-phone-group="'+index+'"><div class="parcel-group-heading"><label>Утасны дугаар</label><span class="parcel-group-index">'+index+'</span>'+(index>1?'<button type="button" class="parcel-remove-phone" onclick="this.closest(\\'.parcel-phone-group\\').remove();renumberPhoneGroups()">Устгах</button>':'')+'</div><input class="parcel-phone-input" '+(index===1?'id="editPhone"':'')+' inputmode="numeric" maxlength="8" placeholder="8 оронтой утас *" value="'+escapeHTML(phone)+'"><label>Трак код</label><div class="parcel-scan-row"><textarea class="parcel-tracking-input" '+(index===1?'id="editTracking"':'')+' rows="2" placeholder="Нэг эсвэл олон трак код" oninput="renderTrackingPrices(this)">'+escapeHTML(tracking)+'</textarea><button type="button" class="parcel-scan-button" onclick="scanTracking(this)">▥</button></div><div class="parcel-price-label">Трак код тус бүрийн үнэ (₮)</div><div class="tracking-price-rows" '+(index===1?'id="trackingPriceRows"':'')+'>'+Object.keys(prices).map(code=>'<div class="tracking-price-row"><span>'+escapeHTML(code)+'</span><input class="tracking-price" data-code="'+escapeHTML(code)+'" type="number" min="0" placeholder="Үнэ ₮" value="'+escapeHTML(prices[code])+'"></div>').join('')+'</div><button type="button" class="parcel-add-code" onclick="addTrackingCodeRow(this)">＋ Код нэмэх</button></div>'}
+function addPhoneGroup(){const host=document.getElementById("parcelPhoneGroups"),n=host.querySelectorAll(".parcel-phone-group").length+1;host.insertAdjacentHTML("beforeend",parcelPhoneGroupHTML(n))}
+function renumberPhoneGroups(){document.querySelectorAll("#parcelPhoneGroups .parcel-phone-group").forEach((g,i)=>{g.dataset.phoneGroup=i+1;g.querySelector(".parcel-group-index").textContent=i+1})}
+function editParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;editingParcelId=p.id;document.getElementById("editorTitle").textContent="Ачаа засах";document.getElementById("parcelArrivalDate").value=p.arrival_date||parcelToday();document.getElementById("parcelPhoneGroups").innerHTML=parcelPhoneGroupHTML(1,p.customer_phone||p.phone||"",p.tracking_code||"",{[p.tracking_code]:p.price_mnt??""});revealParcelEditor()}
 function cancelParcelForm(){document.getElementById("parcelEditor").style.display="none";editingParcelId=null}
-function addTrackingCodeRow(){const input=document.getElementById("editTracking");input.value=(input.value.trimEnd()?input.value.trimEnd()+"\n":"");input.focus();renderTrackingPrices()}
-function renderTrackingPrices(){
- const codes=[...new Set(document.getElementById("editTracking").value.split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean))],box=document.getElementById("trackingPriceRows");
- if(!box)return;const old={};box.querySelectorAll("[data-code]").forEach(el=>old[el.dataset.code]=el.value);
- box.innerHTML=codes.map((code,i)=>'<div style="display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:8px;align-items:center;margin:7px 0"><span style="overflow-wrap:anywhere;font-size:14px">'+(i+1)+'. '+code.replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]))+'</span><input data-code="'+code.replace(/"/g,"&quot;")+'" class="tracking-price" type="number" min="0" placeholder="Үнэ ₮" value="'+(old[code]||"")+'" style="width:100%;box-sizing:border-box"></div>').join("");
-}
-async function scanTracking(){
- const input=document.getElementById("editTracking");
- if(!window.Html5Qrcode){showMessage("scanNotice","Камер уншигч ачаалсангүй. Трак кодоо гараар оруулна уу.");return}
- let scanner=null,closed=false,started=false;
- const modal=document.createElement("div");modal.style="position:fixed;inset:0;background:#090909;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;color:white";
- const head=document.createElement("div");head.textContent="Трак кодоо камерын хүрээнд тааруулна уу";head.style="font-size:18px;font-weight:700;margin:12px;text-align:center";
- const readerBox=document.createElement("div");readerBox.id="adminBarcodeReader";readerBox.style="width:100%;max-width:560px";
- const close=document.createElement("button");close.type="button";close.textContent="✕ Болих";close.style="background:#f9e8f2;color:#bd176c;padding:12px 24px;margin:12px;border-radius:12px";
- modal.append(head,readerBox,close);document.body.appendChild(modal);
- const stop=async()=>{if(closed)return;closed=true;close.disabled=true;try{if(scanner&&started)await scanner.stop()}catch(e){}try{if(scanner)await scanner.clear()}catch(e){}modal.remove()};
- close.onclick=stop;
- try{
-  const formats=window.Html5QrcodeSupportedFormats;
-  const config={fps:10,qrbox:{width:260,height:150}};
-  if(formats)config.formatsToSupport=[formats.CODE_128,formats.CODE_39,formats.EAN_13,formats.EAN_8,formats.UPC_A,formats.UPC_E,formats.ITF,formats.QR_CODE].filter(x=>x!==undefined);
-  scanner=new Html5Qrcode("adminBarcodeReader");
-  const startPromise=scanner.start({facingMode:"environment"},config,async(decodedText)=>{
-   const code=String(decodedText||"").trim();if(!code||closed)return;
-   const existing=input.value.split(/[\\s,;]+/).map(x=>x.trim().toUpperCase()).filter(Boolean);
-   if(existing.includes(code.toUpperCase()))showMessage("scanNotice","Энэ трак код өмнө нь нэмэгдсэн байна.");
-   else{input.value=(input.value.trim()?input.value.trim()+"\\n":"")+code;renderTrackingPrices();showMessage("scanNotice","✓ Баркод уншигдлаа: "+code)}
-   await stop();
-  },()=>{});
-  started=true;await startPromise;if(closed){try{await scanner.stop()}catch(e){}}
- }catch(e){await stop();showMessage("scanNotice","Камер нээж чадсангүй. Safari-д камерын зөвшөөрөл өгөөд HTTPS холбоосоор дахин оролдоно уу.")}
+function addTrackingCodeRow(button){const group=button?.closest(".parcel-phone-group")||document.querySelector(".parcel-phone-group"),input=group?.querySelector(".parcel-tracking-input");if(!input)return;input.value=(input.value.trimEnd()?input.value.trimEnd()+"\\n":"");input.focus();renderTrackingPrices(input)}
+function renderTrackingPrices(input){const group=input?.closest(".parcel-phone-group")||document.querySelector(".parcel-phone-group");if(!group)return;const codes=[...new Set(group.querySelector(".parcel-tracking-input").value.split(/[\\s,;]+/).map(x=>x.trim().replace(/\\s+/g,"").toUpperCase()).filter(Boolean))],box=group.querySelector(".tracking-price-rows"),old={};box.querySelectorAll("[data-code]").forEach(el=>old[el.dataset.code]=el.value);box.innerHTML=codes.map((code,i)=>'<div class="tracking-price-row"><span>'+escapeHTML((i+1)+". "+code)+'</span><input data-code="'+escapeHTML(code)+'" class="tracking-price" type="number" min="0" placeholder="Үнэ ₮" value="'+escapeHTML(old[code]||"")+'"></div>').join("")}
+
+async function scanTracking(button){
+ const group=button?.closest(".parcel-phone-group")||document.querySelector(".parcel-phone-group"),input=group?.querySelector(".parcel-tracking-input");if(!input){showMessage("scanNotice","Трак код оруулах хэсэг олдсонгүй.");return}if(!window.Html5Qrcode){showMessage("scanNotice","Камер уншигч ачаалсангүй. Трак кодоо гараар оруулна уу.");return}
+ let scanner=null,closed=false,started=false;const modal=document.createElement("div");modal.style="position:fixed;inset:0;background:#090909;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;color:white";const head=document.createElement("div");head.textContent="Трак кодоо камерын хүрээнд тааруулна уу";head.style="font-size:18px;font-weight:700;margin:12px;text-align:center";const readerBox=document.createElement("div");readerBox.id="adminBarcodeReader";readerBox.style="width:100%;max-width:560px";const close=document.createElement("button");close.type="button";close.textContent="✕ Болих";close.style="background:#f9e8f2;color:#bd176c;padding:12px 24px;margin:12px;border-radius:12px";modal.append(head,readerBox,close);document.body.appendChild(modal);
+ const stop=async()=>{if(closed)return;closed=true;close.disabled=true;try{if(scanner&&started)await scanner.stop()}catch(e){}try{if(scanner)await scanner.clear()}catch(e){}modal.remove()};close.onclick=stop;
+ try{const formats=window.Html5QrcodeSupportedFormats,config={fps:10,qrbox:{width:260,height:150}};if(formats)config.formatsToSupport=[formats.CODE_128,formats.CODE_39,formats.EAN_13,formats.EAN_8,formats.UPC_A,formats.UPC_E,formats.ITF,formats.QR_CODE].filter(x=>x!==undefined);scanner=new Html5Qrcode("adminBarcodeReader");const startPromise=scanner.start({facingMode:"environment"},config,async(decodedText)=>{const code=String(decodedText||"").replace(/\\s+/g,"").toUpperCase();if(!code||closed)return;const allCodes=[...document.querySelectorAll(".parcel-tracking-input")].flatMap(x=>x.value.split(/[\\s,;]+/).map(v=>v.trim().replace(/\\s+/g,"").toUpperCase()));if(allCodes.includes(code))showMessage("scanNotice","Энэ трак код энэ бүртгэлд аль хэдийн нэмэгдсэн байна.");else{input.value=(input.value.trim()?input.value.trim()+"\\n":"")+code;renderTrackingPrices(input);showMessage("scanNotice","✓ Баркод уншигдлаа: "+code)}await stop()},()=>{});started=true;await startPromise;if(closed){try{await scanner.stop()}catch(e){}}}catch(e){await stop();showMessage("scanNotice","Камер нээж чадсангүй. Safari-д камерын зөвшөөрөл өгөөд HTTPS холбоосоор дахин оролдоно уу.")}
 }
 async function saveParcel(){
- const trackingRaw=document.getElementById("editTracking").value,phone=cleanPhone(document.getElementById("editPhone").value);
- const codes=[...new Set(trackingRaw.split(/[\s,;]+/).map(x=>x.trim().toUpperCase()).filter(Boolean))];
- if(!codes.length||phone.length!==8){showMessage("adminNotice","Трак код болон 8 оронтой утас заавал оруулна.");return}
- const requestedStatus=document.getElementById("editStatus").value,existingParcel=editingParcelId?adminParcels.find(p=>String(p.id)===String(editingParcelId)):null;
- if(requestedStatus==="received"&&(!existingParcel||classifyStatus(existingParcel.parcel_status)!=="received")){showMessage("adminNotice","Ачааг хүлээлгэн өгсөн төлөвт гараар оруулахгүй.");return}
- if(existingParcel){
-  const current=classifyStatus(existingParcel.parcel_status),rank={registered:0,ereen:1,mongolia:2,received:3};
-  if((rank[requestedStatus]??-1)<(rank[current]??-1)){showMessage("adminNotice","Ачааны төлөвийг өмнөх шат руу буцаах боломжгүй. Одоогийн төлөв: "+adminStatusLabel(current));return}
- }
- if(editingParcelId&&codes.length!==1){showMessage("adminNotice","Засварлах үед нэг трак код оруулна.");return}
- const priceInputs=[...document.querySelectorAll("#trackingPriceRows .tracking-price")],prices=priceInputs.map(x=>x.value.trim());
- if(prices.length!==codes.length||prices.some(x=>x===""||Number(x)<0)){showMessage("adminNotice","Трак код бүрийн үнийг тус тус оруулна уу.");return}
- const payload=codes.map((tracking_code,i)=>({tracking_code,customer_phone:phone,price_mnt:Number(prices[i]),parcel_status:requestedStatus,branch_id:document.getElementById("editBranch").value||null}));
- showMessage("adminNotice",codes.length+" ачааг шалгаж хадгалж байна...");
- const {data:duplicates,error:dupError}=await db.from("parcels").select("tracking_code").in("tracking_code",codes);
- if(dupError){showMessage("adminNotice","Трак код шалгах алдаа: "+dupError.message);return}
- const duplicateCodes=(duplicates||[]).map(x=>x.tracking_code).filter(code=>!editingParcelId||String(code).replace(/\s+/g,"").toUpperCase()!==String(existingParcel?.tracking_code||"").replace(/\s+/g,"").toUpperCase());
- if(duplicateCodes.length){showMessage("adminNotice","Бүртгэлтэй трак код байна: "+duplicateCodes.join(", "));return}
- if(!editingParcelId){
-  const preChecks=await Promise.all(codes.map(code=>db.from("customer_pre_registrations").select("tracking_code").ilike("tracking_code",code).limit(1)));
-  const preError=preChecks.find(x=>x.error)?.error;
-  if(preError){showMessage("adminNotice","Урьдчилсан бүртгэл шалгах алдаа: "+preError.message);return}
-  const preDuplicates=preChecks.flatMap(x=>x.data||[]);
-  if(preDuplicates.length){showMessage("adminNotice","Урьдчилсан бүртгэлд аль хэдийн байгаа трак код: "+preDuplicates.map(x=>x.tracking_code).join(", "));return}
- }
- const result=editingParcelId?await db.from("parcels").update(payload[0]).eq("id",editingParcelId):await db.from("parcels").insert(payload);
- if(result.error){showMessage("adminNotice","Хадгалах алдаа: "+result.error.message);return}
- cancelParcelForm();await loadAdminParcels();showMessage("adminNotice",codes.length+" ачааг амжилттай бүртгэлээ.");
+ if(!selectedAdminBranchId){showMessage("adminNotice","Эхлээд ажиллах салбараа сонгоно уу.");return}
+ const groups=[...document.querySelectorAll("#parcelPhoneGroups .parcel-phone-group")],arrivalDate=document.getElementById("parcelArrivalDate").value||parcelToday(),payload=[],allCodes=[];
+ if(!groups.length){showMessage("adminNotice","Утасны дугаарын мөр нэмнэ үү.");return}
+ for(let gi=0;gi<groups.length;gi++){const group=groups[gi],phone=cleanPhone(group.querySelector(".parcel-phone-input").value),raw=group.querySelector(".parcel-tracking-input").value,codes=[...new Set(raw.split(/[\\s,;]+/).map(x=>x.trim().replace(/\\s+/g,"").toUpperCase()).filter(Boolean))];if(phone.length!==8||!codes.length){showMessage("adminNotice",(gi+1)+"-р утасны хэсэгт 8 оронтой дугаар болон трак код оруулна уу.");return}const priceMap=new Map([...group.querySelectorAll(".tracking-price")].map(x=>[String(x.dataset.code||"").toUpperCase(),x.value.trim()]));if(codes.some(code=>!priceMap.has(code)||priceMap.get(code)===""||Number(priceMap.get(code))<0)){showMessage("adminNotice",(gi+1)+"-р утасны трак код бүрийн үнийг оруулна уу.");return}for(const code of codes){allCodes.push(code);payload.push({tracking_code:code,customer_phone:phone,price_mnt:Number(priceMap.get(code)),parcel_status:"mongolia",branch_id:selectedAdminBranchId,arrival_date:arrivalDate})}}
+ const duplicatesInBatch=allCodes.filter((code,i)=>allCodes.indexOf(code)!==i);if(duplicatesInBatch.length){showMessage("adminNotice","Нэг удаагийн бүртгэлд давхар код байна: "+[...new Set(duplicatesInBatch)].join(", "));return}
+ if(editingParcelId&&payload.length!==1){showMessage("adminNotice","Засварлах үед нэг ачааг нэг удаа засна.");return}
+ const existingParcel=editingParcelId?adminParcels.find(p=>String(p.id)===String(editingParcelId)):null;if(existingParcel&&payload[0].tracking_code!==String(existingParcel.tracking_code||"").replace(/\\s+/g,"").toUpperCase()){showMessage("adminNotice","Засварлах үед трак код өөрчлөх боломжгүй.");return}
+ showMessage("adminNotice",payload.length+" ачааг шалгаж хадгалж байна...");
+ const checks=await Promise.all(payload.map(async row=>{const [p,r]=await Promise.all([db.from("parcels").select("id,tracking_code").ilike("tracking_code",row.tracking_code).limit(2),db.from("customer_pre_registrations").select("id,tracking_code").ilike("tracking_code",row.tracking_code).limit(2)]);return {code:row.tracking_code,p:p.data||[],pe:p.error,r:r.data||[],re:r.error}}));const failed=checks.find(x=>x.pe||x.re);if(failed){showMessage("adminNotice","Трак код шалгах алдаа: "+(failed.pe||failed.re).message);return}const duplicate=checks.find(x=>x.p.some(p=>!editingParcelId||String(p.id)!==String(editingParcelId))||x.r.length);if(duplicate){showMessage("adminNotice","Давхар трак код бүртгэх боломжгүй: "+duplicate.code);return}
+ const result=editingParcelId?await db.from("parcels").update(payload[0]).eq("id",editingParcelId).eq("branch_id",selectedAdminBranchId):await db.from("parcels").insert(payload);if(result.error){showMessage("adminNotice","Хадгалах алдаа: "+result.error.message);return}cancelParcelForm();await loadAdminParcels();showMessage("adminNotice",payload.length+" ачааг сонгосон салбарт амжилттай бүртгэлээ.");
 }
 async function bulkMarkEreen(){
  const box=document.getElementById("bulkTrackingCodes"),out=document.getElementById("bulkEreenResult");
@@ -763,5 +731,19 @@ new MutationObserver(()=>run()).observe(document.documentElement,{subtree:true,a
 #adminDashboard #parcelEditor .parcel-editor-actions .primary{background:#d94a9d!important;color:#fff!important}
 #adminDashboard #parcelEditor .parcel-editor-actions .logout{background:#f9e8f2!important;color:#c02d7b!important}
 @media(max-width:600px){#adminDashboard #parcelEditor{padding:14px!important;border-radius:18px!important}#adminDashboard #parcelEditor .parcel-entry-card{padding:12px}#adminDashboard #parcelEditor .parcel-editor-heading h3{font-size:20px!important}}
+</style><style id="branch-batch-entry-style">
+#adminDashboard .dashboard-head{gap:12px;flex-wrap:wrap}
+#adminDashboard .parcel-group-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#adminDashboard .parcel-group-index{font-size:13px;color:#c02d7b;font-weight:800}
+#adminDashboard .parcel-remove-phone{border:1px solid #e83e9b;background:#f9e8f2;color:#c02d7b;border-radius:10px;padding:7px 10px}
+#adminDashboard .parcel-add-phone{display:block;width:100%;border:1px solid #e83e9b;background:#f9e8f2;color:#c02d7b;border-radius:13px;padding:12px;font-weight:800;margin:12px 0}
+#adminDashboard .parcel-phone-group{border:1px solid #e83e9b!important;border-radius:18px!important;padding:14px!important}
+#adminDashboard .parcel-phone-group .parcel-phone-input{width:100%;box-sizing:border-box;margin:6px 0 14px}
+#adminDashboard .tracking-price-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(100px,145px);gap:8px;align-items:center;border:1px solid #f1c5dd;border-radius:12px;padding:8px;margin:8px 0}
+#adminDashboard .tracking-price-row span{overflow-wrap:anywhere;font-size:14px}
+#adminDashboard .tracking-price-row input{width:100%;min-width:0;box-sizing:border-box}
+#adminDashboard .parcel-scan-button,#adminDashboard .parcel-add-code,#adminDashboard .parcel-add-phone,#adminDashboard .parcel-remove-phone{border-width:1px!important}
+#adminDashboard #editStatus{display:none!important}
+@media(max-width:600px){#adminDashboard .parcel-phone-group{padding:12px!important}#adminDashboard .tracking-price-row{grid-template-columns:minmax(0,1fr) minmax(90px,42%)!important}}
 </style></body>
 </html>
