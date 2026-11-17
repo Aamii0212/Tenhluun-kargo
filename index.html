@@ -142,11 +142,11 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
  <div class="admin-editor" id="bulkEreenBox"><h3>📦 Олон трак кодыг “Эрээнд ирсэн” болгох</h3><p style="margin:6px 0;color:#666">Гадаадаас ирсэн трак кодуудаа нэг нэг мөрөөр эсвэл зай/таслалаар тусгаарлан хуулж оруулна.</p><textarea id="bulkTrackingCodes" rows="5" placeholder="SF123456789&#10;SF987654321" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #e5d5e0;border-radius:10px;font:inherit"></textarea><div class="admin-actions"><button class="primary" onclick="bulkMarkEreen()">⬇ Эрээнд ирсэн болгож хадгалах</button><button class="logout" onclick="document.getElementById('bulkTrackingCodes').value=''">Цэвэрлэх</button></div><div id="bulkEreenResult" class="message"></div></div>
 <div class="admin-editor"><h3>🏢 Салбар удирдах</h3><div class="admin-fields"><input id="newBranchName" placeholder="Шинэ салбарын нэр"><input id="newBranchAddress" placeholder="Салбарын хаягийг гараар оруулна уу"><input id="newBranchPhone" placeholder="Салбарын утасны дугаар"></div><div class="admin-actions"><button class="primary" onclick="addBranch()">＋ Салбар нэмэх</button></div><div id="branchList" style="margin-top:10px"></div>
 <div style="margin-top:18px;padding-top:14px;border-top:1px solid #f1dce8">
- <h4 style="margin:0 0 8px">👤 Ажилтанд салбар оноох</h4>
- <p style="font-size:13px;color:#666">Supabase Auth хэрэглэгчийн UUID болон ажиллах салбарыг сонгоно.</p>
+ <h4 style="margin:0 0 8px">👥 Ажилтан удирдах</h4>
+ <p style="font-size:13px;color:#666">Имэйлээр ажилтан урьж, салбар оноох эсвэл өмнө бүртгэлтэй ажилтны эрхийг цуцална.</p>
  <input id="employeeAccessUserId" placeholder="Ажилтны нэвтрэх имэйл" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #e5d5e0;border-radius:9px">
  <select id="employeeAccessBranch" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #e5d5e0;border-radius:9px;margin:8px 0"><option value="">Салбар сонгох</option></select>
- <button class="primary" type="button" onclick="assignEmployeeBranch()">＋ Салбар оноох</button>
+ <div class="admin-actions"><button class="primary" type="button" onclick="inviteAndAssignEmployee()">＋ Шинэ ажилтан нэмэх</button><button class="edit-btn" type="button" onclick="assignEmployeeBranch()">Одоо байгаа ажилтанд салбар оноох</button></div>
  <div id="employeeAccessNotice" class="message"></div>
  <div id="employeeAccessList"></div>
 </div></div>
@@ -534,6 +534,21 @@ async function loadEmployeeAssignments(){
  if(error){box.textContent="Оноолт татах алдаа: "+error.message;return}
  const rows=data||[];
  box.innerHTML=rows.length?rows.map(x=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid #eee;overflow-wrap:anywhere"><span><b>'+escapeHTML(x.employee_email||x.employee_id)+'</b><br><small>'+escapeHTML(adminBranches.find(b=>String(b.id)===String(x.branch_id))?.name||"Салбар устсан")+'</small></span><button type="button" class="delete-btn" onclick="removeEmployeeBranch(\''+String(x.employee_id)+'\',\''+String(x.branch_id)+'\')">Цуцлах</button></div>').join(""):"Одоогоор ажилтанд салбар оноогоогүй байна.";
+}
+async function inviteAndAssignEmployee(){
+ const email=document.getElementById("employeeAccessUserId").value.trim().toLowerCase();
+ const branchId=document.getElementById("employeeAccessBranch").value;
+ const notice=document.getElementById("employeeAccessNotice");
+ if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){notice.textContent="Ажилтны имэйлийг зөв оруулна уу.";return}
+ if(!branchId){notice.textContent="Ажиллах салбараа сонгоно уу.";return}
+ notice.textContent="Урилга илгээж, эрх тохируулж байна...";
+ const {data,error}=await db.functions.invoke("admin-invite-employee",{body:{email}});
+ if(error){notice.textContent="Ажилтан нэмэх алдаа: "+(data?.error||error.message);return}
+ const {error:assignError}=await db.rpc("admin_assign_employee_branch",{p_employee_email:email,p_branch_id:branchId});
+ if(assignError){notice.textContent="Урилга илгээгдсэн. Гэхдээ салбар онооход алдаа гарлаа: "+assignError.message;await loadEmployeeAssignments();return}
+ notice.textContent="✓ "+email+" хаяг руу урилга илгээж, салбар амжилттай оноолоо.";
+ document.getElementById("employeeAccessUserId").value="";
+ await loadEmployeeAssignments();
 }
 async function assignEmployeeBranch(){
  const employeeId=document.getElementById("employeeAccessUserId").value.trim(),branchId=document.getElementById("employeeAccessBranch").value,notice=document.getElementById("employeeAccessNotice");
