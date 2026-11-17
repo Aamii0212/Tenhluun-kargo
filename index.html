@@ -539,10 +539,10 @@ async function inviteAndAssignEmployee(){
  const email=document.getElementById("employeeAccessUserId").value.trim().toLowerCase();
  const branchId=document.getElementById("employeeAccessBranch").value;
  const notice=document.getElementById("employeeAccessNotice");
- if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){notice.textContent="Ажилтны имэйлийг зөв оруулна уу.";return}
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){notice.textContent="Ажилтны имэйлийг зөв оруулна уу.";return}
  if(!branchId){notice.textContent="Ажиллах салбараа сонгоно уу.";return}
  notice.textContent="Урилга илгээж, эрх тохируулж байна...";
- const {data,error}=await db.functions.invoke("admin-invite-employee",{body:{email}});
+ const {data,error}=await db.functions.invoke("clever-action",{body:{email}});
  if(error){notice.textContent="Ажилтан нэмэх алдаа: "+(data?.error||error.message);return}
  const {error:assignError}=await db.rpc("admin_assign_employee_branch",{p_employee_email:email,p_branch_id:branchId});
  if(assignError){notice.textContent="Урилга илгээгдсэн. Гэхдээ салбар онооход алдаа гарлаа: "+assignError.message;await loadEmployeeAssignments();return}
