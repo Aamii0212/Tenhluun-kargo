@@ -425,6 +425,7 @@ function exportPreRegistrationsCSV(){
 }
 async function setPreRegStatus(id,status){
  if(!["confirmed","rejected"].includes(status)){alert("Буруу төлөв.");return}
+ if(status==="confirmed"&&!selectedAdminBranchId){alert("Батлахын өмнө ажиллах салбараа сонгоно уу.");return}
  const actionButtons=Array.from(document.querySelectorAll("#preRegAdminRows button")).filter(b=>(b.getAttribute("onclick")||"").includes("setPreRegStatus("+Number(id)+","));
  actionButtons.forEach(b=>{b.disabled=true;b.dataset.originalText=b.textContent;b.textContent="..."});
  try{
@@ -435,7 +436,7 @@ async function setPreRegStatus(id,status){
    if((sameCodeRegs||[]).length>1)throw new Error("Энэ трак код урьдчилсан бүртгэлд давхар байна. Давхардсан хүсэлтүүдийг эхлээд шалгаж цэгцэлнэ үү.");
    const {data:exists,error:ee}=await db.from("parcels").select("id").ilike("tracking_code",normalizedCode).limit(1);if(ee)throw ee;
    if(exists?.length)throw new Error("Энэ трак код ачааны жагсаалтад аль хэдийн бүртгэгдсэн байна. Давхар батлах боломжгүй.");
-   const {error:ie}=await db.from("parcels").insert({tracking_code:normalizedCode,customer_phone:cleanPhone(reg.customer_phone),price_mnt:0,parcel_status:"registered",description:reg.description||null});if(ie)throw ie;
+   const {error:ie}=await db.from("parcels").insert({tracking_code:normalizedCode,customer_phone:cleanPhone(reg.customer_phone),price_mnt:0,parcel_status:"registered",branch_id:selectedAdminBranchId,description:reg.description||null});if(ie)throw ie;
   }
   const {error}=await db.from("customer_pre_registrations").update({status}).eq("id",id);if(error)throw error;
   await loadPreRegistrations();await loadAdminParcels();showMessage("adminNotice",status==="confirmed"?"Баталсан код ачааны жагсаалтад нэмэгдлээ. Үнэ, төлөвийг админаас тохируулна уу.":"Урьдчилсан бүртгэлээс татгалзлаа.");
@@ -542,12 +543,12 @@ async function handoverParcel(id){
  if(!confirm((p.tracking_code||"Ачаа")+"-г хүлээлгэн өгч, төлбөр бүртгэх үү?"))return;
  const staff=prompt("Хүлээлгэн өгсөн ажилтны нэр:");if(!staff||!staff.trim())return;
  const method=prompt("Төлбөрийн хэлбэр:\n1 = Бэлэн\n2 = Шилжүүлэг","1");if(method!=="1"&&method!=="2"){alert("1 эсвэл 2 сонгоно уу.");return}
- const {data:updated,error}=await db.from("parcels").update({parcel_status:"received",paid_at:new Date().toISOString(),payment_method:method==="1"?"cash":"transfer",received_by:staff.trim()}).eq("id",id).eq("parcel_status",p.parcel_status).select("id").maybeSingle();
+ if(!selectedAdminBranchId||String(p.branch_id)!==String(selectedAdminBranchId)){showMessage("adminNotice","Энэ ачаа сонгосон салбарт хамаарахгүй байна.");return}const {data:updated,error}=await db.from("parcels").update({parcel_status:"received",paid_at:new Date().toISOString(),payment_method:method==="1"?"cash":"transfer",received_by:staff.trim()}).eq("id",id).eq("branch_id",selectedAdminBranchId).eq("parcel_status",p.parcel_status).select("id").maybeSingle();
  if(error){showMessage("adminNotice","Хүлээлгэн өгөх алдаа. SQL баганууд нэмэгдсэн эсэхийг шалгана уу: "+error.message);return}if(!updated){showMessage("adminNotice","Энэ ачаа өмнө нь хүлээлгэн өгөгдсөн байна.");return}
  await loadAdminParcels();showMessage("adminNotice","Хүлээлгэн өгч, төлбөр бүртгэлээ.");
 }
 
-async function deleteParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p||!confirm((p.tracking_code||"Энэ ачаа")+" устгах уу?"))return;const {error}=await db.from("parcels").delete().eq("id",id);if(error){showMessage("adminNotice","Устгах алдаа: "+error.message);return}await loadAdminParcels();showMessage("adminNotice","Ачааг устгалаа.")}
+async function deleteParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p||!selectedAdminBranchId||String(p.branch_id)!==String(selectedAdminBranchId)||!confirm((p.tracking_code||"Энэ ачаа")+" устгах уу?"))return;const {error}=await db.from("parcels").delete().eq("id",id).eq("branch_id",selectedAdminBranchId);if(error){showMessage("adminNotice","Устгах алдаа: "+error.message);return}await loadAdminParcels();showMessage("adminNotice","Ачааг устгалаа.")}
 
 document.getElementById("customerPhone").addEventListener("keydown",e=>{if(e.key==="Enter")customerLogin()});
 document.getElementById("customerName").addEventListener("keydown",e=>{if(e.key==="Enter")customerLogin();});
