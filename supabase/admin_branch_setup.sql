@@ -108,7 +108,7 @@ RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
-AS $
+AS $$
 DECLARE
   target_id uuid;
   normalized_email text := lower(btrim(coalesce(p_employee_email, '')));
@@ -136,7 +136,7 @@ BEGIN
   DO UPDATE SET employee_email = EXCLUDED.employee_email;
   RETURN target_id;
 END;
-$;
+$$;
 REVOKE ALL ON FUNCTION public.admin_assign_employee_branch(text, uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.admin_assign_employee_branch(text, uuid) TO authenticated;
 
@@ -210,7 +210,7 @@ RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
-AS $
+AS $$
 DECLARE current_role text;
 BEGIN
   SELECT role INTO current_role FROM public.profiles WHERE id = auth.uid();
@@ -233,7 +233,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$;
+$$;
 DROP TRIGGER IF EXISTS cargo_employee_parcel_guard ON public.parcels;
 CREATE TRIGGER cargo_employee_parcel_guard
 BEFORE UPDATE ON public.parcels
