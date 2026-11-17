@@ -430,16 +430,29 @@ async function setPreRegStatus(id,status){
  actionButtons.forEach(b=>{b.disabled=true;b.dataset.originalText=b.textContent;b.textContent="..."});
  try{
   if(status==="confirmed"){
-   const {data:reg,error:re}=await db.from("customer_pre_registrations").select("*").eq("id",id).maybeSingle();if(re)throw re;if(!reg)throw new Error("Бүртгэл олдсонгүй");
+   const {data:reg,error:re}=await db.from("customer_pre_registrations").select("*").eq("id",id).maybeSingle();
+   if(re)throw re;
+   if(!reg)throw new Error("Бүртгэл олдсонгүй");
+   if(reg.status!=="pending")throw new Error("Энэ урьдчилсан бүртгэл өмнө нь шийдвэрлэгдсэн байна.");
    const normalizedCode=String(reg.tracking_code||"").replace(/\s+/g,"").toUpperCase();
-   const {data:sameCodeRegs,error:sre}=await db.from("customer_pre_registrations").select("id,tracking_code").ilike("tracking_code",normalizedCode);if(sre)throw sre;
+   if(!normalizedCode)throw new Error("Трак код хоосон байна.");
+   const {data:sameCodeRegs,error:sre}=await db.from("customer_pre_registrations").select("id,tracking_code").ilike("tracking_code",normalizedCode);
+   if(sre)throw sre;
    if((sameCodeRegs||[]).length>1)throw new Error("Энэ трак код урьдчилсан бүртгэлд давхар байна. Давхардсан хүсэлтүүдийг эхлээд шалгаж цэгцэлнэ үү.");
-   const {data:exists,error:ee}=await db.from("parcels").select("id").ilike("tracking_code",normalizedCode).limit(1);if(ee)throw ee;
+   const {data:exists,error:ee}=await db.from("parcels").select("id").ilike("tracking_code",normalizedCode).limit(1);
+   if(ee)throw ee;
    if(exists?.length)throw new Error("Энэ трак код ачааны жагсаалтад аль хэдийн бүртгэгдсэн байна. Давхар батлах боломжгүй.");
-   const {error:ie}=await db.from("parcels").insert({tracking_code:normalizedCode,customer_phone:cleanPhone(reg.customer_phone),price_mnt:0,parcel_status:"registered",branch_id:selectedAdminBranchId,description:reg.description||null});if(ie)throw ie;
+   const {data:marked,error:me}=await db.from("customer_pre_registrations").update({status:"confirmed"}).eq("id",id).eq("status","pending").select("id").maybeSingle();
+   if(me)throw me;
+   if(!marked)throw new Error("Энэ хүсэлтийг өөр админ түрүүлж шийдвэрлэсэн байна.");
+   const {error:ie}=await db.from("parcels").insert({tracking_code:normalizedCode,customer_phone:cleanPhone(reg.customer_phone),price_mnt:0,parcel_status:"registered",branch_id:selectedAdminBranchId,description:reg.description||null});
+   if(ie){await db.from("customer_pre_registrations").update({status:"pending"}).eq("id",id).eq("status","confirmed");throw ie;}
+  }else{
+   const {error}=await db.from("customer_pre_registrations").update({status:"rejected"}).eq("id",id).eq("status","pending");
+   if(error)throw error;
   }
-  const {error}=await db.from("customer_pre_registrations").update({status}).eq("id",id);if(error)throw error;
-  await loadPreRegistrations();await loadAdminParcels();showMessage("adminNotice",status==="confirmed"?"Баталсан код ачааны жагсаалтад нэмэгдлээ. Үнэ, төлөвийг админаас тохируулна уу.":"Урьдчилсан бүртгэлээс татгалзлаа.");
+  await loadPreRegistrations();await loadAdminParcels();
+  showMessage("adminNotice",status==="confirmed"?"Баталсан код сонгосон салбарын ачаанд нэмэгдлээ. Үнэ, төлөвийг админаас тохируулна уу.":"Урьдчилсан бүртгэлээс татгалзлаа.");
  }catch(error){actionButtons.forEach(b=>{b.disabled=false;b.textContent=b.dataset.originalText||b.textContent});alert("Шийдвэрлэх алдаа: "+(error.message||error))}
 }
 async function deletePreRegistration(id){
