@@ -183,19 +183,19 @@ function classifyStatus(status){
 function statusLabel(group){if(group==="registered")return "Бүртгүүлсэн";if(group==="received")return "Хүлээж авсан";if(group==="mongolia")return "Монголд ирсэн";return "Эрээнд ирсэн"}
 
 async function submitPreRegistration(){
- const phone=cleanPhone(currentPhone||""),tracking=document.getElementById("preRegTracking").value.trim().toUpperCase(),description=document.getElementById("preRegDescription").value.trim();
+ const phone=cleanPhone(currentPhone||""),tracking=String(document.getElementById("preRegTracking").value||"").replace(/\\s+/g,"").toUpperCase(),description=document.getElementById("preRegDescription").value.trim();
  if(phone.length!==8||!tracking){showMessage("preRegMessage","Нэвтэрсэн утасны дугаар эсвэл трак код буруу байна.");return}
  const btn=document.querySelector('button[onclick="submitPreRegistration()"]');btn.disabled=true;btn.textContent="БҮРТГЭЖ БАЙНА...";
  try{
-  // Давхардсан трак кодыг бүх хэрэглэгчийн урьдчилсан бүртгэл болон агуулахын ачаанаас шалгана.
-  const {data:dupe,error:de}=await db.from("customer_pre_registrations").select("id").eq("tracking_code",tracking).in("status",["pending","approved","confirmed"]).limit(1);
+  // Төлөвөөс үл хамааран өмнө бүртгэгдсэн бүх хүсэлт болон ачаанаас шалгана.
+  const {data:dupe,error:de}=await db.from("customer_pre_registrations").select("id,tracking_code").ilike("tracking_code",tracking).limit(1);
   if(de)throw de;
-  const {data:existing,error:ee}=await db.from("parcels").select("id").eq("tracking_code",tracking).limit(1);
+  const {data:existing,error:ee}=await db.from("parcels").select("id,tracking_code").ilike("tracking_code",tracking).limit(1);
   if(ee)throw ee;
-  if(dupe?.length||existing?.length){showMessage("preRegMessage","⚠️ Энэ трак код бүртгэгдсэн байна. Давхар бүртгэх боломжгүй.");return}
+  if(dupe?.length||existing?.length){showMessage("preRegMessage","⚠️ "+tracking+" трак код өмнө нь бүртгэгдсэн байна. Давхар бүртгэх боломжгүй.");return}
   const {error}=await db.from("customer_pre_registrations").insert({customer_phone:phone,tracking_code:tracking,description:description||null,status:"pending"});
-  if(error)throw error;
-  showMessage("preRegMessage","✅ Бүртгүүлсэн. Агуулахад ирээгүй — ажилтан Эрээнд ирсэн болгох хүртэл энэ төлөвт харагдана.");
+  if(error){if(error.code==="23505"||/duplicate|already exists/i.test(error.message||""))throw new Error("Энэ трак код өмнө нь бүртгэгдсэн байна. Давхар бүртгэх боломжгүй.");throw error}
+  showMessage("preRegMessage","✅ Бүртгүүлсэн. Энэ трак кодыг дахин бүртгэх боломжгүй.");
   await refreshCustomerParcels();
   document.getElementById("preRegTracking").value="";document.getElementById("preRegDescription").value="";
  }catch(e){console.error("Pre-registration error:",e);showMessage("preRegMessage","Бүртгэхэд алдаа: "+(e.message||e.details||"Supabase тохиргоог шалгана уу."))}
@@ -426,8 +426,12 @@ async function setPreRegStatus(id,status){
  try{
   if(status==="confirmed"){
    const {data:reg,error:re}=await db.from("customer_pre_registrations").select("*").eq("id",id).maybeSingle();if(re)throw re;if(!reg)throw new Error("Бүртгэл олдсонгүй");
-   const {data:exists,error:ee}=await db.from("parcels").select("id").eq("tracking_code",reg.tracking_code).maybeSingle();if(ee)throw ee;
-   if(!exists){const {error:ie}=await db.from("parcels").insert({tracking_code:String(reg.tracking_code||"").toUpperCase(),customer_phone:cleanPhone(reg.customer_phone),price_mnt:0,parcel_status:"registered",description:reg.description||null});if(ie)throw ie}
+   const normalizedCode=String(reg.tracking_code||"").replace(/\\s+/g,"").toUpperCase();
+   const {data:sameCodeRegs,error:sre}=await db.from("customer_pre_registrations").select("id,tracking_code").ilike("tracking_code",normalizedCode);if(sre)throw sre;
+   if((sameCodeRegs||[]).length>1)throw new Error("Энэ трак код урьдчилсан бүртгэлд давхар байна. Давхардсан хүсэлтүүдийг эхлээд шалгаж цэгцэлнэ үү.");
+   const {data:exists,error:ee}=await db.from("parcels").select("id").ilike("tracking_code",normalizedCode).limit(1);if(ee)throw ee;
+   if(exists?.length)throw new Error("Энэ трак код ачааны жагсаалтад аль хэдийн бүртгэгдсэн байна. Давхар батлах боломжгүй.");
+   const {error:ie}=await db.from("parcels").insert({tracking_code:normalizedCode,customer_phone:cleanPhone(reg.customer_phone),price_mnt:0,parcel_status:"registered",description:reg.description||null});if(ie)throw ie;
   }
   const {error}=await db.from("customer_pre_registrations").update({status}).eq("id",id);if(error)throw error;
   await loadPreRegistrations();await loadAdminParcels();showMessage("adminNotice",status==="confirmed"?"Баталсан код ачааны жагсаалтад нэмэгдлээ. Үнэ, төлөвийг админаас тохируулна уу.":"Урьдчилсан бүртгэлээс татгалзлаа.");
@@ -535,8 +539,13 @@ async function saveParcel(){
  showMessage("adminNotice",codes.length+" ачааг шалгаж хадгалж байна...");
  const {data:duplicates,error:dupError}=await db.from("parcels").select("tracking_code").in("tracking_code",codes);
  if(dupError){showMessage("adminNotice","Трак код шалгах алдаа: "+dupError.message);return}
- const duplicateCodes=(duplicates||[]).map(x=>x.tracking_code).filter(code=>!editingParcelId||code!==existingParcel?.tracking_code);
+ const duplicateCodes=(duplicates||[]).map(x=>x.tracking_code).filter(code=>!editingParcelId||String(code).replace(/\\s+/g,"").toUpperCase()!==String(existingParcel?.tracking_code||"").replace(/\\s+/g,"").toUpperCase());
  if(duplicateCodes.length){showMessage("adminNotice","Бүртгэлтэй трак код байна: "+duplicateCodes.join(", "));return}
+ if(!editingParcelId){
+  const {data:preDuplicates,error:preError}=await db.from("customer_pre_registrations").select("tracking_code").in("tracking_code",codes);
+  if(preError){showMessage("adminNotice","Урьдчилсан бүртгэл шалгах алдаа: "+preError.message);return}
+  if(preDuplicates?.length){showMessage("adminNotice","Урьдчилсан бүртгэлд аль хэдийн байгаа трак код: "+preDuplicates.map(x=>x.tracking_code).join(", "));return}
+ }
  const result=editingParcelId?await db.from("parcels").update(payload[0]).eq("id",editingParcelId):await db.from("parcels").insert(payload);
  if(result.error){showMessage("adminNotice","Хадгалах алдаа: "+result.error.message);return}
  cancelParcelForm();await loadAdminParcels();showMessage("adminNotice",codes.length+" ачааг амжилттай бүртгэлээ.");
