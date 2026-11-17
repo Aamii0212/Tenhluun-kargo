@@ -36,7 +36,7 @@ async function loadEmployeeBranches(){
    branches=data||[];
   }
  }
- select.innerHTML+='<option value="">Салбар сонгоно уу</option>'+branches.map(b=>'<option value="'+esc(b.id)+'">'+esc(b.name)+'</option>').join("");
+ select.innerHTML+=branches.map(b=>'<option value="'+esc(b.id)+'">'+esc(b.name)+'</option>').join("");
  const saved=sessionStorage.getItem("tenhluun_employee_branch_"+(employeeUserId||""));
  if(saved&&branches.some(b=>String(b.id)===saved)){
   select.value=saved;selectedEmployeeBranchId=saved;
