@@ -515,7 +515,7 @@ async function addBranch(){const name=document.getElementById("newBranchName").v
 async function loadEmployeeAssignments(){
  const box=document.getElementById("employeeAccessList");if(!box)return;
  box.textContent="Оноолтууд ачаалж байна...";
- const {data,error}=await db.from("employee_branch_access").select("employee_id,branch_id,created_at").order("created_at",{ascending:false});
+ const {data,error}=await db.from("employee_branch_access").select("employee_id,employee_email,branch_id,created_at").order("created_at",{ascending:false});
  if(error){box.textContent="Оноолт татах алдаа: "+error.message;return}
  const rows=data||[];
  box.innerHTML=rows.length?rows.map(x=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid #eee;overflow-wrap:anywhere"><span><b>'+escapeHTML(x.employee_email||x.employee_id)+'</b><br><small>'+escapeHTML(adminBranches.find(b=>String(b.id)===String(x.branch_id))?.name||"Салбар устсан")+'</small></span><button type="button" class="delete-btn" onclick="removeEmployeeBranch(\''+String(x.employee_id)+'\',\''+String(x.branch_id)+'\')">Цуцлах</button></div>').join(""):"Одоогоор ажилтанд салбар оноогоогүй байна.";
