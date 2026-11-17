@@ -542,11 +542,9 @@ async function inviteAndAssignEmployee(){
  if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){notice.textContent="Ажилтны имэйлийг зөв оруулна уу.";return}
  if(!branchId){notice.textContent="Ажиллах салбараа сонгоно уу.";return}
  notice.textContent="Урилга илгээж, эрх тохируулж байна...";
- const {data,error}=await db.functions.invoke("admin-invite-employee",{body:{email}});
- if(error){notice.textContent="Ажилтан нэмэх алдаа: "+(data?.error||error.message);return}
- const {error:assignError}=await db.rpc("admin_assign_employee_branch",{p_employee_email:email,p_branch_id:branchId});
- if(assignError){notice.textContent="Урилга илгээгдсэн. Гэхдээ салбар онооход алдаа гарлаа: "+assignError.message;await loadEmployeeAssignments();return}
- notice.textContent="✓ "+email+" хаяг руу урилга илгээж, салбар амжилттай оноолоо.";
+ const {data,error}=await db.functions.invoke("admin-invite-employee",{body:{email,branch_id:branchId}});
+ if(error){notice.textContent="Ажилтан нэмэх алдаа: "+(data?.error||error.message)+" (Edge Function deploy болон SQL тохиргоог шалгана уу)";return}
+ notice.textContent=data?.message||("✓ "+email+" ажилтнаар бүртгэгдэж, салбар оноогдлоо.");
  document.getElementById("employeeAccessUserId").value="";
  await loadEmployeeAssignments();
 }
