@@ -508,14 +508,14 @@ async function scanTracking(){
   const config={fps:10,qrbox:{width:260,height:150}};
   if(formats)config.formatsToSupport=[formats.CODE_128,formats.CODE_39,formats.EAN_13,formats.EAN_8,formats.UPC_A,formats.UPC_E,formats.ITF,formats.QR_CODE].filter(x=>x!==undefined);
   scanner=new Html5Qrcode("adminBarcodeReader");
-  await scanner.start({facingMode:"environment"},config,async(decodedText)=>{
+  const startPromise=scanner.start({facingMode:"environment"},config,async(decodedText)=>{
    const code=String(decodedText||"").trim();if(!code||closed)return;
    const existing=input.value.split(/[\\s,;]+/).map(x=>x.trim().toUpperCase()).filter(Boolean);
    if(existing.includes(code.toUpperCase()))showMessage("scanNotice","Энэ трак код өмнө нь нэмэгдсэн байна.");
    else{input.value=(input.value.trim()?input.value.trim()+"\\n":"")+code;renderTrackingPrices();showMessage("scanNotice","✓ Баркод уншигдлаа: "+code)}
    await stop();
   },()=>{});
-  started=true;
+  started=true;await startPromise;if(closed){try{await scanner.stop()}catch(e){}}
  }catch(e){await stop();showMessage("scanNotice","Камер нээж чадсангүй. Safari-д камерын зөвшөөрөл өгөөд HTTPS холбоосоор дахин оролдоно уу.")}
 }
 async function saveParcel(){
