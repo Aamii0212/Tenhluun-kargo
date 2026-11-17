@@ -91,3 +91,75 @@ FOR EACH ROW EXECUTE FUNCTION public.prevent_duplicate_cargo_tracking_code();
 -- GROUP BY 1 HAVING count(*) > 1 ORDER BY copies DESC;
 
 NOTIFY pgrst, 'reload schema';
+
+
+-- Ажилтан зөвхөн админаас оноосон салбарын ачаанд хандана.
+CREATE TABLE IF NOT EXISTS public.employee_branch_access (
+  employee_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  branch_id uuid NOT NULL REFERENCES public.branches(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (employee_id, branch_id)
+);
+CREATE INDEX IF NOT EXISTS employee_branch_access_branch_idx
+  ON public.employee_branch_access(branch_id);
+
+ALTER TABLE public.employee_branch_access ENABLE ROW LEVEL SECURITY;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.employee_branch_access TO authenticated;
+
+DROP POLICY IF EXISTS employee_branch_access_read ON public.employee_branch_access;
+CREATE POLICY employee_branch_access_read ON public.employee_branch_access
+FOR SELECT TO authenticated
+USING (
+  employee_id = auth.uid()
+  OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin')
+);
+
+DROP POLICY IF EXISTS employee_branch_access_admin_manage ON public.employee_branch_access;
+CREATE POLICY employee_branch_access_admin_manage ON public.employee_branch_access
+FOR ALL TO authenticated
+USING (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin'))
+WITH CHECK (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin'));
+
+-- Нийтийн сайт салбаруудыг anon хэрэглэгчид харна; нэвтэрсэн ажилтан зөвхөн оноосон салбараа харна.
+DROP POLICY IF EXISTS cargo_public_read_branches ON public.branches;
+DROP POLICY IF EXISTS cargo_staff_read_branches ON public.branches;
+CREATE POLICY cargo_public_read_branches ON public.branches
+FOR SELECT TO anon USING (true);
+CREATE POLICY cargo_staff_read_branches ON public.branches
+FOR SELECT TO authenticated
+USING (
+  EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin')
+  OR EXISTS (SELECT 1 FROM public.employee_branch_access a WHERE a.employee_id = auth.uid() AND a.branch_id = branches.id)
+);
+
+-- Ачааны унших/засах эрхийг салбарын оноолтоор хязгаарлана.
+DROP POLICY IF EXISTS cargo_staff_read_parcels ON public.parcels;
+CREATE POLICY cargo_staff_read_parcels ON public.parcels
+FOR SELECT TO authenticated
+USING (
+  EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin')
+  OR EXISTS (SELECT 1 FROM public.employee_branch_access a WHERE a.employee_id = auth.uid() AND a.branch_id = parcels.branch_id)
+);
+
+DROP POLICY IF EXISTS cargo_staff_update_parcels ON public.parcels;
+CREATE POLICY cargo_staff_update_parcels ON public.parcels
+FOR UPDATE TO authenticated
+USING (
+  EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin')
+  OR EXISTS (SELECT 1 FROM public.employee_branch_access a WHERE a.employee_id = auth.uid() AND a.branch_id = parcels.branch_id)
+)
+WITH CHECK (
+  EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin')
+  OR EXISTS (SELECT 1 FROM public.employee_branch_access a WHERE a.employee_id = auth.uid() AND a.branch_id = parcels.branch_id)
+);
+
+-- Урьдчилсан бүртгэлийг зөвхөн админ харах/шийдвэрлэнэ.
+DROP POLICY IF EXISTS "authenticated can view pre registrations" ON public.customer_pre_registrations;
+DROP POLICY IF EXISTS "authenticated can update pre registrations" ON public.customer_pre_registrations;
+DROP POLICY IF EXISTS "Admins manage parcel pre-registrations" ON public.customer_pre_registrations;
+CREATE POLICY "Admins manage parcel pre-registrations" ON public.customer_pre_registrations
+FOR ALL TO authenticated
+USING (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin'))
+WITH CHECK (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin'));
+
+NOTIFY pgrst, 'reload schema';
