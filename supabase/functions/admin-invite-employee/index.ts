@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const email = String(body.email || "").trim().toLowerCase();
     const branchId = String(body.branch_id || "").trim();
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return json({ error: "Имэйл хаяг буруу байна." }, 400);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "Имэйл хаяг буруу байна." }, 400);
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(branchId)) {
       return json({ error: "Ажиллах салбараа сонгоно уу." }, 400);
     }
