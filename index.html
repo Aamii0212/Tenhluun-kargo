@@ -141,14 +141,18 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
 <div class="admin-editor"><h3>🏢 Салбар удирдах</h3><div class="admin-fields"><input id="newBranchName" placeholder="Шинэ салбарын нэр"><input id="newBranchAddress" placeholder="Салбарын хаягийг гараар оруулна уу"><input id="newBranchPhone" placeholder="Салбарын утасны дугаар"></div><div class="admin-actions"><button class="primary" onclick="addBranch()">＋ Салбар нэмэх</button></div><div id="branchList" style="margin-top:10px"></div></div>
  <div id="adminNotice" class="message"></div>
  <div id="parcelEditor" class="admin-editor" style="display:none">
-  <h3 id="editorTitle">Ачаа бүртгэх</h3>
-  <label>📱 Харилцагчийн утас</label><input id="editPhone" inputmode="numeric" maxlength="8" placeholder="8 оронтой утас *">
-  <label>📦 Трак код</label><div class="admin-fields" style="grid-template-columns:1fr auto"><textarea id="editTracking" rows="4" placeholder="Трак код бүрийг шинэ мөрөөр бичих эсвэл скан хийх *" oninput="renderTrackingPrices()"></textarea><button type="button" class="secondary" onclick="scanTracking()">📷 Скан</button></div>
-  <label>💰 Трак код тус бүрийн үнэ (₮)</label><div id="trackingPriceRows"></div>
-  <select id="editStatus"><option value="registered">Бүртгүүлсэн</option><option value="ereen">Эрээнд ирсэн</option><option value="mongolia">Монголд ирсэн</option></select>
+  <div class="parcel-editor-heading"><button type="button" class="parcel-close" onclick="cancelParcelForm()" aria-label="Хаах">×</button><h3 id="editorTitle">Ачаа бүртгэл</h3></div>
+  <div class="parcel-arrival-date"><label>Ачаа ирсэн огноо</label><input id="parcelArrivalDate" type="date" aria-label="Ачаа ирсэн огноо"></div>
+  <div class="parcel-entry-card">
+   <label for="editPhone">Утасны дугаар</label><input id="editPhone" inputmode="numeric" maxlength="8" placeholder="8 оронтой утас *">
+   <label for="editTracking">Трак код</label><div class="parcel-scan-row"><textarea id="editTracking" rows="2" placeholder="Трак код" oninput="renderTrackingPrices()"></textarea><button type="button" class="parcel-scan-button" onclick="scanTracking()" aria-label="Камераар баркод уншуулах">▥</button></div>
+   <div class="parcel-price-label">Трак код тус бүрийн үнэ (₮)</div><div id="trackingPriceRows"></div>
+   <button type="button" class="parcel-add-code" onclick="document.getElementById('editTracking').focus()">＋ Код нэмэх</button>
+  </div>
+  <select id="editStatus" aria-label="Ачааны төлөв"><option value="registered">Бүртгүүлсэн</option><option value="ereen">Эрээнд ирсэн</option><option value="mongolia">Монголд ирсэн</option></select>
   <select id="editBranch"><option value="">Салбар сонгох</option></select>
   <div id="scanNotice" class="message"></div>
-  <div class="admin-actions"><button class="primary" onclick="saveParcel()">Хадгалах</button><button class="logout" onclick="cancelParcelForm()">Болих</button></div>
+  <div class="admin-actions parcel-editor-actions"><button class="logout" onclick="cancelParcelForm()">Цуцлах</button><button class="primary" onclick="saveParcel()">Хадгалах</button></div>
  </div>
  <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Салбар</th><th>Трак код</th><th>Нэр / утас</th><th>Төлөв</th><th>Жин</th><th>Үнэ</th><th>Үйлдэл</th></tr></thead><tbody id="adminParcelRows"><tr><td colspan="6">Ачаа ачаалж байна...</td></tr></tbody></table></div>
  <div id="adminCount" class="muted"></div>
@@ -477,7 +481,7 @@ async function loadBranches(){const {data,error}=await db.from("branches").selec
 async function addBranch(){const name=document.getElementById("newBranchName").value.trim();if(!name){showMessage("adminNotice","Салбарын нэр оруулна уу.");return}if(adminBranches.some(b=>String(b.name||"").trim().toLocaleLowerCase()===name.toLocaleLowerCase())){showMessage("adminNotice","Ийм нэртэй салбар бүртгэлтэй байна.");return}const {error}=await db.from("branches").insert({name,address:document.getElementById("newBranchAddress").value.trim(),phone:document.getElementById("newBranchPhone").value.trim()});if(error){showMessage("adminNotice","Салбар нэмэх алдаа: "+error.message);return}document.getElementById("newBranchName").value="";document.getElementById("newBranchAddress").value="";document.getElementById("newBranchPhone").value="";await loadBranches();showMessage("adminNotice","Салбар нэмлээ.")}
 async function renameBranch(id){const b=adminBranches.find(x=>String(x.id)===String(id));if(!b)return;const name=prompt("Салбарын нэр:",b.name);if(name===null||!name.trim())return;if(adminBranches.some(x=>String(x.id)!==String(id)&&String(x.name||"").trim().toLocaleLowerCase()===name.trim().toLocaleLowerCase())){showMessage("adminNotice","Ийм нэртэй өөр салбар байна.");return}const address=prompt("Салбарын хаягийг гараар оруулна уу:",b.address||"");if(address===null)return;const phone=prompt("Салбарын утас:",b.phone||"");if(phone===null)return;const {error}=await db.from("branches").update({name:name.trim(),address,phone}).eq("id",id);if(error){showMessage("adminNotice","Засах алдаа: "+error.message);return}await loadBranches()}
 async function removeBranch(id){const b=adminBranches.find(x=>String(x.id)===String(id));if(!b||!confirm(b.name+" салбарыг устгах уу? Энэ салбарын ачаанууд устахгүй, салбаргүй болно."))return;const {error:parcelError}=await db.from("parcels").update({branch_id:null}).eq("branch_id",id);if(parcelError){showMessage("adminNotice","Ачааг салбараас салгах алдаа: "+parcelError.message);return}const {error}=await db.from("branches").delete().eq("id",id);if(error){showMessage("adminNotice","Салбар устгах алдаа: "+error.message);return}await loadBranches();await loadAdminParcels();showMessage("adminNotice","Салбар устгалаа. Ачаанууд хадгалагдсан.")}
-function newParcelForm(){editingParcelId=null;document.getElementById("editorTitle").textContent="Шинэ ачаа бүртгэх";["editTracking","editPhone"].forEach(id=>document.getElementById(id).value="");renderTrackingPrices();document.getElementById("editStatus").value="registered";document.getElementById("editBranch").value="";document.getElementById("parcelEditor").style.display="block";const fold=document.getElementById("parcelEditor").closest("details.admin-fold");if(fold)fold.open=true;document.getElementById("parcelEditor").scrollIntoView({behavior:"smooth"})}
+function newParcelForm(){editingParcelId=null;document.getElementById("editorTitle").textContent="Шинэ ачаа бүртгэх";["editTracking","editPhone"].forEach(id=>document.getElementById(id).value="");renderTrackingPrices();document.getElementById("editStatus").value="mongolia";document.getElementById("editBranch").value="";const arrival=document.getElementById("parcelArrivalDate");if(arrival){const now=new Date();arrival.value=[now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),String(now.getDate()).padStart(2,"0")].join("-")}document.getElementById("parcelEditor").style.display="block";const fold=document.getElementById("parcelEditor").closest("details.admin-fold");if(fold)fold.open=true;document.getElementById("parcelEditor").scrollIntoView({behavior:"smooth"})}
 function editParcel(id){const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;editingParcelId=p.id;document.getElementById("editorTitle").textContent="Ачаа засах";document.getElementById("editTracking").value=p.tracking_code||"";document.getElementById("editPhone").value=p.customer_phone||p.phone||"";renderTrackingPrices();document.getElementById("editStatus").value=classifyStatus(p.parcel_status);document.getElementById("editBranch").value=p.branch_id||"";document.getElementById("parcelEditor").style.display="block";document.getElementById("parcelEditor").scrollIntoView({behavior:"smooth"})}
 function cancelParcelForm(){document.getElementById("parcelEditor").style.display="none";editingParcelId=null}
 function renderTrackingPrices(){
@@ -712,5 +716,28 @@ new MutationObserver(()=>run()).observe(document.documentElement,{subtree:true,a
  #adminDashboard .records-quickbar button{width:46px;height:46px;flex-basis:46px}
 }
 </style>
-</body>
+<style id="parcel-scanner-form-style">
+#adminDashboard #parcelEditor{background:#fff!important;border:1px solid #e83e9b!important;border-radius:22px!important;padding:18px!important;box-shadow:none!important;margin:14px 0!important}
+#adminDashboard #parcelEditor .parcel-editor-heading{display:flex;align-items:center;gap:14px;border-bottom:1px solid #f3d9e8;padding:0 0 14px;margin-bottom:18px}
+#adminDashboard #parcelEditor .parcel-editor-heading h3{margin:0!important;font-size:22px!important;color:#241b24!important}
+#adminDashboard #parcelEditor .parcel-close{width:48px;height:48px;border:1px solid #e83e9b;border-radius:14px;background:#f9e8f2;color:#c02d7b;font-size:24px}
+#adminDashboard #parcelEditor label,#adminDashboard #parcelEditor .parcel-price-label{display:block;color:#332a33;font-size:16px;font-weight:500;margin:14px 0 8px}
+#adminDashboard #parcelEditor input,#adminDashboard #parcelEditor textarea,#adminDashboard #parcelEditor select{box-sizing:border-box;width:100%;min-width:0;background:#fff!important;color:#211820!important;border:1px solid #e9a2ca!important;border-radius:13px!important;padding:14px 15px!important;font-size:16px!important;box-shadow:none!important;outline:none}
+#adminDashboard #parcelEditor input:focus,#adminDashboard #parcelEditor textarea:focus,#adminDashboard #parcelEditor select:focus{border-color:#dc3290!important;box-shadow:0 0 0 2px #fce7f3!important}
+#adminDashboard #parcelEditor .parcel-arrival-date{margin-bottom:16px}
+#adminDashboard #parcelEditor .parcel-arrival-date input{background:#fafafa!important;text-align:center;font-weight:700}
+#adminDashboard #parcelEditor .parcel-entry-card{border:1px solid #e83e9b;border-radius:18px;padding:14px;margin:14px 0}
+#adminDashboard #parcelEditor .parcel-scan-row{display:grid;grid-template-columns:minmax(0,1fr) 56px;gap:8px;align-items:stretch}
+#adminDashboard #parcelEditor .parcel-scan-row textarea{min-height:58px;resize:vertical}
+#adminDashboard #parcelEditor .parcel-scan-button{border:1px solid #e83e9b!important;border-radius:14px!important;background:#f9e8f2!important;color:#c02d7b!important;font-size:24px!important;font-weight:700}
+#adminDashboard #parcelEditor #trackingPriceRows>div{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(100px,145px)!important;gap:8px!important;align-items:center!important;border:1px solid #f1c5dd;border-radius:12px;padding:8px;margin:8px 0!important}
+#adminDashboard #parcelEditor #trackingPriceRows input{border:1px solid #e9a2ca!important;padding:12px!important}
+#adminDashboard #parcelEditor .parcel-add-code{border:1px solid #df4a9c;background:#d94a9d;color:#fff;border-radius:14px;padding:13px 18px;font-weight:800;margin-top:10px}
+#adminDashboard #parcelEditor #editStatus,#adminDashboard #parcelEditor #editBranch{margin-top:12px}
+#adminDashboard #parcelEditor .parcel-editor-actions{display:flex;justify-content:center;gap:0;margin-top:16px}
+#adminDashboard #parcelEditor .parcel-editor-actions button{border:1px solid #df4a9c;border-radius:16px;padding:13px 22px;font-weight:800}
+#adminDashboard #parcelEditor .parcel-editor-actions .primary{background:#d94a9d!important;color:#fff!important}
+#adminDashboard #parcelEditor .parcel-editor-actions .logout{background:#f9e8f2!important;color:#c02d7b!important}
+@media(max-width:600px){#adminDashboard #parcelEditor{padding:14px!important;border-radius:18px!important}#adminDashboard #parcelEditor .parcel-entry-card{padding:12px}#adminDashboard #parcelEditor .parcel-editor-heading h3{font-size:20px!important}}
+</style></body>
 </html>
