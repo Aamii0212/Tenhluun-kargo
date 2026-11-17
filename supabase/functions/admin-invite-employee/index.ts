@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const authHeader = req.headers.get("Authorization") || "";
-    if (!authHeader.startsWith("Bearer ")) return json({ error: "Нэвтэрнэ үү." }, 401);
+    if (!authHeader.startsWith("Bearer ")) return json({ error: "Админ аккаунтаар нэвтэрнэ үү." }, 401);
 
     const caller = createClient(url, anonKey, { global: { headers: { Authorization: authHeader } } });
     const { data: userData, error: userError } = await caller.auth.getUser();
@@ -29,23 +29,54 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const email = String(body.email || "").trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "Имэйл хаяг буруу байна." }, 400);
+    const branchId = String(body.branch_id || "").trim();
+    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return json({ error: "Имэйл хаяг буруу байна." }, 400);
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(branchId)) {
+      return json({ error: "Ажиллах салбараа сонгоно уу." }, 400);
+    }
 
     const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
-    const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email);
-    if (inviteError) {
-      if (/already|registered|exists/i.test(inviteError.message)) {
-        return json({ error: "Энэ имэйлээр хэрэглэгч өмнө нь бүртгэгдсэн байна. Салбар оноох товчийг ашиглана уу." }, 409);
-      }
-      return json({ error: inviteError.message }, 400);
+    const { data: branch, error: branchError } = await admin.from("branches").select("id,name").eq("id", branchId).maybeSingle();
+    if (branchError || !branch) return json({ error: "Салбар олдсонгүй. Салбарын жагсаалтыг шинэчилнэ үү." }, 404);
+
+    const { data: users, error: usersError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    if (usersError) return json({ error: "Хэрэглэгч шалгахад алдаа гарлаа: " + usersError.message }, 500);
+    let target = users.users.find((u) => (u.email || "").toLowerCase() === email);
+    let invited = false;
+    let recoverySent = false;
+
+    if (!target) {
+      const { data, error } = await admin.auth.admin.inviteUserByEmail(email);
+      if (error) return json({ error: error.message }, 400);
+      target = data.user || undefined;
+      invited = true;
+      if (!target) return json({ error: "Урилга илгээсэн ч хэрэглэгчийн ID олдсонгүй." }, 500);
     }
-    if (!invited.user) return json({ error: "Урилга илгээсэн ч хэрэглэгчийн мэдээлэл буцаж ирсэнгүй." }, 500);
 
-    const { error: upsertError } = await admin.from("profiles")
-      .upsert({ id: invited.user.id, role: "employee" }, { onConflict: "id" });
-    if (upsertError) return json({ error: "Урилга илгээгдсэн боловч ажилтны эрх тохируулахад алдаа гарлаа: " + upsertError.message }, 500);
+    const { data: existingProfile } = await admin.from("profiles").select("role").eq("id", target.id).maybeSingle();
+    if (existingProfile?.role === "admin") return json({ error: "Админы аккаунтыг ажилтан болгож өөрчлөхгүй." }, 409);
 
-    return json({ success: true, user_id: invited.user.id, email, message: "Ажилтны урилга илгээгдлээ." });
+    const { error: profileUpsertError } = await admin.from("profiles")
+      .upsert({ id: target.id, role: "employee" }, { onConflict: "id" });
+    if (profileUpsertError) {
+      return json({ error: "Хэрэглэгч олдсон боловч ажилтны эрх олгоход алдаа гарлаа: " + profileUpsertError.message }, 500);
+    }
+
+    const { error: accessError } = await admin.from("employee_branch_access")
+      .upsert({ employee_id: target.id, branch_id: branchId, employee_email: email }, { onConflict: "employee_id,branch_id" });
+    if (accessError) {
+      return json({ error: "Ажилтны эрх үүссэн боловч салбар онооход алдаа гарлаа: " + accessError.message }, 500);
+    }
+
+    if (!invited) {
+      const { error: recoveryError } = await admin.auth.resetPasswordForEmail(email);
+      recoverySent = !recoveryError;
+    }
+
+    const message = invited
+      ? "✓ " + email + " хаяг руу ажилтны урилга илгээж, " + branch.name + " салбарт оноолоо. Имэйлээ нээж урилгаа баталгаажуулна уу."
+      : "✓ " + email + " ажилтны эрхийг идэвхжүүлж, " + branch.name + " салбарт оноолоо. " + (recoverySent ? "Нууц үг сэргээх холбоос имэйл рүү илгээлээ." : "Нэвтрэх нууц үгээ мартсан бол нэвтрэх хуудсын сэргээх холбоосыг ашиглана уу.");
+    return json({ success: true, user_id: target.id, email, invited, recovery_sent: recoverySent, message });
   } catch (error) {
     return json({ error: error instanceof Error ? error.message : "Тодорхойгүй алдаа" }, 500);
   }
