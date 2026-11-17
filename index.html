@@ -542,9 +542,11 @@ async function saveParcel(){
  const duplicateCodes=(duplicates||[]).map(x=>x.tracking_code).filter(code=>!editingParcelId||String(code).replace(/\s+/g,"").toUpperCase()!==String(existingParcel?.tracking_code||"").replace(/\s+/g,"").toUpperCase());
  if(duplicateCodes.length){showMessage("adminNotice","Бүртгэлтэй трак код байна: "+duplicateCodes.join(", "));return}
  if(!editingParcelId){
-  const {data:preDuplicates,error:preError}=await db.from("customer_pre_registrations").select("tracking_code").in("tracking_code",codes);
+  const preChecks=await Promise.all(codes.map(code=>db.from("customer_pre_registrations").select("tracking_code").ilike("tracking_code",code).limit(1)));
+  const preError=preChecks.find(x=>x.error)?.error;
   if(preError){showMessage("adminNotice","Урьдчилсан бүртгэл шалгах алдаа: "+preError.message);return}
-  if(preDuplicates?.length){showMessage("adminNotice","Урьдчилсан бүртгэлд аль хэдийн байгаа трак код: "+preDuplicates.map(x=>x.tracking_code).join(", "));return}
+  const preDuplicates=preChecks.flatMap(x=>x.data||[]);
+  if(preDuplicates.length){showMessage("adminNotice","Урьдчилсан бүртгэлд аль хэдийн байгаа трак код: "+preDuplicates.map(x=>x.tracking_code).join(", "));return}
  }
  const result=editingParcelId?await db.from("parcels").update(payload[0]).eq("id",editingParcelId):await db.from("parcels").insert(payload);
  if(result.error){showMessage("adminNotice","Хадгалах алдаа: "+result.error.message);return}
