@@ -3,26 +3,39 @@
 
 ALTER TABLE public.parcels ENABLE ROW LEVEL SECURITY;
 
+CREATE TABLE IF NOT EXISTS public.employee_branch_access (
+ employee_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+ branch_id uuid NOT NULL REFERENCES public.branches(id) ON DELETE CASCADE,
+ created_at timestamptz NOT NULL DEFAULT now(),
+ PRIMARY KEY(employee_id,branch_id)
+);
+ALTER TABLE public.employee_branch_access ENABLE ROW LEVEL SECURITY;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.employee_branch_access TO authenticated;
+DROP POLICY IF EXISTS employee_branch_access_read ON public.employee_branch_access;
+CREATE POLICY employee_branch_access_read ON public.employee_branch_access FOR SELECT TO authenticated USING (employee_id=auth.uid() OR EXISTS(SELECT 1 FROM public.profiles p WHERE p.id=auth.uid() AND p.role='admin'));
+DROP POLICY IF EXISTS employee_branch_access_admin_manage ON public.employee_branch_access;
+CREATE POLICY employee_branch_access_admin_manage ON public.employee_branch_access FOR ALL TO authenticated USING (EXISTS(SELECT 1 FROM public.profiles p WHERE p.id=auth.uid() AND p.role='admin')) WITH CHECK (EXISTS(SELECT 1 FROM public.profiles p WHERE p.id=auth.uid() AND p.role='admin'));
+
 -- Ажилтан болон админ ачаа хайж/харах, шинэчлэх боломжтой
 DROP POLICY IF EXISTS cargo_staff_read_parcels ON public.parcels;
 CREATE POLICY cargo_staff_read_parcels ON public.parcels
 FOR SELECT TO authenticated
-USING (EXISTS (
-  SELECT 1 FROM public.profiles p
-  WHERE p.id = auth.uid() AND p.role IN ('admin','employee')
-));
+USING (
+  EXISTS (SELECT 1 FROM public.profiles p WHERE p.id=auth.uid() AND p.role='admin')
+  OR EXISTS (SELECT 1 FROM public.employee_branch_access a WHERE a.employee_id=auth.uid() AND a.branch_id=parcels.branch_id)
+);
 
 DROP POLICY IF EXISTS cargo_staff_update_parcels ON public.parcels;
 CREATE POLICY cargo_staff_update_parcels ON public.parcels
 FOR UPDATE TO authenticated
-USING (EXISTS (
-  SELECT 1 FROM public.profiles p
-  WHERE p.id = auth.uid() AND p.role IN ('admin','employee')
-))
-WITH CHECK (EXISTS (
-  SELECT 1 FROM public.profiles p
-  WHERE p.id = auth.uid() AND p.role IN ('admin','employee')
-));
+USING (
+  EXISTS (SELECT 1 FROM public.profiles p WHERE p.id=auth.uid() AND p.role='admin')
+  OR EXISTS (SELECT 1 FROM public.employee_branch_access a WHERE a.employee_id=auth.uid() AND a.branch_id=parcels.branch_id)
+)
+WITH CHECK (
+  EXISTS (SELECT 1 FROM public.profiles p WHERE p.id=auth.uid() AND p.role='admin')
+  OR EXISTS (SELECT 1 FROM public.employee_branch_access a WHERE a.employee_id=auth.uid() AND a.branch_id=parcels.branch_id)
+);
 
 -- Ажилтан ачаа шинээр үүсгэх/устгах эрхгүй (админд зөвшөөрнө)
 DROP POLICY IF EXISTS cargo_only_admin_insert_parcels ON public.parcels;
