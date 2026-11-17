@@ -143,7 +143,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
 <div style="margin-top:18px;padding-top:14px;border-top:1px solid #f1dce8">
  <h4 style="margin:0 0 8px">👤 Ажилтанд салбар оноох</h4>
  <p style="font-size:13px;color:#666">Supabase Auth хэрэглэгчийн UUID болон ажиллах салбарыг сонгоно.</p>
- <input id="employeeAccessUserId" placeholder="Ажилтны User UID (UUID)" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #e5d5e0;border-radius:9px">
+ <input id="employeeAccessUserId" placeholder="Ажилтны нэвтрэх имэйл" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #e5d5e0;border-radius:9px">
  <select id="employeeAccessBranch" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #e5d5e0;border-radius:9px;margin:8px 0"><option value="">Салбар сонгох</option></select>
  <button class="primary" type="button" onclick="assignEmployeeBranch()">＋ Салбар оноох</button>
  <div id="employeeAccessNotice" class="message"></div>
@@ -518,14 +518,14 @@ async function loadEmployeeAssignments(){
  const {data,error}=await db.from("employee_branch_access").select("employee_id,branch_id,created_at").order("created_at",{ascending:false});
  if(error){box.textContent="Оноолт татах алдаа: "+error.message;return}
  const rows=data||[];
- box.innerHTML=rows.length?rows.map(x=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid #eee;overflow-wrap:anywhere"><span><b>'+escapeHTML(x.employee_id)+'</b><br><small>'+escapeHTML(adminBranches.find(b=>String(b.id)===String(x.branch_id))?.name||"Салбар устсан")+'</small></span><button type="button" class="delete-btn" onclick="removeEmployeeBranch(\''+String(x.employee_id)+'\',\''+String(x.branch_id)+'\')">Цуцлах</button></div>').join(""):"Одоогоор ажилтанд салбар оноогоогүй байна.";
+ box.innerHTML=rows.length?rows.map(x=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid #eee;overflow-wrap:anywhere"><span><b>'+escapeHTML(x.employee_email||x.employee_id)+'</b><br><small>'+escapeHTML(adminBranches.find(b=>String(b.id)===String(x.branch_id))?.name||"Салбар устсан")+'</small></span><button type="button" class="delete-btn" onclick="removeEmployeeBranch(\''+String(x.employee_id)+'\',\''+String(x.branch_id)+'\')">Цуцлах</button></div>').join(""):"Одоогоор ажилтанд салбар оноогоогүй байна.";
 }
 async function assignEmployeeBranch(){
  const employeeId=document.getElementById("employeeAccessUserId").value.trim(),branchId=document.getElementById("employeeAccessBranch").value,notice=document.getElementById("employeeAccessNotice");
- if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(employeeId)){notice.textContent="Ажилтны зөв User UID (UUID) оруулна уу.";return}
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(employeeId)){notice.textContent="Ажилтны нэвтрэх имэйлийг зөв оруулна уу.";return}
  if(!branchId){notice.textContent="Салбар сонгоно уу.";return}
  notice.textContent="Хадгалж байна...";
- const {error}=await db.from("employee_branch_access").upsert({employee_id:employeeId,branch_id:branchId},{onConflict:"employee_id,branch_id"});
+ const {error}=await db.rpc("admin_assign_employee_branch",{p_employee_email:employeeId,p_branch_id:branchId});
  if(error){notice.textContent="Оноох алдаа: "+error.message;return}
  notice.textContent="Ажилтанд салбар амжилттай оноолоо ✓";await loadEmployeeAssignments();
 }
