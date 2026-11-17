@@ -619,42 +619,60 @@ if(location.hash==="#admin"||new URLSearchParams(location.search).get("admin")==
 })();
 </script>
 
+
 <style id="admin-hamburger-layout">
-#adminDashboard #adminMenuShade{display:none;position:fixed;inset:0;background:#17121a88;z-index:9998}
-#adminDashboard #adminMenuDrawer{position:fixed;z-index:9999;top:0;left:0;bottom:0;width:min(88vw,390px);overflow:auto;background:#fff;padding:18px 14px 30px;box-shadow:8px 0 30px #17121a22;transform:translateX(-105%);transition:transform .22s ease}
+#adminDashboard #adminMenuShade{display:none;position:fixed;inset:0;background:rgba(24,20,26,.48);z-index:9998}
+#adminDashboard #adminMenuDrawer{position:fixed;z-index:9999;top:0;left:0;bottom:0;width:min(335px,84vw);overflow-y:auto;background:#fff;padding:28px 12px 24px;box-shadow:8px 0 30px #17121a22;transform:translateX(-105%);transition:transform .24s ease;border-radius:0 18px 18px 0}
 #adminDashboard.admin-menu-visible #adminMenuShade{display:block}
 #adminDashboard.admin-menu-visible #adminMenuDrawer{transform:translateX(0)}
-#adminDashboard #adminMenuDrawer .admin-fold{display:block!important;margin:9px 0!important}
-#adminDashboard #adminMenuDrawer .admin-fold>summary{display:flex!important}
-#adminDashboard #adminMenuDrawer .admin-fold-body{display:block}
-#adminDashboard #adminMenuDrawer .admin-fold[open] .admin-fold-body{display:block}
-#adminDashboard #adminMenuDrawer .admin-fold:not([open]) .admin-fold-body{display:none}
-#adminDashboard #adminMenuDrawer .admin-fold-body>*{max-width:100%}
-#adminDashboard #adminMenuDrawer .admin-toolbar{display:flex;flex-wrap:wrap}
-#adminDashboard #adminMenuDrawer .admin-toolbar input{min-width:100%}
-#adminDashboard #adminMenuDrawer .admin-stats{display:grid!important}
-#adminDashboard #adminMenuDrawer .admin-fields{display:grid}
-#adminDashboard #adminMenuDrawer .admin-table-wrap{overflow:auto}
-#adminDashboard #adminMenuDrawer .admin-editor{margin:8px 0}
-#adminDashboard .admin-home-note{padding:30px 18px;background:#fff;border:1px solid #f1dce8;border-radius:16px;text-align:center;color:#777;margin-top:16px}
+#adminDashboard #adminMenuDrawer .menu-top{display:flex;justify-content:space-between;align-items:center;padding:4px 8px 16px;color:#9699a3;font-size:11px;font-weight:800;letter-spacing:1.1px}
+#adminDashboard #adminMenuDrawer #adminMenuClose{border:0;background:#f5f5f7;color:#555;border-radius:50%;width:34px;height:34px;font-size:23px;line-height:1}
+#adminDashboard #adminMenuDrawer .menu-caption{padding:24px 9px 10px;color:#9699a3;font-size:11px;font-weight:800;letter-spacing:1px}
+#adminDashboard #adminMenuDrawer .admin-main-nav{display:grid;gap:5px}
+#adminDashboard #adminMenuDrawer .admin-main-nav button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:0;background:transparent;color:#555c6b;border-radius:12px;padding:15px 12px;font-size:17px;font-weight:800}
+#adminDashboard #adminMenuDrawer .admin-main-nav button span{font-size:16px}
+#adminDashboard #adminMenuDrawer .admin-main-nav button.active{background:#fce7f3;color:#c51b78}
+#adminDashboard>details.admin-fold{margin:12px 0;background:#fff;border:1px solid #f0d9e6;border-radius:14px;padding:0 12px 12px}
+#adminDashboard>details.admin-fold[open]>summary{padding:14px 4px;color:#c51b78;font-weight:800;border-bottom:1px solid #f5e8ef;margin-bottom:10px}
+#adminDashboard>details.admin-fold .admin-fold-body{padding:4px 0}
+#adminDashboard .admin-home-note{display:none!important}
+@media(max-width:600px){#adminDashboard #adminMenuDrawer{width:min(335px,84vw);padding-top:26px}}
 </style>
 <script id="admin-hamburger-menu">
 (function(){
 function setup(){
- const dash=document.getElementById('adminDashboard'),head=dash?.querySelector('.dashboard-head');
- if(!dash||!head||dash.dataset.hamburgerReady==='1'||dash.dataset.compact!=='1')return;
+ const dash=document.getElementById('adminDashboard');
+ if(!dash||dash.dataset.hamburgerReady==='1'||dash.dataset.compact!=='1')return;
  dash.dataset.hamburgerReady='1';
  const folds=[...dash.querySelectorAll(':scope > details.admin-fold')];
+ const findFold=selector=>{const el=dash.querySelector(selector);return el?.closest('details.admin-fold')||null};
+ const groups={
+  records:[...new Set([findFold('#adminSearch'),findFold('#parcelEditor'),findFold('.admin-table-wrap'),findFold('#adminNotice')].filter(Boolean))],
+  stats:[findFold('.admin-stats')].filter(Boolean),
+  branch:[findFold('#newBranchName')].filter(Boolean),
+  pre:[findFold('#preRegAdminRows')].filter(Boolean),
+  settings:[findFold('#settingKg')].filter(Boolean),
+  bulk:[findFold('#bulkTrackingCodes')].filter(Boolean)
+ };
+ folds.forEach(f=>{f.open=false;f.style.display='none';dash.appendChild(f)});
  const shade=document.createElement('div');shade.id='adminMenuShade';
- const drawer=document.createElement('aside');drawer.id='adminMenuDrawer';drawer.setAttribute('aria-label','Админ удирдлагын цэс');
- drawer.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 14px"><strong style="font-size:19px;color:#211820">☰ Үндсэн цэс</strong><button type="button" id="adminMenuClose" class="logout">✕ Хаах</button></div>';
- folds.forEach(f=>drawer.appendChild(f));
+ const drawer=document.createElement('aside');drawer.id='adminMenuDrawer';drawer.setAttribute('aria-label','Үндсэн цэс');
+ drawer.innerHTML='<div class="menu-top"><span>ҮНДСЭН ЦЭС</span><button type="button" id="adminMenuClose" aria-label="Цэс хаах">×</button></div><nav class="admin-main-nav"><button type="button" data-section="records">📦 <span>Ачааны бүртгэл</span></button><button type="button" data-section="stats">📊 <span>Статистик</span></button></nav><div class="menu-caption">УДИРДЛАГА</div><nav class="admin-main-nav"><button type="button" data-section="branch">🏢 <span>Салбар удирдах</span></button><button type="button" data-section="pre">📥 <span>Урьдчилсан бүртгэл</span></button><button type="button" data-section="settings">⚙️ <span>Үнэ ба тохиргоо</span></button><button type="button" data-section="bulk">📦 <span>Бөөнөөр Эрээнд</span></button></nav>';
  dash.append(shade,drawer);
  function close(){dash.classList.remove('admin-menu-visible')}
- dash.querySelector('#adminMenuOpen')?.addEventListener('click',()=>dash.classList.add('admin-menu-visible'));
- drawer.querySelector('#adminMenuClose')?.addEventListener('click',close);
+ function openMenu(){dash.classList.add('admin-menu-visible')}
+ dash.querySelector('#adminMenuOpen')?.addEventListener('click',openMenu);
+ drawer.querySelector('#adminMenuClose').addEventListener('click',close);
  shade.addEventListener('click',close);
- drawer.querySelectorAll('details.admin-fold>summary').forEach(sum=>sum.addEventListener('click',()=>{const f=sum.parentElement;setTimeout(()=>{if(f.open)f.scrollIntoView({block:'nearest',behavior:'smooth'})},30)}));
+ drawer.querySelectorAll('[data-section]').forEach(btn=>btn.addEventListener('click',()=>{
+  const key=btn.dataset.section;
+  drawer.querySelectorAll('[data-section]').forEach(x=>x.classList.toggle('active',x===btn));
+  folds.forEach(f=>{f.open=false;f.style.display='none'});
+  (groups[key]||[]).forEach(f=>{f.style.display='block';f.open=true});
+  close();
+  const first=(groups[key]||[])[0];
+  if(first)setTimeout(()=>first.scrollIntoView({behavior:'smooth',block:'start'}),180);
+ }));
  document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
 }
 const run=()=>{setup();if(!document.getElementById('adminDashboard')?.dataset.hamburgerReady)setTimeout(setup,250)};
