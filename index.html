@@ -176,8 +176,8 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
   <div id="scanNotice" class="message"></div>
   <div class="admin-actions parcel-editor-actions"><button class="logout" onclick="cancelParcelForm()">Цуцлах</button><button class="primary" onclick="saveParcel()">Хадгалах</button></div>
  </div>
- <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th><input id="selectAllHandover" type="checkbox" aria-label="Бүгдийг сонгох" onchange="toggleAllHandover(this.checked)"></th><th>Салбар</th><th>Трак код</th><th>Нэр / утас</th><th>Төлөв</th><th>Жин</th><th>Үнэ</th><th>Үйлдэл</th></tr></thead><tbody id="adminParcelRows"><tr><td colspan="6">Ачаа ачаалж байна...</td></tr></tbody></table></div>
- <div id="adminCount" class="muted"></div>
+ <section id="adminParcelCards" class="admin-parcel-cards"><div class="admin-list-head"><span id="adminCount">Ачаа ачаалж байна...</span><button type="button" onclick="toggleAllHandover(true)">☑ Бүгдийг сонгох</button></div><div id="adminParcelRows"><div class="parcel-list-empty">Ачаа ачаалж байна...</div></div></section>
+ 
 </section>
 </main>
 <footer id="pageFooter">© Тэнхлүүн Карго</footer>
@@ -987,7 +987,7 @@ new MutationObserver(()=>run()).observe(document.documentElement,{subtree:true,a
 #adminDashboard #editStatus{display:none!important}
 @media(max-width:600px){#adminDashboard .parcel-phone-group{padding:12px!important}#adminDashboard .tracking-price-row{grid-template-columns:minmax(0,1fr) minmax(90px,42%)!important}}
 </style>
-<div id="bulkHandoverBar" aria-live="polite"><div class="bh-total">Нийт дүн: <b id="bhTotal">0₮</b></div><div class="bh-actions"><b id="bhCount">0 сонгосон</b><button type="button" onclick="clearHandoverSelection()">✕ Цэвэрлэх</button><button type="button" class="bh-primary" onclick="openBulkHandover()">Хүлээлгэж өгөх</button></div></div>
+<div id="bulkHandoverBar" aria-live="polite"><div class="bh-total">Нийт дүн: <b id="bhTotal">0₮</b></div><div class="bh-countline"><b id="bhCount">0 сонгосон</b><button type="button" onclick="clearHandoverSelection()">✕ Цэвэрлэх</button></div><div class="bh-actions"><button type="button" onclick="changeSelectedPhones()">Утас өөрчлөх</button><button type="button" onclick="openBulkHandover()">Төлбөр</button><button type="button" class="bh-primary" onclick="openBulkHandover()">Хүлээлгэж өгөх</button><button type="button" class="bh-danger" onclick="deleteSelectedParcels()">Устгах</button></div></div>
 <div id="bulkHandoverModal" role="dialog" aria-modal="true" aria-labelledby="bhTitle"><div class="bh-dialog"><h2 id="bhTitle">Сонгосон ачааг хүлээлгэж өгөх</h2><p id="bhSummary"></p><label class="bh-label" for="bhDate">Огноо</label><input id="bhDate" type="date"><div class="bh-label">Төлбөрийн хэрэгсэл</div><div class="bh-methods"><label><input type="radio" name="bhMethod" value="cash"> Бэлэн</label><label><input type="radio" name="bhMethod" value="card"> Карт</label><label><input type="radio" name="bhMethod" value="transfer"> Данс</label><label><input type="radio" name="bhMethod" value="qpay"> QPay</label></div><label class="bh-label" for="bhStaff">Хүлээлгэн өгсөн ажилтан (заавал биш)</label><input id="bhStaff" placeholder="Ажилтны нэр"><div id="bhError" role="alert"></div><div class="bh-modal-actions"><button type="button" onclick="closeBulkHandover()">Хаах</button><button type="button" class="bh-primary" id="bhSubmit" onclick="submitBulkHandover()">Хүлээлгэж өгөх</button></div></div></div>
 <style id="bulk-handover-ui">
 #bulkHandoverBar{display:none;position:fixed;z-index:9000;left:0;right:0;bottom:0;background:#fff;padding:14px 18px calc(16px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;box-shadow:0 -8px 32px #24152b24}
@@ -1014,11 +1014,65 @@ function updateHandoverBar(){const rows=selectedHandoverParcels(),sum=rows.reduc
 function toggleHandover(id,checked){if(checked)selectedHandoverIds.add(String(id));else selectedHandoverIds.delete(String(id));updateHandoverBar()}
 function toggleAllHandover(checked){currentHandoverRows.filter(p=>classifyStatus(p.parcel_status)==="mongolia").forEach(p=>checked?selectedHandoverIds.add(String(p.id)):selectedHandoverIds.delete(String(p.id)));renderAdminRows(currentHandoverRows)}
 function clearHandoverSelection(){selectedHandoverIds.clear();renderAdminRows(currentHandoverRows)}
+function changeSelectedPhones(){
+ const rows=selectedHandoverParcels();if(!rows.length){alert("Монголд ирсэн ачаанаас сонгоно уу.");return}
+ const phone=cleanPhone(prompt(rows.length+" ачааны утасны дугаарыг шинэчлэх:")||"");
+ if(phone.length!==8){alert("8 оронтой утасны дугаар оруулна уу.");return}
+ if(!confirm(rows.length+" ачааны утсыг "+phone+" болгон өөрчлөх үү?"))return;
+ (async()=>{try{const ids=rows.map(p=>p.id);const {error}=await db.from("parcels").update({customer_phone:phone,phone:phone}).in("id",ids);if(error)throw error;selectedHandoverIds.clear();await loadAdminParcels();showMessage("adminNotice","Утасны дугаарыг шинэчиллээ.")}catch(e){alert("Утас өөрчлөхөд алдаа: "+(e.message||e))}})();
+}
+async function deleteSelectedParcels(){
+ const rows=selectedHandoverParcels();if(!rows.length){alert("Устгах ачаагаа сонгоно уу.");return}
+ if(!confirm("Сонгосон "+rows.length+" ачааг устгах уу? Энэ үйлдлийг буцаах боломжгүй."))return;
+ try{const {error}=await db.from("parcels").delete().in("id",rows.map(p=>p.id));if(error)throw error;selectedHandoverIds.clear();await loadAdminParcels();showMessage("adminNotice","Сонгосон ачааг устгалаа.")}catch(e){alert("Устгах алдаа: "+(e.message||e))}
+}
 function openBulkHandover(){const rows=selectedHandoverParcels();if(!rows.length){alert("Монголд ирсэн ачаанаас сонгоно уу.");return}const sum=rows.reduce((n,p)=>n+Number(p.price_mnt||0),0);document.getElementById("bhSummary").textContent=rows.length+" ачаа · Нийт "+sum.toLocaleString("mn-MN")+"₮";document.getElementById("bhDate").value=new Date().toLocaleDateString("en-CA");document.querySelectorAll('input[name="bhMethod"]').forEach(x=>x.checked=false);document.getElementById("bhStaff").value="";document.getElementById("bhError").textContent="";document.getElementById("bulkHandoverModal").style.display="flex"}
 function closeBulkHandover(){document.getElementById("bulkHandoverModal").style.display="none"}
 async function submitBulkHandover(){const rows=selectedHandoverParcels(),ids=rows.map(p=>p.id),method=document.querySelector('input[name="bhMethod"]:checked')?.value,date=document.getElementById("bhDate").value,staff=document.getElementById("bhStaff").value.trim(),err=document.getElementById("bhError"),btn=document.getElementById("bhSubmit");if(!rows.length){err.textContent="Ачаа сонгоно уу.";return}if(!method){err.textContent="Төлбөрийн хэрэгслээ сонгоно уу.";return}if(!date){err.textContent="Огноо сонгоно уу.";return}btn.disabled=true;btn.textContent="Хадгалж байна...";try{let receivedBy=staff;if(!receivedBy){const {data}=await db.auth.getUser();receivedBy=data?.user?.email||"Админ"}const paidAt=new Date(date+"T"+new Date().toTimeString().slice(0,8)).toISOString();const {data,error}=await db.from("parcels").update({parcel_status:"received",paid_at:paidAt,payment_method:method,received_by:receivedBy}).in("id",ids).select("id");if(error)throw error;const done=new Set((data||[]).map(x=>String(x.id)));if(done.size!==ids.length)throw new Error("Сонгосон "+ids.length+" ачаанаас "+done.size+" нь шинэчлэгдлээ. Админы эрх/RLS тохиргоог шалгана уу.");selectedHandoverIds.clear();closeBulkHandover();await loadAdminParcels();showMessage("adminNotice","✅ "+done.size+" ачааг хүлээлгэн өгч, төлбөрийн хэлбэрийг хадгаллаа.")}catch(e){err.textContent="Хадгалах алдаа: "+(e.message||e)}finally{btn.disabled=false;btn.textContent="Хүлээлгэж өгөх"}}
-function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа одоогоор алга."){currentHandoverRows=rows;updateAdminStats();const body=document.getElementById("adminParcelRows");if(!rows.length){body.innerHTML='<tr><td colspan="8">'+escapeHTML(emptyText)+'</td></tr>'}else body.innerHTML=rows.map(p=>{const status=classifyStatus(p.parcel_status),id=String(p.id),checked=selectedHandoverIds.has(id),action=status==="mongolia"?'<span class="status-admin">Монголд ирсэн</span>':status==="received"?'<b>✓ Хүлээлгэн өгсөн</b>':'<small>Эрээнд / бүртгэлтэй</small>';return '<tr><td>'+(status==="mongolia"?'<input class="handover-pick" type="checkbox" '+(checked?'checked':'')+' onchange="toggleHandover(\''+id.replace(/'/g,"\\'")+'\',this.checked)" aria-label="Ачаа сонгох">':'—')+'</td><td>'+escapeHTML(adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name||"-")+'</td><td><b>'+escapeHTML(p.tracking_code||"-")+'</b></td><td>'+escapeHTML(p.customer_name||p.name||"-")+'<br><small>'+escapeHTML(p.customer_phone||p.phone||"-")+'</small></td><td><span class="status-admin">'+adminStatusLabel(status)+'</span></td><td>'+escapeHTML(p.weight_kg??"-")+' кг</td><td>'+escapeHTML(p.price_mnt??"-")+' ₮</td><td>'+(status==="mongolia"?'<button class="primary" onclick="toggleHandover(\''+id.replace(/'/g,"\\'")+'\',true);openBulkHandover()">Хүлээлгэж өгөх</button>':status==="received"?'<b>✓ Хүлээлгэн өгсөн</b>':'<small>Монголд ирсний дараа хүлээлгэн өгнө</small>')+' <button class="edit-btn" onclick="editParcel(\''+id.replace(/'/g,"\\'")+'\')">Засах</button><button class="delete-btn" onclick="deleteParcel(\''+id.replace(/'/g,"\\'")+'\')">Устгах</button></td></tr>'}).join("");document.getElementById("adminCount").textContent="Хайлтын үр дүн: "+rows.length+" ачаа";updateHandoverBar();const all=currentHandoverRows.filter(p=>classifyStatus(p.parcel_status)==="mongolia");const sel=document.getElementById("selectAllHandover");if(sel)sel.checked=all.length>0&&all.every(p=>selectedHandoverIds.has(String(p.id)))}
+function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа одоогоор алга."){
+ currentHandoverRows=rows;updateAdminStats();
+ const body=document.getElementById("adminParcelRows");
+ if(!rows.length){body.innerHTML='<div class="parcel-list-empty">'+escapeHTML(emptyText)+'</div>'}
+ else body.innerHTML=rows.map((p,index)=>{
+  const status=classifyStatus(p.parcel_status),id=String(p.id),safe=id.replace(/\\/g,"\\\\").replace(/'/g,"\\'"),checked=selectedHandoverIds.has(id);
+  const phone=p.customer_phone||p.phone||"-",name=p.customer_name||p.name||"-",branch=adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name||"-";
+  return '<article class="parcel-list-card '+(checked?'is-selected':'')+'"><div class="parcel-card-top"><label class="parcel-check"><input type="checkbox" '+(status==="mongolia"?'':'disabled ')+(checked?'checked ':'')+'onchange="toggleHandover(\''+safe+'\',this.checked)"><span>'+(index+1)+'</span></label><div class="parcel-customer"><b>'+escapeHTML(name)+'</b><strong>'+escapeHTML(phone)+'</strong></div><b class="parcel-price">'+Number(p.price_mnt||0).toLocaleString("mn-MN")+' ₮</b></div><div class="parcel-card-code">'+escapeHTML(p.tracking_code||"-")+'</div><div class="parcel-card-meta"><span>'+escapeHTML(branch)+'</span><span>'+escapeHTML(adminStatusLabel(status))+'</span><span>'+escapeHTML(p.weight_kg??"-")+' кг</span></div><div class="parcel-card-actions"><button type="button" onclick="editParcel(\''+safe+'\')">✎ Засах</button><button type="button" class="parcel-delete" onclick="deleteParcel(\''+safe+'\')">Устгах</button></div></article>';
+ }).join("");
+ const count=document.getElementById("adminCount");if(count)count.textContent="Нийт: "+rows.length;
+ updateHandoverBar();
+}
 </script>
+<style id="mazaalai-parcel-list-style">
+#adminDashboard .admin-parcel-cards{background:#fff;border:1px solid #eee;border-radius:16px;overflow:hidden;margin:12px 0 110px}
+#adminDashboard .admin-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 16px;border-bottom:1px solid #eee;color:#888;font-weight:700}
+#adminDashboard .admin-list-head button{background:#fff;border:1px solid #ddd;border-radius:9px;padding:8px 12px;font-weight:700;color:#29212b}
+#adminDashboard #adminParcelRows{display:block}
+#adminDashboard .parcel-list-empty{padding:30px 16px;text-align:center;color:#888}
+#adminDashboard .parcel-list-card{background:#fff;padding:16px 14px 12px;border-bottom:1px solid #edf0f3;border-left:5px solid #4b86ef}
+#adminDashboard .parcel-list-card.is-selected{background:#fffafd}
+#adminDashboard .parcel-card-top{display:flex;align-items:center;gap:10px;min-width:0}
+#adminDashboard .parcel-check{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+#adminDashboard .parcel-check input{width:23px;height:23px;accent-color:#d9a83f}
+#adminDashboard .parcel-check span{display:none}
+#adminDashboard .parcel-customer{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;color:#3479e8}
+#adminDashboard .parcel-customer b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#adminDashboard .parcel-customer strong{font-size:17px}
+#adminDashboard .parcel-price{font-size:18px;white-space:nowrap;color:#211820}
+#adminDashboard .parcel-card-code{margin:12px 0 8px 34px;font-size:17px;font-weight:700;overflow-wrap:anywhere;color:#29212b}
+#adminDashboard .parcel-card-meta{display:flex;gap:7px;flex-wrap:wrap;margin-left:34px}
+#adminDashboard .parcel-card-meta span{background:#eaf3ff;color:#3479e8;border-radius:7px;padding:5px 9px;font-size:12px;font-weight:700}
+#adminDashboard .parcel-card-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:9px}
+#adminDashboard .parcel-card-actions button{background:#fff;border:1px solid #ddd;border-radius:20px;padding:6px 12px;font-weight:700}
+#adminDashboard .parcel-card-actions .parcel-delete{color:#d44b4b}
+#bulkHandoverBar{padding:14px 16px calc(16px + env(safe-area-inset-bottom))!important}
+#bulkHandoverBar .bh-total{font-size:17px;color:#65b83b!important}
+#bulkHandoverBar .bh-countline{display:flex;justify-content:space-between;align-items:center;margin:8px 0 12px;font-weight:800}
+#bulkHandoverBar .bh-countline button{border:0;background:transparent;padding:6px;font-weight:700}
+#bulkHandoverBar .bh-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important}
+#bulkHandoverBar .bh-actions button{padding:11px 8px!important;font-size:14px!important}
+#bulkHandoverBar .bh-actions .bh-danger{color:#e04b4b}
+@media(min-width:700px){#adminDashboard .parcel-list-card{padding:18px 22px}#adminDashboard .parcel-card-code{font-size:19px}}
+</style>
 </body>
 </html>
 <style>
