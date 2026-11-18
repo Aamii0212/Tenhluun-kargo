@@ -200,12 +200,11 @@ async function submitPreRegistration(){
  if(phone.length!==8||!tracking){showMessage("preRegMessage","Нэвтэрсэн утасны дугаар эсвэл трак код буруу байна.");return}
  const btn=document.querySelector('button[onclick="submitPreRegistration()"]');btn.disabled=true;btn.textContent="БҮРТГЭЖ БАЙНА...";
  try{
-  // Төлөвөөс үл хамааран өмнө бүртгэгдсэн бүх хүсэлт болон ачаанаас шалгана.
-  const {data:dupe,error:de}=await db.from("customer_pre_registrations").select("id,tracking_code").ilike("tracking_code",tracking).limit(1);
-  if(de)throw de;
+  // Нууцлалын үүднээс anon хэрэглэгчид бусдын урьдчилсан бүртгэлийг SELECT хийхгүй.
+  // Өмнө нь ачааны үндсэн хүснэгтэд бүртгэгдсэн эсэхийг шалгана.
   const {data:existing,error:ee}=await db.from("parcels").select("id,tracking_code").ilike("tracking_code",tracking).limit(1);
   if(ee)throw ee;
-  if(dupe?.length||existing?.length){showMessage("preRegMessage","⚠️ "+tracking+" трак код өмнө нь бүртгэгдсэн байна. Давхар бүртгэх боломжгүй.");return}
+  if(existing?.length){showMessage("preRegMessage","⚠️ "+tracking+" трак код өмнө нь ачаанд бүртгэгдсэн байна. Давхар бүртгэх боломжгүй.");return}
   const {error}=await db.from("customer_pre_registrations").insert({customer_phone:phone,tracking_code:tracking,description:description||null,status:"pending"});
   if(error){if(error.code==="23505"||/duplicate|already exists/i.test(error.message||""))throw new Error("Энэ трак код өмнө нь бүртгэгдсэн байна. Давхар бүртгэх боломжгүй.");throw error}
   showMessage("preRegMessage","✅ Бүртгүүлсэн. Энэ трак кодыг дахин бүртгэх боломжгүй.");
