@@ -581,7 +581,7 @@ async function scanTracking(button){
  modal.style="position:fixed;inset:0;background:#090909;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:calc(env(safe-area-inset-top,0px) + 14px) 12px calc(env(safe-area-inset-bottom,0px) + 18px);color:white;overflow:auto";
  const head=document.createElement("div");head.textContent="Баркодоо хүрээнд тааруулна уу";head.style="font-size:18px;font-weight:800;margin:10px 0 5px;text-align:center;line-height:1.35";
  const hint=document.createElement("div");hint.textContent="EAN-13 · UPC · CODE-128 · QR";hint.style="font-size:13px;color:#f4c5df;margin-bottom:12px;text-align:center";
- const readerBox=document.createElement("div");readerBox.id="adminBarcodeReader";readerBox.style="width:100%;max-width:620px;min-height:240px;overflow:hidden;border-radius:14px;background:#111";
+ const readerBox=document.createElement("div");readerBox.id="adminBarcodeReader";readerBox.style="width:100%;max-width:none;height:68vh;min-height:420px;overflow:hidden;border-radius:14px;background:#111;display:flex;align-items:center;justify-content:center";
  const status=document.createElement("div");status.textContent="Кодыг камерын төвд ойртуулж, фокус таартал тогтооно уу";status.style="font-size:14px;color:#f4c5df;text-align:center;max-width:560px;margin:10px 0 5px;line-height:1.4";
  const count=document.createElement("div");count.textContent="Уншсан код: 0";count.style="font-size:14px;color:#fff;font-weight:800;margin:3px 0 10px";
  const controls=document.createElement("div");controls.style="display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;width:100%";
@@ -598,7 +598,7 @@ async function scanTracking(button){
  try{
   const formats=window.Html5QrcodeSupportedFormats;
   const wanted=formats?[formats.EAN_13,formats.EAN_8,formats.UPC_A,formats.UPC_E,formats.CODE_128,formats.CODE_39,formats.ITF,formats.CODABAR,formats.QR_CODE].filter(x=>x!==undefined):undefined;
-  const config={fps:24,aspectRatio:1.7777778,qrbox:(viewWidth,viewHeight)=>({width:Math.floor(Math.min(viewWidth*.96,560)),height:Math.floor(Math.min(viewHeight*.58,260))}),disableFlip:false,experimentalFeatures:{useBarCodeDetectorIfSupported:true},videoConstraints:{facingMode:"environment",width:{ideal:1920},height:{ideal:1080}}};
+  const config={fps:24,disableFlip:false,experimentalFeatures:{useBarCodeDetectorIfSupported:true},videoConstraints:{facingMode:"environment",width:{ideal:1920},height:{ideal:1080}}};
   if(wanted?.length)config.formatsToSupport=wanted;
   scanner=new Html5Qrcode("adminBarcodeReader",wanted?.length?{formatsToSupport:wanted,verbose:false}:{verbose:false});
   const startPromise=scanner.start({facingMode:"environment",width:{ideal:1920},height:{ideal:1080}},config,async(decodedText)=>{
@@ -1015,4 +1015,13 @@ new MutationObserver(()=>run()).observe(document.documentElement,{subtree:true,a
  #adminDashboard .parcel-field label{font-size:11px}
  #adminDashboard .parcel-phone-input,#adminDashboard .parcel-note-input{font-size:12px!important}
 }
+</style>
+
+<style>
+/* Use the entire live camera preview as the barcode scan area */
+#adminBarcodeReader{width:100%!important;max-width:none!important;height:68vh!important;min-height:420px!important;overflow:hidden!important;border-radius:12px!important;background:#080808!important}
+#adminBarcodeReader video{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain!important}
+#adminBarcodeReader canvas{max-width:100%!important}
+#adminBarcodeReader__scan_region{width:100%!important;min-height:100%!important}
+@media(max-height:700px){#adminBarcodeReader{height:62vh!important;min-height:300px!important}}
 </style>
