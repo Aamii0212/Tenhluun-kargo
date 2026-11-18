@@ -763,5 +763,94 @@ else{let z=await db.from('parcels').insert({tracking_code:code,customer_phone:re
 if(pr.data?.length){let a=await db.from('customer_pre_registrations').update({status:'approved',reviewed_at:new Date().toISOString(),admin_note:'Монголд ирсэн ачаатай автоматаар холбосон'}).eq('tracking_code',code).eq('status','pending');if(a.error)err.push(code+' хэрэглэгч холбох: '+a.error.message);else linked+=pr.data.length}
 }}
 if(!n&&!u){msg.textContent='❌ Хадгалсангүй. '+err.join(' | ');return}msg.textContent='✅ Монголд ирсэн: '+(n+u)+' ачаа (шинэ '+n+', шинэчилсэн '+u+'), хэрэглэгчтэй холбосон '+linked+(err.length?' | Алдаа: '+err.join(' | '):'');await loadAdminParcels();await loadPreRegistrations();setTimeout(scanRegClose,1800)}
-</script><style id="phone-border-pink-hardfix-v2">html body #scanReg #srPhones section input.srTel{-webkit-appearance:none!important;appearance:none!important;border:2px solid #e83e9b!important;border-color:#e83e9b!important;outline:0!important;box-shadow:inset 0 0 0 1px #e83e9b!important;background:#fff!important}html body #scanReg #srPhones section input.srTel:focus{border:2px solid #e83e9b!important;box-shadow:0 0 0 2px #f8c5e2!important}</style><script id="sidebar-search-cleanup">document.addEventListener("DOMContentLoaded",()=>{const b=[...document.querySelectorAll("#adminSidebar .side-link")].find(x=>x.textContent.includes("Ачаа хайх"));if(b)b.addEventListener("click",()=>setTimeout(()=>{const i=document.getElementById("adminSearch");if(i){i.focus();i.scrollIntoView({behavior:"smooth",block:"center"})}},80))});</script></body>
+</script><style id="phone-border-pink-hardfix-v2">html body #scanReg #srPhones section input.srTel{-webkit-appearance:none!important;appearance:none!important;border:2px solid #e83e9b!important;border-color:#e83e9b!important;outline:0!important;box-shadow:inset 0 0 0 1px #e83e9b!important;background:#fff!important}html body #scanReg #srPhones section input.srTel:focus{border:2px solid #e83e9b!important;box-shadow:0 0 0 2px #f8c5e2!important}</style><script id="sidebar-search-cleanup">document.addEventListener("DOMContentLoaded",()=>{const b=[...document.querySelectorAll("#adminSidebar .side-link")].find(x=>x.textContent.includes("Ачаа хайх"));if(b)b.addEventListener("click",()=>setTimeout(()=>{const i=document.getElementById("adminSearch");if(i){i.focus();i.scrollIntoView({behavior:"smooth",block:"center"})}},80))});</script>
+<div id="bulkHandoverBar" aria-live="polite"><div class="bh-total">Нийт дүн: <b id="bhTotal">0₮</b></div><div class="bh-actions"><b id="bhCount">0 сонгосон</b><button type="button" onclick="clearHandoverSelection()">✕ Цэвэрлэх</button><button type="button" class="bh-primary" onclick="openBulkHandover()">Хүлээлгэж өгөх</button></div></div>
+<div id="bulkHandoverModal" role="dialog" aria-modal="true" aria-labelledby="bhTitle"><div class="bh-dialog"><h2 id="bhTitle">Сонгосон ачааг хүлээлгэж өгөх</h2><p id="bhSummary"></p><label class="bh-label" for="bhDate">Огноо</label><input id="bhDate" type="date"><div class="bh-label">Төлбөрийн хэрэгсэл</div><div class="bh-methods"><label><input type="radio" name="bhMethod" value="cash"> Бэлэн</label><label><input type="radio" name="bhMethod" value="card"> Карт</label><label><input type="radio" name="bhMethod" value="transfer"> Данс</label><label><input type="radio" name="bhMethod" value="qpay"> QPay</label></div><label class="bh-label" for="bhStaff">Хүлээлгэн өгсөн ажилтан (заавал биш)</label><input id="bhStaff" placeholder="Ажилтны нэр"><div id="bhError" role="alert"></div><div class="bh-modal-actions"><button type="button" onclick="closeBulkHandover()">Хаах</button><button type="button" class="bh-primary" id="bhSubmit" onclick="submitBulkHandover()">Хүлээлгэж өгөх</button></div></div></div>
+<style id="bulk-handover-ui">
+#bulkHandoverBar{display:none;position:fixed;z-index:9000;left:0;right:0;bottom:0;background:#fff;padding:14px 18px calc(16px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;box-shadow:0 -8px 32px #24152b24}
+#bulkHandoverBar .bh-total{font-size:17px;font-weight:800;color:#64b833;margin-bottom:9px}
+#bulkHandoverBar .bh-total b{font-size:23px}
+#bulkHandoverBar .bh-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#bulkHandoverBar button,#bulkHandoverModal button{border:1px solid #ddd;border-radius:10px;background:#fff;padding:10px 14px;font:inherit;font-weight:700}
+#bulkHandoverBar .bh-primary,#bulkHandoverModal .bh-primary{background:#e8b94f;color:#fff;border-color:#e8b94f}
+#bulkHandoverModal{display:none;position:fixed;z-index:9100;inset:0;background:#0008;align-items:center;justify-content:center;padding:16px}
+#bulkHandoverModal .bh-dialog{background:#fff;border-radius:16px;padding:20px;width:min(100%,560px);max-height:90vh;overflow:auto;box-shadow:0 12px 40px #0003}
+#bulkHandoverModal h2{margin:0 0 10px;font-size:21px}
+#bulkHandoverModal input[type=date],#bulkHandoverModal input[type=text],#bulkHandoverModal input:not([type]){box-sizing:border-box;width:100%;padding:12px;border:1px solid #ddd;border-radius:9px;font:inherit;margin:7px 0 14px}
+#bulkHandoverModal .bh-label{display:block;font-weight:800;margin:12px 0 5px}
+#bulkHandoverModal .bh-methods{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:10px 0 18px}
+#bulkHandoverModal .bh-methods label{display:flex;align-items:center;gap:8px;font-size:17px}
+#bulkHandoverModal .bh-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+#bulkHandoverModal #bhError{color:#c02d75;font-weight:700}
+#adminParcelRows .record-select-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#fff;border-bottom:1px solid #eee;color:#777}
+#adminParcelRows .record-select-head button{background:#fff;border:1px solid #ddd;border-radius:9px;padding:7px 12px;font:inherit;font-weight:700}
+#adminParcelRows .record-pick{width:23px;height:23px;accent-color:#e8b94f;flex:0 0 23px}
+#adminParcelRows .record-index{display:inline-flex;align-items:center;justify-content:center}
+#adminParcelRows .record-card{position:relative}
+@media(max-width:520px){#bulkHandoverBar .bh-actions{justify-content:space-between}#bulkHandoverBar button{padding:9px 10px;font-size:14px}}
+</style>
+<script id="bulk-handover-logic">
+let selectedHandoverIds = new Set();
+function handoverSelectedParcels(){return adminParcels.filter(p=>selectedHandoverIds.has(String(p.id))&&classifyStatus(p.parcel_status)!=="received")}
+function updateHandoverBar(){
+ const rows=handoverSelectedParcels(),sum=rows.reduce((n,p)=>n+Number(p.price_mnt||0),0),bar=document.getElementById("bulkHandoverBar");
+ document.getElementById("bhTotal").textContent=sum.toLocaleString("mn-MN")+"₮";
+ document.getElementById("bhCount").textContent=rows.length+" сонгосон";
+ bar.style.display=rows.length?"block":"none";
+}
+function toggleParcelSelection(id,checked){if(checked)selectedHandoverIds.add(String(id));else selectedHandoverIds.delete(String(id));updateHandoverBar()}
+function clearHandoverSelection(){selectedHandoverIds.clear();renderAdminRows(adminParcels.filter(p=>{const q=document.getElementById("adminSearch")?.value.trim().toLowerCase()||"";return !q||[p.tracking_code,p.customer_name,p.name,p.customer_phone,p.phone].some(v=>String(v||"").toLowerCase().includes(q))}));updateHandoverBar()}
+function selectVisibleHandoverRows(){
+ const visible=uniqueAdminParcels(adminParcels.filter(p=>classifyStatus(p.parcel_status)!=="received"));
+ const allSelected=visible.length>0&&visible.every(p=>selectedHandoverIds.has(String(p.id)));
+ visible.forEach(p=>allSelected?selectedHandoverIds.delete(String(p.id)):selectedHandoverIds.add(String(p.id)));
+ renderAdminRows(adminParcels.filter(p=>{const q=document.getElementById("adminSearch")?.value.trim().toLowerCase()||"";return !q||[p.tracking_code,p.customer_name,p.name,p.customer_phone,p.phone].some(v=>String(v||"").toLowerCase().includes(q))}));
+}
+function renderAdminRows(rows){
+ rows=uniqueAdminParcels(rows).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));updateAdminStats();
+ const body=document.getElementById("adminParcelRows");
+ const selectable=rows.filter(p=>classifyStatus(p.parcel_status)!=="received");
+ const allSelected=selectable.length>0&&selectable.every(p=>selectedHandoverIds.has(String(p.id)));
+ const head='<div class="record-select-head"><span>Нийт: '+rows.length+'</span><button type="button" onclick="selectVisibleHandoverRows()">'+(allSelected?'☑ Сонголт цуцлах':'☑ Бүгдийг сонгох')+'</button></div>';
+ if(!rows.length){body.innerHTML='<div class="empty">Бүртгэлтэй ачаа алга.</div>'}
+ else body.innerHTML=head+rows.map((p,i)=>{
+  const id=String(p.id),received=classifyStatus(p.parcel_status)==="received",checked=selectedHandoverIds.has(id);
+  return '<article class="record-card"><div class="record-line">'+(received?'<span class="record-index">'+(i+1)+'</span>':'<input class="record-pick" type="checkbox" aria-label="Ачаа сонгох" '+(checked?'checked':'')+' onchange="toggleParcelSelection(\''+id.replace(/'/g,"\\'")+'\',this.checked)">')+'<div class="record-person"><b>'+escapeHTML(p.customer_name||p.name||"Харилцагч")+'</b><a href="tel:'+escapeHTML(p.customer_phone||p.phone||"")+'">'+escapeHTML(p.customer_phone||p.phone||"-")+'</a></div><strong class="record-price">'+Number(p.price_mnt||0).toLocaleString()+" ₮"+'</strong></div><div class="record-code">'+escapeHTML(p.tracking_code||"-")+'</div><div class="record-meta"><span>'+escapeHTML(p.piece_number||1)+' ш</span><span>'+escapeHTML(p.weight_kg??0)+' кг</span><span>'+escapeHTML(adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name||"Салбаргүй")+'</span><span>'+adminStatusLabel(classifyStatus(p.parcel_status))+'</span><span>'+(p.paid_at?'💰 Төлсөн':'⏳ Төлбөр хүлээгдэж буй')+'</span></div><div class="record-actions">'+(received?'<span class="received-tag">✓ Хүлээлгэн өгсөн</span>':'<button class="handover-btn" onclick="toggleParcelSelection(\''+id.replace(/'/g,"\\'")+'\',true);renderAdminRows(adminParcels.filter(x=>selectedHandoverIds.has(String(x.id))||x.id===\''+id.replace(/'/g,"\\'")+'\'))">＋ Сонгох</button>')+'<button class="edit-btn" onclick="editParcel(\''+id.replace(/'/g,"\\'")+'\')">✎ Засах</button><button class="delete-btn" onclick="deleteParcel(\''+id.replace(/'/g,"\\'")+'\')">Устгах</button></div></article>';
+ }).join("");
+ document.getElementById("adminCount").textContent="Нийт: "+rows.length+" ачаа";
+ updateHandoverBar();
+}
+function openBulkHandover(){
+ const rows=handoverSelectedParcels();if(!rows.length){alert("Хүлээлгэж өгөх ачаагаа сонгоно уу.");return}
+ const sum=rows.reduce((n,p)=>n+Number(p.price_mnt||0),0);
+ document.getElementById("bhSummary").textContent=rows.length+" ачаа · Нийт "+sum.toLocaleString("mn-MN")+"₮";
+ document.getElementById("bhDate").value=new Date().toLocaleDateString("en-CA");
+ document.querySelectorAll('input[name="bhMethod"]').forEach(x=>x.checked=false);
+ document.getElementById("bhStaff").value="";
+ document.getElementById("bhError").textContent="";
+ document.getElementById("bulkHandoverModal").style.display="flex";
+}
+function closeBulkHandover(){document.getElementById("bulkHandoverModal").style.display="none"}
+async function submitBulkHandover(){
+ const rows=handoverSelectedParcels(),ids=rows.map(p=>p.id),method=document.querySelector('input[name="bhMethod"]:checked')?.value,date=document.getElementById("bhDate").value,staff=document.getElementById("bhStaff").value.trim();
+ const err=document.getElementById("bhError"),btn=document.getElementById("bhSubmit");
+ if(!rows.length){err.textContent="Ачаа сонгоно уу.";return}
+ if(!method){err.textContent="Төлбөрийн хэрэгслээ сонгоно уу.";return}
+ if(!date){err.textContent="Огноо сонгоно уу.";return}
+ btn.disabled=true;btn.textContent="Хадгалж байна...";
+ try{
+  let receivedBy=staff;
+  if(!receivedBy){const {data}=await db.auth.getUser();receivedBy=data?.user?.email||"Админ"}
+  const paidAt=new Date(date+"T"+new Date().toTimeString().slice(0,8)).toISOString();
+  const {data,error}=await db.from("parcels").update({parcel_status:"received",paid_at:paidAt,payment_method:method,received_by:receivedBy}).in("id",ids).select("id");
+  if(error)throw error;
+  const done=new Set((data||[]).map(x=>String(x.id)));
+  if(done.size!==ids.length)throw new Error("Сонгосон "+ids.length+" ачаанаас "+done.size+" нь шинэчлэгдлээ. Админы эрх/RLS тохиргоог шалгана уу.");
+  selectedHandoverIds.clear();closeBulkHandover();await loadAdminParcels();
+  showMessage("adminNotice","✅ "+done.size+" ачааг хүлээлгэн өгч, төлбөрийн хэлбэрийг хадгаллаа.");
+ }catch(e){err.textContent="Хадгалах алдаа: "+(e.message||e)}
+ finally{btn.disabled=false;btn.textContent="Хүлээлгэж өгөх"}
+}
+</script>
+</body>
 </html>
