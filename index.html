@@ -642,7 +642,7 @@ async function saveParcel(){
  if(!groups.length){showMessage("adminNotice","Утасны дугаарын мөр нэмнэ үү.");return}
  for(let gi=0;gi<groups.length;gi++){
   const group=groups[gi],phone=cleanPhone(group.querySelector(".parcel-phone-input").value),raw=group.querySelector(".parcel-tracking-input").value;
-  const codes=[...new Set(raw.split(/[\\s,;]+/).map(x=>x.trim().replace(/\\s+/g,"").toUpperCase()).filter(Boolean))];
+  const codes=[...new Set(raw.split(/[\s,;]+/).map(x=>x.trim().replace(/\s+/g,"").toUpperCase()).filter(Boolean))];
   if(phone.length!==8||!codes.length){showMessage("adminNotice",(gi+1)+"-р утасны хэсэгт 8 оронтой дугаар болон трак код оруулна уу.");return}
   const priceMap=new Map([...group.querySelectorAll(".tracking-price")].map(x=>[String(x.dataset.code||"").toUpperCase(),x.value.trim()]));
   if(codes.some(code=>!priceMap.has(code)||priceMap.get(code)===""||!Number.isFinite(Number(priceMap.get(code)))||Number(priceMap.get(code))<0)){showMessage("adminNotice",(gi+1)+"-р утасны трак код бүрийн үнийг зөв оруулна уу.");return}
@@ -655,7 +655,7 @@ async function saveParcel(){
  if(duplicatesInBatch.length){showMessage("adminNotice","Нэг удаагийн бүртгэлд давхар код байна: "+[...new Set(duplicatesInBatch)].join(", "));return}
  if(editingParcelId&&payload.length!==1){showMessage("adminNotice","Засварлах үед нэг ачааг нэг удаа засна.");return}
  const existingParcel=editingParcelId?adminParcels.find(p=>String(p.id)===String(editingParcelId)):null;
- if(existingParcel&&payload[0].tracking_code!==String(existingParcel.tracking_code||"").replace(/\\s+/g,"").toUpperCase()){showMessage("adminNotice","Засварлах үед трак код өөрчлөх боломжгүй.");return}
+ if(existingParcel&&payload[0].tracking_code!==String(existingParcel.tracking_code||"").replace(/\s+/g,"").toUpperCase()){showMessage("adminNotice","Засварлах үед трак код өөрчлөх боломжгүй.");return}
  showMessage("adminNotice",payload.length+" ачааг Монголд ирсэн төлөвт хадгалж байна...");
  let saved=0,updated=0,created=0,failed=[];
  for(const row of payload){
