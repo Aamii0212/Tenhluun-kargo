@@ -640,13 +640,64 @@ async function saveParcel(){
  if(!selectedAdminBranchId){showMessage("adminNotice","Эхлээд ажиллах салбараа сонгоно уу.");return}
  const groups=[...document.querySelectorAll("#parcelPhoneGroups .parcel-phone-group")],arrivalDate=document.getElementById("parcelArrivalDate").value||parcelToday(),payload=[],allCodes=[];
  if(!groups.length){showMessage("adminNotice","Утасны дугаарын мөр нэмнэ үү.");return}
- for(let gi=0;gi<groups.length;gi++){const group=groups[gi],phone=cleanPhone(group.querySelector(".parcel-phone-input").value),raw=group.querySelector(".parcel-tracking-input").value,codes=[...new Set(raw.split(/[\s,;]+/).map(x=>x.trim().replace(/\s+/g,"").toUpperCase()).filter(Boolean))];if(phone.length!==8||!codes.length){showMessage("adminNotice",(gi+1)+"-р утасны хэсэгт 8 оронтой дугаар болон трак код оруулна уу.");return}const priceMap=new Map([...group.querySelectorAll(".tracking-price")].map(x=>[String(x.dataset.code||"").toUpperCase(),x.value.trim()]));if(codes.some(code=>!priceMap.has(code)||priceMap.get(code)===""||Number(priceMap.get(code))<0)){showMessage("adminNotice",(gi+1)+"-р утасны трак код бүрийн үнийг оруулна уу.");return}for(const code of codes){allCodes.push(code);payload.push({tracking_code:code,customer_phone:phone,description:group.querySelector(".parcel-note-input")?.value.trim()||null,price_mnt:Number(priceMap.get(code)),parcel_status:"mongolia",branch_id:selectedAdminBranchId,arrival_date:arrivalDate})}}
- const duplicatesInBatch=allCodes.filter((code,i)=>allCodes.indexOf(code)!==i);if(duplicatesInBatch.length){showMessage("adminNotice","Нэг удаагийн бүртгэлд давхар код байна: "+[...new Set(duplicatesInBatch)].join(", "));return}
+ for(let gi=0;gi<groups.length;gi++){
+  const group=groups[gi],phone=cleanPhone(group.querySelector(".parcel-phone-input").value),raw=group.querySelector(".parcel-tracking-input").value;
+  const codes=[...new Set(raw.split(/[\\s,;]+/).map(x=>x.trim().replace(/\\s+/g,"").toUpperCase()).filter(Boolean))];
+  if(phone.length!==8||!codes.length){showMessage("adminNotice",(gi+1)+"-р утасны хэсэгт 8 оронтой дугаар болон трак код оруулна уу.");return}
+  const priceMap=new Map([...group.querySelectorAll(".tracking-price")].map(x=>[String(x.dataset.code||"").toUpperCase(),x.value.trim()]));
+  if(codes.some(code=>!priceMap.has(code)||priceMap.get(code)===""||!Number.isFinite(Number(priceMap.get(code)))||Number(priceMap.get(code))<0)){showMessage("adminNotice",(gi+1)+"-р утасны трак код бүрийн үнийг зөв оруулна уу.");return}
+  for(const code of codes){
+   allCodes.push(code);
+   payload.push({tracking_code:code,customer_phone:phone,description:group.querySelector(".parcel-note-input")?.value.trim()||null,price_mnt:Number(priceMap.get(code)),parcel_status:"mongolia",branch_id:selectedAdminBranchId,arrival_date:arrivalDate});
+  }
+ }
+ const duplicatesInBatch=allCodes.filter((code,i)=>allCodes.indexOf(code)!==i);
+ if(duplicatesInBatch.length){showMessage("adminNotice","Нэг удаагийн бүртгэлд давхар код байна: "+[...new Set(duplicatesInBatch)].join(", "));return}
  if(editingParcelId&&payload.length!==1){showMessage("adminNotice","Засварлах үед нэг ачааг нэг удаа засна.");return}
- const existingParcel=editingParcelId?adminParcels.find(p=>String(p.id)===String(editingParcelId)):null;if(existingParcel&&payload[0].tracking_code!==String(existingParcel.tracking_code||"").replace(/\s+/g,"").toUpperCase()){showMessage("adminNotice","Засварлах үед трак код өөрчлөх боломжгүй.");return}
- showMessage("adminNotice",payload.length+" ачааг шалгаж хадгалж байна...");
- const checks=await Promise.all(payload.map(async row=>{const [p,r]=await Promise.all([db.from("parcels").select("id,tracking_code").ilike("tracking_code",row.tracking_code).limit(2),db.from("customer_pre_registrations").select("id,tracking_code").ilike("tracking_code",row.tracking_code).limit(2)]);return {code:row.tracking_code,p:p.data||[],pe:p.error,r:r.data||[],re:r.error}}));const failed=checks.find(x=>x.pe||x.re);if(failed){showMessage("adminNotice","Трак код шалгах алдаа: "+(failed.pe||failed.re).message);return}const duplicate=checks.find(x=>x.p.some(p=>!editingParcelId||String(p.id)!==String(editingParcelId))||(!editingParcelId&&x.r.length));if(duplicate){showMessage("adminNotice","Давхар трак код бүртгэх боломжгүй: "+duplicate.code);return}
- const result=editingParcelId?await db.from("parcels").update(payload[0]).eq("id",editingParcelId).eq("branch_id",selectedAdminBranchId):await db.from("parcels").insert(payload);if(result.error){showMessage("adminNotice","Хадгалах алдаа: "+result.error.message);return}cancelParcelForm();await loadAdminParcels();showMessage("adminNotice",payload.length+" ачааг сонгосон салбарт амжилттай бүртгэлээ.");
+ const existingParcel=editingParcelId?adminParcels.find(p=>String(p.id)===String(editingParcelId)):null;
+ if(existingParcel&&payload[0].tracking_code!==String(existingParcel.tracking_code||"").replace(/\\s+/g,"").toUpperCase()){showMessage("adminNotice","Засварлах үед трак код өөрчлөх боломжгүй.");return}
+ showMessage("adminNotice",payload.length+" ачааг Монголд ирсэн төлөвт хадгалж байна...");
+ let saved=0,updated=0,created=0,failed=[];
+ for(const row of payload){
+  try{
+   const {data:found,error:findError}=await db.from("parcels").select("id,tracking_code").ilike("tracking_code",row.tracking_code);
+   if(findError)throw findError;
+   let parcelId=null;
+   if(found?.length){
+    const target=editingParcelId?found.filter(x=>String(x.id)===String(editingParcelId)):found;
+    if(!target.length)throw Error("Засварлах ачааны бичлэг олдсонгүй.");
+    for(const item of target){
+     const {data:changed,error:updateError}=await db.from("parcels").update(row).eq("id",item.id).select("id").maybeSingle();
+     if(updateError)throw updateError;
+     if(!changed)throw Error("Ачааны төлөв болон мэдээлэл шинэчлэгдсэнгүй.");
+     parcelId=item.id;updated++;
+    }
+   }else{
+    if(editingParcelId)throw Error("Засварлах ачааны бичлэг олдсонгүй.");
+    const {data:createdRow,error:insertError}=await db.from("parcels").insert({...row,customer_name:"",piece_number:1,weight_kg:0,volume_m3:0,paid_at:null}).select("id").maybeSingle();
+    if(insertError)throw insertError;
+    if(!createdRow)throw Error("Шинэ ачаа хадгалагдсангүй.");
+    parcelId=createdRow.id;created++;
+   }
+   // Урьдчилсан бүртгэл байвал тухайн хэрэглэгчийн дугаартай нь холбож баталгаажуулна.
+   const {data:preRows,error:preError}=await db.from("customer_pre_registrations").select("id,status").eq("tracking_code",row.tracking_code);
+   if(preError)throw preError;
+   const activePre=(preRows||[]).filter(x=>x.status!=="rejected");
+   if(activePre.length){
+    const {error:linkError}=await db.from("customer_pre_registrations").update({status:"confirmed",reviewed_at:new Date().toISOString(),admin_note:"Ачааг Монголд ирсэн төлөвт шилжүүлж, хэрэглэгчийн утасны дугаарт холбосон"}).in("id",activePre.map(x=>x.id));
+    if(linkError)throw linkError;
+   }
+   saved++;
+  }catch(e){failed.push(row.tracking_code+" → "+(e.message||String(e)))}
+ }
+ await loadAdminParcels();
+ if(typeof loadPreRegistrations==="function")await loadPreRegistrations();
+ if(saved===payload.length){
+  cancelParcelForm();
+  showMessage("adminNotice",saved+" ачааг Монголд ирсэн төлөвт хадгаллаа. Өмнөх бичлэг шинэчилсэн: "+updated+", шинээр үүсгэсэн: "+created+".");
+ }else{
+  showMessage("adminNotice","Амжилттай хадгалсан: "+saved+"/"+payload.length+". Алдаа: "+failed.join(" | "));
+ }
 }
 async function bulkMarkEreen(){
  const box=document.getElementById("bulkTrackingCodes"),out=document.getElementById("bulkEreenResult");
