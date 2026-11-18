@@ -615,11 +615,11 @@ async function scanTracking(button){
    sessionCodes.add(code);
    input.value=(input.value.trim()?input.value.trim()+"\n":"")+code;
    renderTrackingPrices(input);
-   count.textContent="Уншсан код: "+sessionCodes.size;
-   status.textContent="✓ Уншлаа: "+code+" · Дараагийн баркодоо харуулна уу";
+   count.textContent="Уншсан код: 1";
+   status.textContent="✓ Уншлаа: "+code+" · Үнийг оруулна уу";
    if(navigator.vibrate)try{navigator.vibrate(80)}catch(e){}
-   showMessage("scanNotice","✓ Баркод уншигдлаа: "+code);
-   handling=false;
+   showMessage("scanNotice","✓ Баркод уншигдлаа: "+code+" — одоо үнийг оруулна уу.");
+   await stop();
   },()=>{});
   started=true;
   await startPromise;
