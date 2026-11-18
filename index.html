@@ -176,7 +176,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
   <div id="scanNotice" class="message"></div>
   <div class="admin-actions parcel-editor-actions"><button class="logout" onclick="cancelParcelForm()">Цуцлах</button><button class="primary" onclick="saveParcel()">Хадгалах</button></div>
  </div>
- <section id="adminParcelCards" class="admin-parcel-cards"><div class="admin-list-head"><span id="adminCount">Ачаа ачаалж байна...</span><button type="button" onclick="toggleAllHandover(true)">☑ Бүгдийг сонгох</button></div><div id="adminParcelRows"><div class="parcel-list-empty">Ачаа ачаалж байна...</div></div></section>
+ <section id="adminParcelCards" class="admin-parcel-cards admin-home-keep"><div class="admin-list-head"><span id="adminCount">Ачаа ачаалж байна...</span><button type="button" onclick="toggleAllHandover(true)">☑ Бүгдийг сонгох</button></div><div id="adminParcelRows"><div class="parcel-list-empty">Ачаа ачаалж байна...</div></div></section>
  
 </section>
 </main>
@@ -1044,6 +1044,9 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
 }
 </script>
 <style id="mazaalai-parcel-list-style">
+/* Нүүрэнд хуучин хайлт/CSV товчны том accordion-ийг нууж, ачааны карт жагсаалтыг шууд харуулна. */
+#adminDashboard details.admin-fold:has(.admin-toolbar){display:none!important}
+
 #adminDashboard .admin-parcel-cards{background:#fff;border:1px solid #eee;border-radius:16px;overflow:hidden;margin:12px 0 110px}
 #adminDashboard .admin-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 16px;border-bottom:1px solid #eee;color:#888;font-weight:700}
 #adminDashboard .admin-list-head button{background:#fff;border:1px solid #ddd;border-radius:9px;padding:8px 12px;font-weight:700;color:#29212b}
