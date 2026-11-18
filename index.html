@@ -506,6 +506,9 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
   document.getElementById("adminCount").textContent="Хайлтын үр дүн: "+rows.length+" ачаа";
 }
 async function filterAdminRows(){
+ // Түргэн хайлтаас хайх үед цэсний дотор нуугдсан ачааны жагсаалтыг автоматаар нээнэ.
+ const recordsFold=document.getElementById("adminSearch")?.closest("details.admin-fold");
+ if(recordsFold){recordsFold.style.display="block";recordsFold.open=true;}
  const raw=document.getElementById("adminSearch").value.trim(),q=raw.toLowerCase(),digits=cleanPhone(raw),bid=document.getElementById("adminBranchFilter")?.value||"";
  const feedback=document.getElementById("searchFeedback");
  const say=(message,ok=false)=>{if(feedback){feedback.textContent=message;feedback.style.display=message?"block":"none";feedback.style.color=ok?"#16834a":"#c02d75";feedback.style.borderColor=ok?"#bde8cc":"#f1dce8"}};
@@ -514,7 +517,7 @@ async function filterAdminRows(){
  const rows=adminParcels.filter(p=>(!bid||String(p.branch_id||"")===bid)&&(!raw?classifyStatus(p.parcel_status)==="mongolia":true)&&(!raw||[p.tracking_code,p.customer_name,p.name,adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name].some(v=>String(v||"").toLowerCase().includes(q))||(digits.length>0&&[p.customer_phone,p.phone].some(v=>cleanPhone(v).includes(digits)))));
  const empty=raw?"Энэ салбарт "+raw+" дугаартай ачаа олдсонгүй. Утасны дугаараа шалгаад дахин хайна уу.":"Монголд ирсэн ачаа одоогоор алга.";
  renderAdminRows(rows,empty);
- if(raw){say(rows.length?"✓ "+raw+" — "+rows.length+" ачаа олдлоо.":"✕ Ачаа олдсонгүй. "+raw+" дугаараа шалгаад дахин хайна уу.",rows.length>0);}
+ if(raw){document.getElementById("adminParcelRows")?.scrollIntoView({behavior:"smooth",block:"nearest"});say(rows.length?"✓ "+raw+" — "+rows.length+" ачаа олдлоо.":"✕ Ачаа олдсонгүй. "+raw+" дугаараа шалгаад дахин хайна уу.",rows.length>0);}
 }
 async function loadBranches(){
  const {data,error}=await db.from("branches").select("*").order("name");if(error){showMessage("adminNotice","Салбарын жагсаалт татах алдаа: "+error.message);return}adminBranches=data||[];
