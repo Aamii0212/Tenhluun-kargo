@@ -383,6 +383,55 @@ background:#e83e9b!important;color:#fff!important;border:2px solid #e83e9b!impor
  #adminDashboard #adminParcelRows .record-price{font-size:14px!important}
 }
 </style>
+
+<style id="fix-parcel-card-mobile-layout">
+/* Final mobile repair: render each parcel as one full-width vertical row */
+#adminDashboard #adminParcelRows{
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ gap:0!important;grid-template-columns:none!important;box-sizing:border-box!important;
+}
+#adminDashboard #adminParcelRows>.record-card{
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ position:relative!important;float:none!important;clear:both!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ margin:0!important;padding:11px 12px!important;box-sizing:border-box!important;
+ border:1px solid #eee1e9!important;border-left:1px solid #eee1e9!important;
+ border-radius:0!important;background:#fff!important;box-shadow:none!important;
+ text-align:left!important;overflow:visible!important;
+}
+#adminDashboard #adminParcelRows>.record-card::before,
+#adminDashboard #adminParcelRows>.record-card::after{display:none!important;content:none!important}
+#adminDashboard #adminParcelRows>.record-card:first-of-type{border-radius:0!important}
+#adminDashboard #adminParcelRows>.record-card:last-child{border-radius:0 0 12px 12px!important}
+#adminDashboard #adminParcelRows .record-line{
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ justify-content:flex-start!important;flex-wrap:nowrap!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ margin:0!important;padding:0!important;border:0!important;background:transparent!important;
+}
+#adminDashboard #adminParcelRows .record-person{
+ display:flex!important;flex:1 1 auto!important;flex-direction:column!important;
+ align-items:flex-start!important;min-width:0!important;width:auto!important;
+}
+#adminDashboard #adminParcelRows .record-code,
+#adminDashboard #adminParcelRows .record-meta,
+#adminDashboard #adminParcelRows .record-actions{
+ width:auto!important;max-width:100%!important;min-width:0!important;
+ align-self:stretch!important;text-align:left!important;box-sizing:border-box!important;
+}
+#adminDashboard #adminParcelRows .record-code{margin:8px 0 6px!important;padding:0!important}
+#adminDashboard #adminParcelRows .record-meta{margin:0!important}
+#adminDashboard #adminParcelRows .record-actions{margin:8px 0 0!important}
+#adminDashboard #adminParcelRows .record-price{margin-left:auto!important}
+@media(max-width:600px){
+ #adminDashboard #adminParcelRows>.record-card{padding:10px!important}
+ #adminDashboard #adminParcelRows .record-person b,
+ #adminDashboard #adminParcelRows .record-person a{font-size:13px!important}
+ #adminDashboard #adminParcelRows .record-price{font-size:14px!important}
+}
+</style>
+
 </head>
 <body>
 <header id="customerHeader">
