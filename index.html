@@ -623,7 +623,7 @@ async function bulkMarkEreen(){
     insertedCount++;
    }
    if(pre?.length){
-    const {error:linkError}=await db.from("customer_pre_registrations").update({status:"approved",reviewed_at:new Date().toISOString(),admin_note:"Эрээнд ирсэн ачаатай автоматаар холбосон"}).eq("tracking_code",code).eq("status","pending");
+    const {error:linkError}=await db.from("customer_pre_registrations").update({status:"confirmed",reviewed_at:new Date().toISOString(),admin_note:"Эрээнд ирсэн ачаатай автоматаар холбосон"}).eq("tracking_code",code).eq("status","pending");
     if(linkError)throw linkError;
     linkedCount+=pre.length;
    }
