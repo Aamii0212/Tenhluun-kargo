@@ -575,47 +575,62 @@ async function scanTracking(button){
  const input=group?.querySelector(".parcel-tracking-input");
  if(!input){showMessage("scanNotice","Трак код оруулах хэсэг олдсонгүй.");return}
  if(!window.Html5Qrcode){showMessage("scanNotice","Камер уншигч ачаалсангүй. Трак кодоо гараар оруулна уу.");return}
- let scanner=null,closed=false,started=false,handling=false;
+ let scanner=null,closed=false,started=false,handling=false,torchOn=false,torchSupported=false;
+ const sessionCodes=new Set();
  const modal=document.createElement("div");
- modal.style="position:fixed;inset:0;background:#090909;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:calc(env(safe-area-inset-top,0px) + 18px) 14px 24px;color:white;overflow:auto";
- const head=document.createElement("div");
- head.textContent="Баркодоо хүрээнд хөндлөн байрлуулна уу";
- head.style="font-size:18px;font-weight:800;margin:14px 0 8px;text-align:center;line-height:1.4";
- const hint=document.createElement("div");
- hint.textContent="EAN-13 / UPC / CODE-128 / QR код уншина";
- hint.style="font-size:13px;color:#f4c5df;margin-bottom:16px;text-align:center";
- const readerBox=document.createElement("div");
- readerBox.id="adminBarcodeReader";
- readerBox.style="width:100%;max-width:620px;min-height:260px;overflow:hidden;border-radius:14px";
- const status=document.createElement("div");
- status.textContent="Кодоо камерын хүрээнд ойртуулж, фокус таартал тогтооно уу";
- status.style="font-size:14px;color:#f4c5df;text-align:center;max-width:560px;margin:12px 0;line-height:1.4";
- const close=document.createElement("button");
- close.type="button";close.textContent="✕ Болих";
- close.style="background:#f9e8f2;color:#bd176c;padding:13px 28px;margin:12px;border-radius:14px;font-weight:800;border:0;font-size:16px";
- modal.append(head,hint,readerBox,status,close);document.body.appendChild(modal);
- const stop=async()=>{if(closed)return;closed=true;close.disabled=true;try{if(scanner&&started)await scanner.stop()}catch(e){}try{if(scanner)await scanner.clear()}catch(e){}modal.remove()};
+ modal.style="position:fixed;inset:0;background:#090909;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:calc(env(safe-area-inset-top,0px) + 14px) 12px calc(env(safe-area-inset-bottom,0px) + 18px);color:white;overflow:auto";
+ const head=document.createElement("div");head.textContent="Баркодоо хүрээнд тааруулна уу";head.style="font-size:18px;font-weight:800;margin:10px 0 5px;text-align:center;line-height:1.35";
+ const hint=document.createElement("div");hint.textContent="EAN-13 · UPC · CODE-128 · QR";hint.style="font-size:13px;color:#f4c5df;margin-bottom:12px;text-align:center";
+ const readerBox=document.createElement("div");readerBox.id="adminBarcodeReader";readerBox.style="width:100%;max-width:620px;min-height:240px;overflow:hidden;border-radius:14px;background:#111";
+ const status=document.createElement("div");status.textContent="Кодыг камерын төвд ойртуулж, фокус таартал тогтооно уу";status.style="font-size:14px;color:#f4c5df;text-align:center;max-width:560px;margin:10px 0 5px;line-height:1.4";
+ const count=document.createElement("div");count.textContent="Уншсан код: 0";count.style="font-size:14px;color:#fff;font-weight:800;margin:3px 0 10px";
+ const controls=document.createElement("div");controls.style="display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;width:100%";
+ const torch=document.createElement("button");torch.type="button";torch.textContent="🔦 Гэрэл асаах";torch.style="background:#292329;color:#fff;padding:12px 16px;border-radius:12px;font-weight:800;border:1px solid #8b5473;font-size:14px";
+ const close=document.createElement("button");close.type="button";close.textContent="✓ Дуусгах";close.style="background:#f9e8f2;color:#bd176c;padding:12px 22px;border-radius:12px;font-weight:800;border:0;font-size:15px";
+ controls.append(torch,close);modal.append(head,hint,readerBox,status,count,controls);document.body.appendChild(modal);
+ const stop=async()=>{if(closed)return;closed=true;torch.disabled=true;close.disabled=true;try{if(scanner&&started)await scanner.stop()}catch(e){}try{if(scanner)await scanner.clear()}catch(e){}modal.remove()};
  close.onclick=stop;
+ torch.onclick=async()=>{
+  if(!scanner||!started||!torchSupported){status.textContent="Энэ төхөөрөмжийн камер гэрэл асаах боломжгүй байна.";return}
+  try{torchOn=!torchOn;await scanner.applyVideoConstraints({advanced:[{torch:torchOn}]});torch.textContent=torchOn?"🔦 Гэрэл унтраах":"🔦 Гэрэл асаах";status.textContent=torchOn?"Гэрэл аслаа. Баркодоо ойртуулна уу.":"Гэрэл унтарлаа."}
+  catch(e){torchOn=false;torch.textContent="🔦 Гэрэл асаах";status.textContent="Гэрэл асаах боломжгүй байна. Камерын тохиргооноос хамаарна."}
+ };
  try{
   const formats=window.Html5QrcodeSupportedFormats;
   const wanted=formats?[formats.EAN_13,formats.EAN_8,formats.UPC_A,formats.UPC_E,formats.CODE_128,formats.CODE_39,formats.ITF,formats.CODABAR,formats.QR_CODE].filter(x=>x!==undefined):undefined;
-  const config={fps:18,aspectRatio:1.7777778,qrbox:(viewWidth,viewHeight)=>({width:Math.floor(Math.min(viewWidth*.92,520)),height:Math.floor(Math.min(viewHeight*.62,250))}),disableFlip:false,experimentalFeatures:{useBarCodeDetectorIfSupported:true}};
+  const config={fps:24,aspectRatio:1.7777778,qrbox:(viewWidth,viewHeight)=>({width:Math.floor(Math.min(viewWidth*.96,560)),height:Math.floor(Math.min(viewHeight*.58,260))}),disableFlip:false,experimentalFeatures:{useBarCodeDetectorIfSupported:true},videoConstraints:{facingMode:"environment",width:{ideal:1920},height:{ideal:1080}}};
   if(wanted?.length)config.formatsToSupport=wanted;
   scanner=new Html5Qrcode("adminBarcodeReader",wanted?.length?{formatsToSupport:wanted,verbose:false}:{verbose:false});
-  const startPromise=scanner.start({facingMode:"environment"},config,async(decodedText)=>{
+  const startPromise=scanner.start({facingMode:"environment",width:{ideal:1920},height:{ideal:1080}},config,async(decodedText)=>{
    const code=String(decodedText||"").replace(/\s+/g,"").toUpperCase();
-   if(!code||closed||handling)return;
+   if(!code||closed||handling||sessionCodes.has(code))return;
    handling=true;
    const allCodes=[...document.querySelectorAll(".parcel-tracking-input")].flatMap(x=>x.value.split(/[\s,;]+/).map(v=>v.trim().replace(/\s+/g,"").toUpperCase()));
-   if(allCodes.includes(code)){status.textContent="Энэ код өмнө оруулсан байна: "+code;await stop();return}
+   if(allCodes.includes(code)){
+    status.textContent="Давхар код алгаслаа: "+code;
+    sessionCodes.add(code);
+    handling=false;
+    return;
+   }
+   sessionCodes.add(code);
    input.value=(input.value.trim()?input.value.trim()+"\n":"")+code;
    renderTrackingPrices(input);
+   count.textContent="Уншсан код: "+sessionCodes.size;
+   status.textContent="✓ Уншлаа: "+code+" · Дараагийн баркодоо харуулна уу";
+   if(navigator.vibrate)try{navigator.vibrate(80)}catch(e){}
    showMessage("scanNotice","✓ Баркод уншигдлаа: "+code);
-   await stop();
+   handling=false;
   },()=>{});
   started=true;
   await startPromise;
-  if(closed){try{await scanner.stop()}catch(e){}}
+  try{
+   const track=scanner.getRunningTrack?.();
+   const settings=track?.getSettings?.()||{};
+   torchSupported=!!settings.torch||!!track?.getCapabilities?.().torch;
+   torch.disabled=!torchSupported;
+   if(!torchSupported){torch.style.opacity=".55";torch.title="Энэ камер torch дэмжихгүй";}
+   try{await scanner.applyVideoConstraints({advanced:[{focusMode:"continuous"}]})}catch(e){}
+  }catch(e){}
  }catch(e){
   await stop();
   showMessage("scanNotice","Камер нээх эсвэл уншихад алдаа гарлаа. Safari-д камерын зөвшөөрлийг шалгаад дахин оролдоно уу.");
