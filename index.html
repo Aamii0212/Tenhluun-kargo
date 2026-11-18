@@ -923,3 +923,36 @@ new MutationObserver(()=>run()).observe(document.documentElement,{subtree:true,a
  #adminDashboard .parcel-price-table-head,#adminDashboard .tracking-price-row{grid-template-columns:minmax(0,1fr) 100px}
 }
 </style>
+
+<style>
+/* Final mobile overflow and alignment corrections */
+#adminDashboard #parcelEditor,
+#adminDashboard #parcelEditor *{box-sizing:border-box}
+#adminDashboard #parcelEditor{width:100%;max-width:100%;min-width:0;overflow:hidden}
+#adminDashboard .parcel-arrival-date{width:100%;max-width:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:8px!important}
+#adminDashboard .parcel-arrival-date label{min-width:0;white-space:normal;line-height:1.25}
+#adminDashboard .parcel-arrival-date input{display:block;width:100%!important;max-width:100%;min-width:0!important;height:48px;padding:8px!important;font-size:14px!important}
+#adminDashboard .parcel-phone-fields{width:100%;max-width:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+#adminDashboard .parcel-field{min-width:0!important;width:100%}
+#adminDashboard .parcel-phone-input,#adminDashboard .parcel-note-input{width:100%!important;max-width:100%;min-width:0!important;height:48px;padding:8px!important}
+#adminDashboard .parcel-code-section{width:100%;max-width:100%;min-width:0;padding:9px!important}
+#adminDashboard .parcel-code-input-row{width:100%;max-width:100%;min-width:0;grid-template-columns:minmax(0,1fr) 48px!important;align-items:center!important;gap:8px!important}
+#adminDashboard .parcel-code-input-row .parcel-tracking-input{display:block;width:100%!important;max-width:100%;min-width:0!important;height:48px!important;min-height:48px!important;max-height:90px;padding:9px!important;line-height:1.3}
+#adminDashboard .parcel-code-input-row .parcel-scan-button{display:flex!important;align-items:center!important;justify-content:center!important;width:48px!important;min-width:48px!important;max-width:48px!important;height:48px!important;min-height:48px!important;max-height:48px!important;padding:0!important;margin:0!important;line-height:1!important;font-size:20px!important;align-self:center!important}
+#adminDashboard .parcel-price-table{width:100%;max-width:100%;min-width:0}
+#adminDashboard .parcel-price-table-head,#adminDashboard .tracking-price-row{width:100%;max-width:100%;min-width:0;grid-template-columns:minmax(0,1fr) minmax(84px,100px)!important}
+#adminDashboard .tracking-price-row span{min-width:0;overflow-wrap:anywhere}
+#adminDashboard .tracking-price{width:100%!important;min-width:0!important;max-width:100%;height:38px}
+#adminDashboard .parcel-editor-actions{width:100%;max-width:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+#adminDashboard .parcel-editor-actions button{width:100%!important;min-width:0!important;max-width:100%;white-space:nowrap;padding:10px 6px!important}
+#adminDashboard .parcel-add-phone,#adminDashboard .parcel-add-code{width:100%!important;max-width:100%;min-width:0}
+@media(max-width:390px){
+ #adminDashboard #parcelEditor{padding:9px!important}
+ #adminDashboard .parcel-arrival-date{gap:6px!important}
+ #adminDashboard .parcel-arrival-date label{font-size:12px}
+ #adminDashboard .parcel-arrival-date input{font-size:12px!important;padding:6px!important}
+ #adminDashboard .parcel-phone-fields{gap:6px!important}
+ #adminDashboard .parcel-field label{font-size:11px}
+ #adminDashboard .parcel-phone-input,#adminDashboard .parcel-note-input{font-size:12px!important}
+}
+</style>
