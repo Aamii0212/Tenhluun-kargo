@@ -831,7 +831,8 @@ if(location.hash==="#admin"||new URLSearchParams(location.search).get("admin")==
    const h=node.querySelector('h3');
    if(h)label=h.textContent.trim();
    else if(node.classList.contains('admin-stats'))label='📊 Статистик';
-   else if(node.classList.contains('admin-toolbar'))label='🔎 Хайлт · CSV · Ачаа бүртгэл';
+   else if(node.classList.contains('admin-toolbar'))label='🔎 Хайлт · CSV';
+   else if(node.id==='adminParcelCards')label='📦 Ачааны жагсаалт';
    else if(node.id==='parcelEditor')label='✏️ Ачааны мэдээлэл';
    else if(node.id==='adminNotice')label='ℹ️ Мэдэгдэл';
    else if(node.id==='parcelList')label='📦 Ачааны жагсаалт';
@@ -884,7 +885,7 @@ function setup(){
  const folds=[...dash.querySelectorAll(':scope > details.admin-fold')];
  const findFold=selector=>{const el=dash.querySelector(selector);return el?.closest('details.admin-fold')||null};
  const groups={
-  records:[...new Set([findFold('#adminSearch'),findFold('#parcelEditor'),findFold('.admin-table-wrap'),findFold('#adminNotice')].filter(Boolean))],
+  records:[...new Set([findFold('#adminSearch'),findFold('#parcelEditor'),findFold('#adminParcelCards'),findFold('#adminNotice')].filter(Boolean))],
   stats:[findFold('.admin-stats')].filter(Boolean),
   revenue:[findFold('#revenuePanel')].filter(Boolean),
   branch:[findFold('#newBranchName')].filter(Boolean),
