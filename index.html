@@ -497,13 +497,14 @@ function exportPaymentsCSV(){
 function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа одоогоор алга.") {
   updateAdminStats();
   const body=document.getElementById("adminParcelRows");
-  if(!rows.length){body.innerHTML='<tr><td colspan="7">'+escapeHTML(emptyText)+'</td></tr>'}
-  else body.innerHTML=rows.map(p=>{
+  const visibleRows=(rows||[]).filter(p=>adminParcelView==="anonymous"?!cleanPhone(p.customer_phone||p.phone||""):!!cleanPhone(p.customer_phone||p.phone||""));
+  if(!visibleRows.length){body.innerHTML='<tr><td colspan="7">'+escapeHTML(emptyText)+'</td></tr>'}
+  else body.innerHTML=visibleRows.map(p=>{
     const status=classifyStatus(p.parcel_status),id=escapeHTML(String(p.id));
     const action=status==="mongolia"?`<button class="primary" onclick="handoverParcel('${id}')">Хүлээлгэн өгөх</button>`:status==="received"?'<b>✓ Хүлээлгэн өгсөн</b>':'<small>Монголд ирсний дараа хүлээлгэн өгнө</small>';
     return `<tr><td>${escapeHTML(adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name||"-")}</td><td><b>${escapeHTML(p.tracking_code||"-")}</b></td><td>${escapeHTML(p.customer_name||p.name||"-")}<br><small>${escapeHTML(p.customer_phone||p.phone||"-")}</small></td><td><span class="status-admin">${adminStatusLabel(status)}</span></td><td>${escapeHTML(p.weight_kg??"-")} кг</td><td>${escapeHTML(p.price_mnt??"-")} ₮</td><td>${action} <button class="edit-btn" onclick="editParcel('${id}')">Засах</button><button class="delete-btn" onclick="deleteParcel('${id}')">Устгах</button></td></tr>`;
   }).join("");
-  document.getElementById("adminCount").textContent="Хайлтын үр дүн: "+rows.length+" ачаа";
+  document.getElementById("adminCount").textContent=(adminParcelView==="anonymous"?"Нэр, дугааргүй ачаа: ":"Хайлтын үр дүн: ")+visibleRows.length+" ачаа";
 }
 async function filterAdminRows(){
  const raw=document.getElementById("adminSearch").value.trim(),q=raw.toLowerCase(),digits=cleanPhone(raw),bid=document.getElementById("adminBranchFilter")?.value||"";
@@ -511,7 +512,7 @@ async function filterAdminRows(){
  const say=(message,ok=false)=>{if(feedback){feedback.textContent=message;feedback.style.display=message?"block":"none";feedback.style.color=ok?"#16834a":"#c02d75";feedback.style.borderColor=ok?"#bde8cc":"#f1dce8"}};
  if(!selectedAdminBranchId){renderAdminRows([],"Хайлт хийхийн өмнө дээрээс ажиллах салбараа сонгоно уу.");document.getElementById("adminCount").textContent="Салбар сонгоогүй";say("⚠️ Эхлээд ажиллах салбараа сонгоно уу.");return}
  if(!raw){say("");}
- const rows=adminParcels.filter(p=>(!bid||String(p.branch_id||"")===bid)&&(!raw?classifyStatus(p.parcel_status)==="mongolia":true)&&(!raw||[p.tracking_code,p.customer_name,p.name,adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name].some(v=>String(v||"").toLowerCase().includes(q))||(digits.length>0&&[p.customer_phone,p.phone].some(v=>cleanPhone(v).includes(digits)))));
+ const rows=adminParcels.filter(p=>(adminParcelView==="anonymous"?!cleanPhone(p.customer_phone||p.phone||""):!!cleanPhone(p.customer_phone||p.phone||""))&&(!bid||String(p.branch_id||"")===bid)&&(!raw?(adminParcelView==="anonymous"||classifyStatus(p.parcel_status)==="mongolia"):true)&&(!raw||[p.tracking_code,p.customer_name,p.name,adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name].some(v=>String(v||"").toLowerCase().includes(q))||(digits.length>0&&[p.customer_phone,p.phone].some(v=>cleanPhone(v).includes(digits)))));
  const empty=raw?"Энэ салбарт "+raw+" дугаартай ачаа олдсонгүй. Утасны дугаараа шалгаад дахин хайна уу.":"Монголд ирсэн ачаа одоогоор алга.";
  renderAdminRows(rows,empty);
  if(raw){say(rows.length?"✓ "+raw+" — "+rows.length+" ачаа олдлоо.":"✕ Ачаа олдсонгүй. "+raw+" дугаараа шалгаад дахин хайна уу.",rows.length>0);}
@@ -523,6 +524,7 @@ async function loadBranches(){
  const filter=document.getElementById("adminBranchFilter");if(filter){filter.innerHTML='<option value="">Бүх салбар</option>'+adminBranches.map(b=>'<option value="'+escapeHTML(b.id)+'">'+escapeHTML(b.name)+'</option>').join("");filter.value=selectedAdminBranchId}
  const list=document.getElementById("branchList");if(list)list.innerHTML=adminBranches.map(b=>'<div style="padding:8px;border-bottom:1px solid #eee">'+escapeHTML(b.name)+' — '+escapeHTML(b.address||"Хаяггүй")+' <button onclick="renameBranch(\''+String(b.id)+'\')" class="edit-btn">Нэр/мэдээлэл засах</button> <button onclick="removeBranch(\''+String(b.id)+'\')" class="delete-btn">Устгах</button></div>').join("")||"Салбар нэмээгүй байна.";const accessSelect=document.getElementById("employeeAccessBranch");if(accessSelect)accessSelect.innerHTML='<option value="">Салбар сонгох</option>'+adminBranches.map(b=>'<option value="'+escapeHTML(b.id)+'">'+escapeHTML(b.name)+'</option>').join("");await loadEmployeeAssignments();updateBranchNotice();
 }
+let adminParcelView="regular";
 let selectedAdminBranchId="";
 function updateBranchNotice(){const n=document.getElementById("branchRequiredNotice");if(n)n.textContent=selectedAdminBranchId?"Одоо сонгосон салбар: "+(adminBranches.find(b=>String(b.id)===String(selectedAdminBranchId))?.name||"")+" · Бүртгэх бүх ачаа энэ салбарт хадгалагдана.":"Ачаа бүртгэхийн өмнө ажиллах салбараа сонгоно уу."}
 async function selectAdminBranch(id){if(!adminBranches.some(b=>String(b.id)===String(id))){selectedAdminBranchId="";sessionStorage.removeItem("tenhluun_active_branch");updateBranchNotice();await loadAdminParcels();return}selectedAdminBranchId=String(id);sessionStorage.setItem("tenhluun_active_branch",selectedAdminBranchId);const filter=document.getElementById("adminBranchFilter");if(filter)filter.value=selectedAdminBranchId;updateBranchNotice();cancelParcelForm();await loadAdminParcels()}
@@ -771,6 +773,7 @@ function setup(){
  const findFold=selector=>{const el=dash.querySelector(selector);return el?.closest('details.admin-fold')||null};
  const groups={
   records:[...new Set([findFold('#adminSearch'),findFold('#parcelEditor'),findFold('.admin-table-wrap'),findFold('#adminNotice')].filter(Boolean))],
+  anonymous:[...new Set([findFold('.admin-table-wrap'),findFold('#adminNotice')].filter(Boolean))],
   stats:[findFold('.admin-stats')].filter(Boolean),
   branch:[findFold('#newBranchName')].filter(Boolean),
   pre:[findFold('#preRegAdminRows')].filter(Boolean),
@@ -780,7 +783,7 @@ function setup(){
  folds.forEach(f=>{f.open=false;f.style.display='none';dash.appendChild(f)});
  const shade=document.createElement('div');shade.id='adminMenuShade';
  const drawer=document.createElement('aside');drawer.id='adminMenuDrawer';drawer.setAttribute('aria-label','Үндсэн цэс');
- drawer.innerHTML='<div class="menu-top"><span>ҮНДСЭН ЦЭС</span><button type="button" id="adminMenuClose" aria-label="Цэс хаах">×</button></div><nav class="admin-main-nav"><button type="button" data-section="records">📦 <span>Ачааны бүртгэл</span></button><button type="button" data-section="stats">📊 <span>Статистик</span></button></nav><div class="menu-caption">УДИРДЛАГА</div><nav class="admin-main-nav"><button type="button" data-section="branch">🏢 <span>Салбар удирдах</span></button><button type="button" data-section="pre">📥 <span>Урьдчилсан бүртгэл</span></button><button type="button" data-section="settings">⚙️ <span>Үнэ ба тохиргоо</span></button><button type="button" data-section="bulk">📦 <span>Бөөнөөр Эрээнд</span></button></nav>';
+ drawer.innerHTML='<div class="menu-top"><span>ҮНДСЭН ЦЭС</span><button type="button" id="adminMenuClose" aria-label="Цэс хаах">×</button></div><nav class="admin-main-nav"><button type="button" data-section="records">📦 <span>Ачааны бүртгэл</span></button><button type="button" data-section="anonymous">📦 <span>Нэр, дугааргүй ачаа</span></button><button type="button" data-section="stats">📊 <span>Статистик</span></button></nav><div class="menu-caption">УДИРДЛАГА</div><nav class="admin-main-nav"><button type="button" data-section="branch">🏢 <span>Салбар удирдах</span></button><button type="button" data-section="pre">📥 <span>Урьдчилсан бүртгэл</span></button><button type="button" data-section="settings">⚙️ <span>Үнэ ба тохиргоо</span></button><button type="button" data-section="bulk">📦 <span>Бөөнөөр Эрээнд</span></button></nav>';
  dash.append(shade,drawer);
  function close(){dash.classList.remove('admin-menu-visible')}
  function openMenu(){dash.classList.add('admin-menu-visible')}
@@ -790,8 +793,18 @@ function setup(){
  drawer.querySelectorAll('[data-section]').forEach(btn=>btn.addEventListener('click',()=>{
   const key=btn.dataset.section;
   drawer.querySelectorAll('[data-section]').forEach(x=>x.classList.toggle('active',x===btn));
+  if(key==="anonymous"){
+   adminParcelView="anonymous";
+   const search=document.getElementById("adminSearch");if(search)search.value="";
+   const feedback=document.getElementById("searchFeedback");if(feedback)feedback.style.display="none";
+  }else if(key==="records"){
+   adminParcelView="regular";
+   const search=document.getElementById("adminSearch");if(search)search.value="";
+   const feedback=document.getElementById("searchFeedback");if(feedback)feedback.style.display="none";
+  }
   folds.forEach(f=>{f.open=false;f.style.display='none'});
   (groups[key]||[]).forEach(f=>{f.style.display='block';f.open=true});
+  if(key==="anonymous"||key==="records")filterAdminRows();
   close();
   const first=(groups[key]||[])[0];
   if(first)setTimeout(()=>first.scrollIntoView({behavior:'smooth',block:'start'}),180);
