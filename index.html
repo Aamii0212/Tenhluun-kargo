@@ -168,6 +168,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
   <div id="scanNotice" class="message"></div>
   <div class="admin-actions parcel-editor-actions"><button class="logout" onclick="cancelParcelForm()">Цуцлах</button><button class="primary" onclick="saveParcel()">Хадгалах</button></div>
  </div>
+ <div class="admin-editor" id="anonymousParcelPanel"><h3>📦 Нэр, дугааргүй ачаа</h3><p class="muted">Утасны дугаартай холбогдоогүй ачааны тусдаа жагсаалт.</p><button class="logout" type="button" onclick="renderAnonymousParcelRows()">↻ Шинэчлэх</button><div class="admin-table-wrap" style="margin-top:12px"><table class="admin-table"><thead><tr><th>Салбар</th><th>Трак код</th><th>Төлөв</th><th>Жин</th><th>Үнэ</th><th>Үйлдэл</th></tr></thead><tbody id="anonymousParcelRows"><tr><td colspan="6">Ачаа ачаалж байна...</td></tr></tbody></table></div><div id="anonymousParcelCount" class="muted"></div></div>
  <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Салбар</th><th>Трак код</th><th>Нэр / утас</th><th>Төлөв</th><th>Жин</th><th>Үнэ</th><th>Үйлдэл</th></tr></thead><tbody id="adminParcelRows"><tr><td colspan="6">Ачаа ачаалж байна...</td></tr></tbody></table></div>
  <div id="adminCount" class="muted"></div>
 </section>
@@ -477,7 +478,7 @@ async function loadAdminParcels(){
  const body=document.getElementById("adminParcelRows");if(!body)return;
  if(!selectedAdminBranchId){adminParcels=[];body.innerHTML='<tr><td colspan="7">Эхлээд ажиллах салбараа сонгоно уу.</td></tr>';updateAdminStats();document.getElementById("adminCount").textContent="Салбар сонгоогүй";return}
  body.innerHTML='<tr><td colspan="7">Ачаа ачаалж байна...</td></tr>';
- try{const all=[];let from=0;const batchSize=1000;while(true){const {data,error}=await db.from("parcels").select("*").eq("branch_id",selectedAdminBranchId).order("created_at",{ascending:false}).range(from,from+batchSize-1);if(error)throw error;const part=data||[];all.push(...part);if(part.length<batchSize)break;from+=batchSize}adminParcels=all;renderAdminRows(adminParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia"));updateAdminStats();showMessage("adminNotice","")}catch(error){console.error("Ачааны жагсаалт татах:",error);body.innerHTML='<tr><td colspan="7">Ачаа татахад алдаа: '+escapeHTML(error.message||error)+'</td></tr>';showMessage("adminNotice","Ачаа татах алдаа: "+(error.message||error))}
+ try{const all=[];let from=0;const batchSize=1000;while(true){const {data,error}=await db.from("parcels").select("*").eq("branch_id",selectedAdminBranchId).order("created_at",{ascending:false}).range(from,from+batchSize-1);if(error)throw error;const part=data||[];all.push(...part);if(part.length<batchSize)break;from+=batchSize}adminParcels=all;renderAdminRows(adminParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia"));renderAnonymousParcelRows();updateAdminStats();showMessage("adminNotice","")}catch(error){console.error("Ачааны жагсаалт татах:",error);body.innerHTML='<tr><td colspan="7">Ачаа татахад алдаа: '+escapeHTML(error.message||error)+'</td></tr>';showMessage("adminNotice","Ачаа татах алдаа: "+(error.message||error))}
 }
 function localDateKey(value){const d=new Date(value);if(Number.isNaN(d.getTime()))return "";return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
 function updateAdminStats(){
@@ -497,14 +498,25 @@ function exportPaymentsCSV(){
 function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа одоогоор алга.") {
   updateAdminStats();
   const body=document.getElementById("adminParcelRows");
-  const visibleRows=(rows||[]).filter(p=>adminParcelView==="anonymous"?!cleanPhone(p.customer_phone||p.phone||""):!!cleanPhone(p.customer_phone||p.phone||""));
+  const visibleRows=(rows||[]).filter(p=>!!cleanPhone(p.customer_phone||p.phone||""));
   if(!visibleRows.length){body.innerHTML='<tr><td colspan="7">'+escapeHTML(emptyText)+'</td></tr>'}
   else body.innerHTML=visibleRows.map(p=>{
     const status=classifyStatus(p.parcel_status),id=escapeHTML(String(p.id));
     const action=status==="mongolia"?`<button class="primary" onclick="handoverParcel('${id}')">Хүлээлгэн өгөх</button>`:status==="received"?'<b>✓ Хүлээлгэн өгсөн</b>':'<small>Монголд ирсний дараа хүлээлгэн өгнө</small>';
     return `<tr><td>${escapeHTML(adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name||"-")}</td><td><b>${escapeHTML(p.tracking_code||"-")}</b></td><td>${escapeHTML(p.customer_name||p.name||"-")}<br><small>${escapeHTML(p.customer_phone||p.phone||"-")}</small></td><td><span class="status-admin">${adminStatusLabel(status)}</span></td><td>${escapeHTML(p.weight_kg??"-")} кг</td><td>${escapeHTML(p.price_mnt??"-")} ₮</td><td>${action} <button class="edit-btn" onclick="editParcel('${id}')">Засах</button><button class="delete-btn" onclick="deleteParcel('${id}')">Устгах</button></td></tr>`;
   }).join("");
-  document.getElementById("adminCount").textContent=(adminParcelView==="anonymous"?"Нэр, дугааргүй ачаа: ":"Хайлтын үр дүн: ")+visibleRows.length+" ачаа";
+  document.getElementById("adminCount").textContent="Хайлтын үр дүн: "+visibleRows.length+" ачаа";
+}
+function renderAnonymousParcelRows(){
+ const body=document.getElementById("anonymousParcelRows");if(!body)return;
+ const rows=adminParcels.filter(p=>!cleanPhone(p.customer_phone||p.phone||""));
+ if(!rows.length){body.innerHTML='<tr><td colspan="6">Нэр, дугааргүй ачаа одоогоор алга.</td></tr>'}
+ else body.innerHTML=rows.map(p=>{
+  const status=classifyStatus(p.parcel_status),id=escapeHTML(String(p.id));
+  const action=status==="mongolia"?'<button class="primary" onclick="handoverParcel(\''+id+'\')">Хүлээлгэн өгөх</button>':status==="received"?'<b>✓ Хүлээлгэн өгсөн</b>':'<small>Монголд ирсний дараа хүлээлгэн өгнө</small>';
+  return '<tr><td>'+escapeHTML(adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name||"-")+'</td><td><b>'+escapeHTML(p.tracking_code||"-")+'</b></td><td><span class="status-admin">'+adminStatusLabel(status)+'</span></td><td>'+escapeHTML(p.weight_kg??"-")+' кг</td><td>'+escapeHTML(p.price_mnt??"-")+' ₮</td><td>'+action+' <button class="edit-btn" onclick="editParcel(\''+id+'\')">Засах</button><button class="delete-btn" onclick="deleteParcel(\''+id+'\')">Устгах</button></td></tr>';
+ }).join("");
+ const count=document.getElementById("anonymousParcelCount");if(count)count.textContent="Нийт "+rows.length+" нэр, дугааргүй ачаа";
 }
 async function filterAdminRows(){
  const raw=document.getElementById("adminSearch").value.trim(),q=raw.toLowerCase(),digits=cleanPhone(raw),bid=document.getElementById("adminBranchFilter")?.value||"";
@@ -512,7 +524,7 @@ async function filterAdminRows(){
  const say=(message,ok=false)=>{if(feedback){feedback.textContent=message;feedback.style.display=message?"block":"none";feedback.style.color=ok?"#16834a":"#c02d75";feedback.style.borderColor=ok?"#bde8cc":"#f1dce8"}};
  if(!selectedAdminBranchId){renderAdminRows([],"Хайлт хийхийн өмнө дээрээс ажиллах салбараа сонгоно уу.");document.getElementById("adminCount").textContent="Салбар сонгоогүй";say("⚠️ Эхлээд ажиллах салбараа сонгоно уу.");return}
  if(!raw){say("");}
- const rows=adminParcels.filter(p=>(adminParcelView==="anonymous"?!cleanPhone(p.customer_phone||p.phone||""):!!cleanPhone(p.customer_phone||p.phone||""))&&(!bid||String(p.branch_id||"")===bid)&&(!raw?(adminParcelView==="anonymous"||classifyStatus(p.parcel_status)==="mongolia"):true)&&(!raw||[p.tracking_code,p.customer_name,p.name,adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name].some(v=>String(v||"").toLowerCase().includes(q))||(digits.length>0&&[p.customer_phone,p.phone].some(v=>cleanPhone(v).includes(digits)))));
+ const rows=adminParcels.filter(p=>!!cleanPhone(p.customer_phone||p.phone||"")&&(!bid||String(p.branch_id||"")===bid)&&(!raw?classifyStatus(p.parcel_status)==="mongolia":true)&&(!raw||[p.tracking_code,p.customer_name,p.name,adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name].some(v=>String(v||"").toLowerCase().includes(q))||(digits.length>0&&[p.customer_phone,p.phone].some(v=>cleanPhone(v).includes(digits)))));
  const empty=raw?"Энэ салбарт "+raw+" дугаартай ачаа олдсонгүй. Утасны дугаараа шалгаад дахин хайна уу.":"Монголд ирсэн ачаа одоогоор алга.";
  renderAdminRows(rows,empty);
  if(raw){say(rows.length?"✓ "+raw+" — "+rows.length+" ачаа олдлоо.":"✕ Ачаа олдсонгүй. "+raw+" дугаараа шалгаад дахин хайна уу.",rows.length>0);}
@@ -773,7 +785,7 @@ function setup(){
  const findFold=selector=>{const el=dash.querySelector(selector);return el?.closest('details.admin-fold')||null};
  const groups={
   records:[...new Set([findFold('#adminSearch'),findFold('#parcelEditor'),findFold('.admin-table-wrap'),findFold('#adminNotice')].filter(Boolean))],
-  anonymous:[...new Set([findFold('.admin-table-wrap'),findFold('#adminNotice')].filter(Boolean))],
+  anonymous:[findFold('#anonymousParcelPanel')].filter(Boolean),
   stats:[findFold('.admin-stats')].filter(Boolean),
   branch:[findFold('#newBranchName')].filter(Boolean),
   pre:[findFold('#preRegAdminRows')].filter(Boolean),
@@ -804,7 +816,7 @@ function setup(){
   }
   folds.forEach(f=>{f.open=false;f.style.display='none'});
   (groups[key]||[]).forEach(f=>{f.style.display='block';f.open=true});
-  if(key==="anonymous"||key==="records")filterAdminRows();
+  if(key==="anonymous")renderAnonymousParcelRows();else if(key==="records")filterAdminRows();
   close();
   const first=(groups[key]||[])[0];
   if(first)setTimeout(()=>first.scrollIntoView({behavior:'smooth',block:'start'}),180);
