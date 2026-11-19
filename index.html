@@ -643,7 +643,7 @@ async function bulkMarkEreen(){
     if(insertError)throw insertError;if(!created)throw new Error("Хэрэглэгчтэй холбосон ачаа үүссэнгүй.");
     if(pre.status==="pending"){
      const {error:confirmError}=await db.from("customer_pre_registrations").update({
-      status:"confirmed",reviewed_at:new Date().toISOString(),admin_note:"Ачаа Эрээнд ирсэн; хэрэглэгчийн дугаартай холбов"
+      status:"confirmed"
      }).eq("id",pre.id);
      if(confirmError)throw confirmError;
     }
