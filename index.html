@@ -548,11 +548,13 @@ async function filterAdminRows(){
  const recordsFold=document.getElementById("adminSearch")?.closest("details.admin-fold");
  if(recordsFold){recordsFold.style.display="block";recordsFold.open=true;}
  const raw=document.getElementById("adminSearch").value.trim(),q=raw.toLowerCase(),digits=cleanPhone(raw),bid=document.getElementById("adminBranchFilter")?.value||"";
+ // Бөөнөөр хүлээлгэн өгөх сонголт зөвхөн 8 оронтой утасны дугаараар хайсан үед идэвхжинэ.
+ selectedHandoverIds.clear();phoneSearchSelectionEnabled=digits.length===8;activeHandoverPhone=phoneSearchSelectionEnabled?digits:"";
  const feedback=document.getElementById("searchFeedback");
  const say=(message,ok=false)=>{if(feedback){feedback.textContent=message;feedback.style.display=message?"block":"none";feedback.style.color=ok?"#16834a":"#c02d75";feedback.style.borderColor=ok?"#bde8cc":"#f1dce8"}};
  if(!selectedAdminBranchId){renderAdminRows([],"Хайлт хийхийн өмнө дээрээс ажиллах салбараа сонгоно уу.");document.getElementById("adminCount").textContent="Салбар сонгоогүй";say("⚠️ Эхлээд ажиллах салбараа сонгоно уу.");return}
  if(!raw){say("");}
- const rows=adminParcels.filter(p=>(!bid||String(p.branch_id||"")===bid)&&(!raw?classifyStatus(p.parcel_status)==="mongolia":true)&&(!raw||[p.tracking_code,p.customer_name,p.name,adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name].some(v=>String(v||"").toLowerCase().includes(q))||(digits.length>0&&[p.customer_phone,p.phone].some(v=>cleanPhone(v).includes(digits)))));
+ const rows=adminParcels.filter(p=>(!bid||String(p.branch_id||"")===bid)&&(!raw?classifyStatus(p.parcel_status)==="mongolia":phoneSearchSelectionEnabled?cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone:[p.tracking_code,p.customer_name,p.name,adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name].some(v=>String(v||"").toLowerCase().includes(q))||(digits.length>0&&[p.customer_phone,p.phone].some(v=>cleanPhone(v).includes(digits)))));
  const empty=raw?"Энэ салбарт "+raw+" дугаартай ачаа олдсонгүй. Утасны дугаараа шалгаад дахин хайна уу.":"Монголд ирсэн ачаа одоогоор алга.";
  renderAdminRows(rows,empty);
  if(raw){document.getElementById("adminParcelRows")?.scrollIntoView({behavior:"smooth",block:"nearest"});say(rows.length?"✓ "+raw+" — "+rows.length+" ачаа олдлоо.":"✕ Ачаа олдсонгүй. "+raw+" дугаараа шалгаад дахин хайна уу.",rows.length>0);}
@@ -1011,10 +1013,10 @@ new MutationObserver(()=>run()).observe(document.documentElement,{subtree:true,a
 @media(max-width:520px){#bulkHandoverBar .bh-actions{justify-content:space-between}#bulkHandoverBar button{padding:9px 10px;font-size:14px}}
 </style>
 <script id="bulk-handover-logic">
-let selectedHandoverIds=new Set(),currentHandoverRows=[];
-function selectedHandoverParcels(){return adminParcels.filter(p=>selectedHandoverIds.has(String(p.id))&&classifyStatus(p.parcel_status)==="mongolia")}
+let selectedHandoverIds=new Set(),currentHandoverRows=[],phoneSearchSelectionEnabled=false,activeHandoverPhone="";
+function selectedHandoverParcels(){if(!phoneSearchSelectionEnabled||!activeHandoverPhone)return [];return adminParcels.filter(p=>selectedHandoverIds.has(String(p.id))&&classifyStatus(p.parcel_status)==="mongolia"&&cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone)}
 function updateHandoverBar(){const rows=selectedHandoverParcels(),sum=rows.reduce((n,p)=>n+Number(p.price_mnt||0),0);document.getElementById("bhTotal").textContent=sum.toLocaleString("mn-MN")+"₮";document.getElementById("bhCount").textContent=rows.length+" сонгосон";document.getElementById("bulkHandoverBar").style.display=rows.length?"block":"none"}
-function toggleHandover(id,checked){if(checked)selectedHandoverIds.add(String(id));else selectedHandoverIds.delete(String(id));updateHandoverBar()}
+function toggleHandover(id,checked){const p=adminParcels.find(x=>String(x.id)===String(id));if(!phoneSearchSelectionEnabled||!p||cleanPhone(p.customer_phone||p.phone)!==activeHandoverPhone||classifyStatus(p.parcel_status)!=="mongolia")return;if(checked)selectedHandoverIds.add(String(id));else selectedHandoverIds.delete(String(id));updateHandoverBar()}
 function toggleAllHandover(checked){currentHandoverRows.filter(p=>classifyStatus(p.parcel_status)==="mongolia").forEach(p=>checked?selectedHandoverIds.add(String(p.id)):selectedHandoverIds.delete(String(p.id)));renderAdminRows(currentHandoverRows)}
 function clearHandoverSelection(){selectedHandoverIds.clear();renderAdminRows(currentHandoverRows)}
 function changeSelectedPhones(){
@@ -1039,9 +1041,12 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
  else body.innerHTML=rows.map((p,index)=>{
   const status=classifyStatus(p.parcel_status),id=String(p.id),safe=id.replace(/\\/g,"\\\\").replace(/'/g,"\\'"),checked=selectedHandoverIds.has(id);
   const phone=p.customer_phone||p.phone||"-",name=p.customer_name||p.name||"-",branch=adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name||"-";
-  return '<article class="parcel-list-card '+(checked?'is-selected':'')+'"><div class="parcel-card-top"><label class="parcel-check"><input type="checkbox" '+(status==="mongolia"?'':'disabled ')+(checked?'checked ':'')+'onchange="toggleHandover(\''+safe+'\',this.checked)"><span>'+(index+1)+'</span></label><div class="parcel-customer"><b>'+escapeHTML(name)+'</b><strong>'+escapeHTML(phone)+'</strong></div><b class="parcel-price">'+Number(p.price_mnt||0).toLocaleString("mn-MN")+' ₮</b></div><div class="parcel-card-code">'+escapeHTML(p.tracking_code||"-")+'</div><div class="parcel-card-meta"><span>'+escapeHTML(branch)+'</span><span>'+escapeHTML(adminStatusLabel(status))+'</span><span>'+escapeHTML(p.weight_kg??"-")+' кг</span></div><div class="parcel-card-actions"><button type="button" onclick="editParcel(\''+safe+'\')">✎ Засах</button><button type="button" class="parcel-delete" onclick="deleteParcel(\''+safe+'\')">Устгах</button></div></article>';
+  const canSelect=phoneSearchSelectionEnabled&&status==="mongolia"&&cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone;
+  const selector=canSelect?'<label class="parcel-check"><input type="checkbox" '+(checked?'checked ':'')+'onchange="toggleHandover(\\''+safe+'\\',this.checked)"><span>'+(index+1)+'</span></label>':'<span class="parcel-check-spacer"></span>';
+  return '<article class="parcel-list-card '+(checked?'is-selected':'')+'"><div class="parcel-card-top">'+selector+'<div class="parcel-customer"><b>'+escapeHTML(name)+'</b><strong>'+escapeHTML(phone)+'</strong></div><b class="parcel-price">'+Number(p.price_mnt||0).toLocaleString("mn-MN")+' ₮</b></div><div class="parcel-card-code">'+escapeHTML(p.tracking_code||"-")+'</div><div class="parcel-card-meta"><span>'+escapeHTML(branch)+'</span><span>'+escapeHTML(adminStatusLabel(status))+'</span><span>'+escapeHTML(p.weight_kg??"-")+' кг</span></div><div class="parcel-card-actions"><button type="button" onclick="editParcel(\\''+safe+'\\')">✎ Засах</button><button type="button" class="parcel-delete" onclick="deleteParcel(\\''+safe+'\\')">Устгах</button></div></article>';
  }).join("");
  const count=document.getElementById("adminCount");if(count)count.textContent="Нийт: "+rows.length;
+ const selectAll=document.querySelector('#adminParcelCards .admin-list-head button');if(selectAll)selectAll.style.display=phoneSearchSelectionEnabled&&rows.some(p=>classifyStatus(p.parcel_status)==="mongolia"&&cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone)?"inline-flex":"none";
  updateHandoverBar();
 }
 </script>
