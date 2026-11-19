@@ -626,7 +626,7 @@ async function bulkMarkEreen(){
     if(changedThisCode)updated++;
     else if(advancedThisCode)alreadyAdvanced++;
     if(preRegs.length===1&&preRegs[0].status==="pending"){
-     const {error:preUpdateError}=await db.from("customer_pre_registrations").update({status:"confirmed",reviewed_at:new Date().toISOString(),admin_note:"Ачаа Эрээнд ирсэн төлөвт шилжсэн"}).eq("id",preRegs[0].id);
+     const {error:preUpdateError}=await db.from("customer_pre_registrations").update({status:"confirmed"}).eq("id",preRegs[0].id);
      if(preUpdateError)throw preUpdateError;
     }
     continue;
