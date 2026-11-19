@@ -550,7 +550,7 @@ async function customerLogin(){
  if(phone.length!==8){showMessage("customerMessage","8 оронтой утасны дугаараа оруулна уу.");return}
  const btn=document.getElementById("customerLoginButton");btn.disabled=true;btn.textContent="ШАЛГАЖ БАЙНА...";showMessage("customerMessage","");
  try{
-  const {data,error}=await db.rpc("get_customer_parcels_by_phone",{p_phone:phone});
+  const {data,error}=await db.rpc("get_customer_parcels_by_phone_v2",{p_phone:phone});
   if(error)throw error;
   currentPhone=phone;customerParcels=data||[];openCustomerDashboard();
   if(!customerParcels.length)showMessage("customerMessage","Ачааны түүх хоосон байна. Бүртгэл амжилттай нээгдлээ.");
