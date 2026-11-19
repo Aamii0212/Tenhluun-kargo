@@ -1237,3 +1237,54 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
   #adminDashboard .admin-list-head { padding:10px 12px !important; }
 }
 </style>
+
+
+<style id="fix-no-name-parcel-layout">
+/* Fix the separate unassigned-parcel list: prevent narrow right-hand column layout */
+#adminDashboard #noNameParcelSection,
+#adminDashboard #noNameParcelSection .admin-list-head,
+#adminDashboard #noNameParcelRows {
+  display:block !important;
+  position:relative !important;
+  float:none !important;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+  box-sizing:border-box !important;
+}
+#adminDashboard #noNameParcelRows {
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  gap:0 !important;
+  overflow:visible !important;
+}
+#adminDashboard #noNameParcelRows > .parcel-list-card {
+  display:block !important;
+  position:relative !important;
+  float:none !important;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  height:auto !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:13px 14px 11px !important;
+  border:0 !important;
+  border-bottom:1px solid #edf0f3 !important;
+  border-left:4px solid #4b86ef !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  overflow:visible !important;
+}
+#adminDashboard #noNameParcelRows .parcel-card-code {
+  overflow-wrap:anywhere !important;
+  word-break:break-word !important;
+  white-space:normal !important;
+}
+#adminDashboard #noNameParcelRows .parcel-card-actions {
+  justify-content:flex-start !important;
+}
+</style>
