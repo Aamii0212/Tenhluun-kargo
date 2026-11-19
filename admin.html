@@ -591,11 +591,7 @@ async function showEreenAddress(){
  const box=document.getElementById("ereenAddressBox");box.style.display=box.style.display==="none"?"block":"none";if(box.style.display==="none")return;
  const el=document.getElementById("ereenAddressText");el.textContent="Хаяг ачаалж байна...";
  try{const {data}=await db.from("site_settings").select("ereen_address,ereen_contact").eq("id",1).maybeSingle();
- el.innerHTML=data?.ereen_address?'<p>'+escapeHTML(data.ereen_address)+'</p><p>'+escapeHTML(data.ereen_contact||"")+'</p>':'Админ хаяг оруулаагүй байна.'}
- catch(e){el.textContent="Хаяг авахад алдаа гарлаа."}
-}
-async function showBranchLocations(){
- const box=document.getElementById("publicBranches");box.style.display=box.style.display==="none"?"block":"none";if(box.style.display==="none")return;
+ el.innerHTML=data?.ereen_address?'<p>'+escapeHTML(data.ereen_address)+'</p><p>'+escapeHTML(data.ereen_contact||"") +'</p><p><b>Tenhluun kargo (Нэр, дугаар)</b></p>':'Админ хаяг оруулаагүй байна.';box.style.display=box.style.display==="none"?"block":"none";if(box.style.display==="none")return;
  const list=document.getElementById("publicBranchList");list.textContent="Ачаалж байна...";
  try{
   const [{data:branches,error:be},{data:settings,error:se}]=await Promise.all([db.from("branches").select("name,address,phone").order("name"),db.from("site_settings").select("open_time,close_time").eq("id",1).maybeSingle()]);
