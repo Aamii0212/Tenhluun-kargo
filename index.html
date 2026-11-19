@@ -1348,7 +1348,7 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
         '<div class="parcel-card-meta"><span>'+escapeHTML(branch)+'</span><span>'+escapeHTML(adminStatusLabel(status))+'</span><span>'+escapeHTML(p.weight_kg??"-")+' кг</span></div>'+
         '<div class="parcel-card-actions"><button type="button" onclick="editParcel(\''+safe+'\')">✎ Засах</button><button type="button" class="parcel-delete" onclick="deleteParcel(\''+safe+'\')">Устгах</button></div></article>';
     }).join("");
-    const count=document.get.getElementById("adminCount");
+    const count=document.getElementById("adminCount");
     if(count)count.textContent="Хайлтын үр дүн: "+currentHandoverRows.length+" ачаа";
     const all=document.querySelector("#adminParcelCards .admin-list-head button");
     const canBulk=phoneSearchSelectionEnabled&&currentHandoverRows.some(p=>classifyStatus(p.parcel_status)==="mongolia"&&phoneDigits(p.customer_phone||p.phone)===activeHandoverPhone);
