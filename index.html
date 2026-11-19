@@ -499,9 +499,13 @@ async function loadNoNameParcels(){
   const {data,error}=await db.from("parcels").select("*").eq("branch_id",selectedAdminBranchId).is("customer_phone",null).order("created_at",{ascending:false});
   if(error)throw error;const rows=data||[];
   if(!rows.length){box.innerHTML='<div class="parcel-list-empty">Нэр, дугааргүй ачаа одоогоор алга.</div>';return}
-  box.innerHTML=rows.map(p=>'<article class="record-card"><div class="record-line"><div class="record-person"><b>Нэр, дугааргүй ачаа</b><span>'+escapeHTML(p.tracking_code||"-")+'</span></div><strong class="record-price">'+Number(p.price_mnt||0).toLocaleString()+' ₮</strong></div><div class="record-meta"><span>'+escapeHTML(adminStatusLabel(classifyStatus(p.parcel_status)))+'</span><span>'+escapeHTML(p.weight_kg??0)+' кг</span><span>'+escapeHTML(p.arrival_date||"-")+'</span></div><div class="record-actions"><button class="edit-btn" onclick="editParcel(\''+String(p.id)+'\')">Засах</button><button class="delete-btn" onclick="deleteParcel(\''+String(p.id)+'\')">Устгах</button></div></article>').join("");
+  box.innerHTML=rows.map((p,index)=>{
+   const id=String(p.id),safe=id.replace(/'/g,"\\\\'");
+   return '<article class="parcel-list-card"><div class="parcel-card-top"><div class="parcel-customer"><b>Нэр, дугааргүй ачаа</b><strong>Утасгүй</strong></div><b class="parcel-price">'+Number(p.price_mnt||0).toLocaleString("mn-MN")+' ₮</b></div><div class="parcel-card-code">'+escapeHTML(p.tracking_code||"-")+'</div><div class="parcel-card-meta"><span>'+escapeHTML(adminStatusLabel(classifyStatus(p.parcel_status)))+'</span><span>'+escapeHTML(p.weight_kg??0)+' кг</span><span>'+escapeHTML(p.arrival_date||"-")+'</span></div><div class="parcel-card-actions"><button type="button" onclick="editParcel(\\''+safe+'\\')">✎ Засах</button><button type="button" class="parcel-delete" onclick="deleteParcel(\\''+safe+'\\')">Устгах</button></div></article>';
+  }).join("");
  }catch(error){console.error("Нэр дугааргүй ачаа:",error);box.innerHTML='<div class="parcel-list-empty">Ачаа татахад алдаа: '+escapeHTML(error.message||error)+'</div>'}
 }
+
 function localDateKey(value){const d=new Date(value);if(Number.isNaN(d.getTime()))return "";return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
 function updateAdminStats(){
  const total=adminParcels.length,registered=adminParcels.filter(p=>classifyStatus(p.parcel_status)==="registered").length,ereen=adminParcels.filter(p=>classifyStatus(p.parcel_status)==="ereen").length,mongolia=adminParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia").length,received=adminParcels.filter(p=>classifyStatus(p.parcel_status)==="received"),revenue=received.reduce((sum,p)=>sum+Number(p.price_mnt||0),0),today=localDateKey(new Date()),selectedDate=document.getElementById("paidDateFilter")?.value||today;
