@@ -1198,3 +1198,41 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
 #adminBarcodeReader__scan_region{width:100%!important;min-height:100%!important}
 @media(max-height:700px){#adminBarcodeReader{height:62vh!important;min-height:300px!important}}
 </style>
+
+
+<style id="compact-mazaalai-admin-list">
+/* Compact, full-width parcel rows inspired by the reference screenshot */
+#adminDashboard, #adminDashboard * { box-sizing: border-box; }
+#adminDashboard { width: 100%; max-width: 1100px; padding: 12px; }
+#adminDashboard #adminParcelCards { display: block !important; width: 100% !important; max-width: 100% !important; }
+#adminDashboard #adminParcelRows {
+  display: flex !important; flex-direction: column !important; align-items: stretch !important;
+  width: 100% !important; max-width: 100% !important; gap: 0 !important;
+}
+#adminDashboard #adminParcelRows > .parcel-list-card {
+  display: block !important; position: relative !important; float: none !important;
+  width: 100% !important; max-width: 100% !important; min-width: 0 !important;
+  min-height: 0 !important; height: auto !important; margin: 0 !important;
+  padding: 13px 14px 11px !important; border: 0 !important;
+  border-bottom: 1px solid #edf0f3 !important; border-left: 4px solid #4b86ef !important;
+  border-radius: 0 !important; box-shadow: none !important; background: #fff !important;
+  overflow: visible !important;
+}
+#adminDashboard #adminParcelRows > .parcel-list-card.is-selected { background: #fffafd !important; }
+#adminDashboard .parcel-card-top { display:flex !important; width:100% !important; align-items:center !important; gap:9px !important; }
+#adminDashboard .parcel-check { flex:0 0 auto !important; }
+#adminDashboard .parcel-customer { flex:1 1 auto !important; min-width:0 !important; }
+#adminDashboard .parcel-customer b { font-size:14px !important; }
+#adminDashboard .parcel-customer strong { font-size:16px !important; }
+#adminDashboard .parcel-price { flex:0 0 auto !important; font-size:17px !important; }
+#adminDashboard .parcel-card-code { margin:9px 0 7px 32px !important; font-size:15px !important; line-height:1.35 !important; }
+#adminDashboard .parcel-card-meta { margin-left:32px !important; gap:6px !important; }
+#adminDashboard .parcel-card-meta span { font-size:11px !important; padding:4px 8px !important; }
+#adminDashboard .parcel-card-actions { margin:8px 0 0 32px !important; justify-content:flex-start !important; }
+#adminDashboard .parcel-card-actions button { padding:6px 12px !important; font-size:12px !important; }
+@media (max-width:600px) {
+  #adminDashboard { padding:8px !important; margin:8px auto !important; border-radius:14px !important; }
+  #adminDashboard #adminParcelCards { margin:8px 0 90px !important; }
+  #adminDashboard .admin-list-head { padding:10px 12px !important; }
+}
+</style>
