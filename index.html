@@ -177,7 +177,7 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
   <div class="admin-actions parcel-editor-actions"><button class="logout" onclick="cancelParcelForm()">Цуцлах</button><button class="primary" onclick="saveParcel()">Хадгалах</button></div>
  </div>
  <section id="adminParcelCards" class="admin-parcel-cards admin-home-keep"><div class="admin-list-head"><span id="adminCount">Ачаа ачаалж байна...</span><button type="button" onclick="toggleAllHandover(true)">☑ Бүгдийг сонгох</button></div><div id="adminParcelRows"><div class="parcel-list-empty">Ачаа ачаалж байна...</div></div></section>
- <section id="noNameParcelSection" class="admin-parcel-cards admin-home-keep" style="margin-top:18px"><div class="admin-list-head"><span>📦 Нэр, дугааргүй ачаа</span><button type="button" onclick="loadNoNameParcels()">↻ Шинэчлэх</button></div><div id="noNameParcelRows"><div class="parcel-list-empty">Мэдээлэл ачаалж байна...</div></div></section>
+ <details class="admin-fold" id="noNameParcelFold"><summary>📦 Нэр, дугааргүй ачаа</summary><div class="admin-fold-body"><section id="noNameParcelSection" class="admin-parcel-cards" style="margin-top:0"><div class="admin-list-head"><span>📦 Нэр, дугааргүй ачаа</span><button type="button" onclick="loadNoNameParcels()">↻ Шинэчлэх</button></div><div id="noNameParcelRows"><div class="parcel-list-empty">Мэдээлэл ачаалж байна...</div></div></section></div></details>
  
 </section>
 </main>
@@ -892,12 +892,13 @@ function setup(){
   branch:[findFold('#newBranchName')].filter(Boolean),
   pre:[findFold('#preRegAdminRows')].filter(Boolean),
   settings:[findFold('#settingKg')].filter(Boolean),
-  bulk:[findFold('#bulkTrackingCodes')].filter(Boolean)
+  bulk:[findFold('#bulkTrackingCodes')].filter(Boolean),
+  noName:[findFold('#noNameParcelSection')].filter(Boolean)
  };
  folds.forEach(f=>{f.open=false;f.style.display='none';dash.appendChild(f)});
  const shade=document.createElement('div');shade.id='adminMenuShade';
  const drawer=document.createElement('aside');drawer.id='adminMenuDrawer';drawer.setAttribute('aria-label','Үндсэн цэс');
- drawer.innerHTML='<div class="menu-top"><span>ҮНДСЭН ЦЭС</span><button type="button" id="adminMenuClose" aria-label="Цэс хаах">×</button></div><nav class="admin-main-nav"><button type="button" data-section="records">📦 <span>Ачааны бүртгэл</span></button><button type="button" data-section="stats">📊 <span>Статистик</span></button><button type="button" data-section="revenue">💰 <span>Орлого</span></button></nav><div class="menu-caption">УДИРДЛАГА</div><nav class="admin-main-nav"><button type="button" data-section="branch">🏢 <span>Салбар удирдах</span></button><button type="button" data-section="pre">📥 <span>Урьдчилсан бүртгэл</span></button><button type="button" data-section="settings">⚙️ <span>Үнэ ба тохиргоо</span></button><button type="button" data-section="bulk">📦 <span>Бөөнөөр Эрээнд</span></button></nav>';
+ drawer.innerHTML='<div class="menu-top"><span>ҮНДСЭН ЦЭС</span><button type="button" id="adminMenuClose" aria-label="Цэс хаах">×</button></div><nav class="admin-main-nav"><button type="button" data-section="records">📦 <span>Ачааны бүртгэл</span></button><button type="button" data-section="stats">📊 <span>Статистик</span></button><button type="button" data-section="revenue">💰 <span>Орлого</span></button></nav><div class="menu-caption">УДИРДЛАГА</div><nav class="admin-main-nav"><button type="button" data-section="branch">🏢 <span>Салбар удирдах</span></button><button type="button" data-section="pre">📥 <span>Урьдчилсан бүртгэл</span></button><button type="button" data-section="settings">⚙️ <span>Үнэ ба тохиргоо</span></button><button type="button" data-section="bulk">📦 <span>Бөөнөөр Эрээнд</span></button><button type="button" data-section="noName">📦 <span>Нэр, дугааргүй ачаа</span></button></nav>';
  dash.append(shade,drawer);
  function close(){dash.classList.remove('admin-menu-visible')}
  function openMenu(){dash.classList.add('admin-menu-visible')}
