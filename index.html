@@ -549,7 +549,7 @@ async function filterAdminRows(){
  if(recordsFold){recordsFold.style.display="block";recordsFold.open=true;}
  const raw=document.getElementById("adminSearch").value.trim(),q=raw.toLowerCase(),digits=cleanPhone(raw),bid=document.getElementById("adminBranchFilter")?.value||"";
  // Бөөнөөр хүлээлгэн өгөх сонголт зөвхөн 8 оронтой утасны дугаараар хайсан үед идэвхжинэ.
- selectedHandoverIds.clear();phoneSearchSelectionEnabled=digits.length===8;activeHandoverPhone=phoneSearchSelectionEnabled?digits:"";
+ selectedHandoverIds.clear();phoneSearchSelectionEnabled=/^[\\d\\s()+-]+$/.test(raw)&&digits.length===8;activeHandoverPhone=phoneSearchSelectionEnabled?digits:"";
  const feedback=document.getElementById("searchFeedback");
  const say=(message,ok=false)=>{if(feedback){feedback.textContent=message;feedback.style.display=message?"block":"none";feedback.style.color=ok?"#16834a":"#c02d75";feedback.style.borderColor=ok?"#bde8cc":"#f1dce8"}};
  if(!selectedAdminBranchId){renderAdminRows([],"Хайлт хийхийн өмнө дээрээс ажиллах салбараа сонгоно уу.");document.getElementById("adminCount").textContent="Салбар сонгоогүй";say("⚠️ Эхлээд ажиллах салбараа сонгоно уу.");return}
