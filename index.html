@@ -538,7 +538,7 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
   if(!rows.length){body.innerHTML='<tr><td colspan="7">'+escapeHTML(emptyText)+'</td></tr>'}
   else body.innerHTML=rows.map(p=>{
     const status=classifyStatus(p.parcel_status),id=escapeHTML(String(p.id));
-    const action=status==="mongolia"?`<button class="primary" onclick="handoverParcel('${id}')">Хүлээлгэн өгөх</button>`:status==="received"?'<b>✓ Хүлээлгэн өгсөн</b>':'<small>Монголд ирсний дараа хүлээлгэн өгнө</small>';
+    const action=status==="received"?'<b>✓ Хүлээлгэн өгсөн</b>':'<small>Утасны дугаараар хайж сонгоно уу</small>';
     return `<tr><td>${escapeHTML(adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name||"-")}</td><td><b>${escapeHTML(p.tracking_code||"-")}</b></td><td>${escapeHTML(p.customer_name||p.name||"-")}<br><small>${escapeHTML(p.customer_phone||p.phone||"-")}</small></td><td><span class="status-admin">${adminStatusLabel(status)}</span></td><td>${escapeHTML(p.weight_kg??"-")} кг</td><td>${escapeHTML(p.price_mnt??"-")} ₮</td><td>${action} <button class="edit-btn" onclick="editParcel('${id}')">Засах</button><button class="delete-btn" onclick="deleteParcel('${id}')">Устгах</button></td></tr>`;
   }).join("");
   document.getElementById("adminCount").textContent="Хайлтын үр дүн: "+rows.length+" ачаа";
@@ -549,7 +549,7 @@ async function filterAdminRows(){
  if(recordsFold){recordsFold.style.display="block";recordsFold.open=true;}
  const raw=document.getElementById("adminSearch").value.trim(),q=raw.toLowerCase(),digits=cleanPhone(raw),bid=document.getElementById("adminBranchFilter")?.value||"";
  // Бөөнөөр хүлээлгэн өгөх сонголт зөвхөн 8 оронтой утасны дугаараар хайсан үед идэвхжинэ.
- selectedHandoverIds.clear();phoneSearchSelectionEnabled=/^[\\d\\s()+-]+$/.test(raw)&&digits.length===8;activeHandoverPhone=phoneSearchSelectionEnabled?digits:"";
+ selectedHandoverIds.clear();phoneSearchSelectionEnabled=/^[\d\s()+-]+$/.test(raw)&&digits.length===8;activeHandoverPhone=phoneSearchSelectionEnabled?digits:"";
  const feedback=document.getElementById("searchFeedback");
  const say=(message,ok=false)=>{if(feedback){feedback.textContent=message;feedback.style.display=message?"block":"none";feedback.style.color=ok?"#16834a":"#c02d75";feedback.style.borderColor=ok?"#bde8cc":"#f1dce8"}};
  if(!selectedAdminBranchId){renderAdminRows([],"Хайлт хийхийн өмнө дээрээс ажиллах салбараа сонгоно уу.");document.getElementById("adminCount").textContent="Салбар сонгоогүй";say("⚠️ Эхлээд ажиллах салбараа сонгоно уу.");return}
