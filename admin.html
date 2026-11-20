@@ -957,6 +957,9 @@ if(!n&&!u){msg.textContent='❌ Хадгалсангүй. '+err.join(' | ');retu
 </style>
 <script id="bulk-handover-logic">
 let selectedHandoverIds = new Set();
+// Define phone-search selection state before admin handlers use it.
+let phoneSearchSelectionEnabled = false;
+let activeHandoverPhone = "";
 function handoverSelectedParcels(){return adminParcels.filter(p=>selectedHandoverIds.has(String(p.id))&&classifyStatus(p.parcel_status)!=="received")}
 function updateHandoverBar(){
  const rows=handoverSelectedParcels(),sum=rows.reduce((n,p)=>n+Number(p.price_mnt||0),0),bar=document.getElementById("bulkHandoverBar");
