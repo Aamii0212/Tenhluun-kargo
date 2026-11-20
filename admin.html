@@ -724,7 +724,7 @@ async function confirmParcelPayment(id){const p=adminParcels.find(x=>String(x.id
 function filterAdminRows(){
  const raw=document.getElementById("adminSearch").value.trim(),q=raw.toLowerCase(),digits=cleanPhone(raw),bid=document.getElementById("adminBranchFilter").value,st=document.getElementById("adminStatusFilter").value,pay=document.getElementById("adminPaymentFilter")?.value||"";
  selectedHandoverIds.clear();
- phoneSearchSelectionEnabled=/^[\\d\\s()+-]+$/.test(raw)&&digits.length===8;
+ phoneSearchSelectionEnabled=/^[\d\s()+-]+$/.test(raw)&&digits.length===8;
  activeHandoverPhone=phoneSearchSelectionEnabled?digits:"";
  const filtered=adminParcels.filter(p=>(!bid||String(p.branch_id||"")===bid)&&(!st||classifyStatus(p.parcel_status)===st)&&(!pay||(pay==="paid"?!!p.paid_at:!p.paid_at))&&(!q|| (phoneSearchSelectionEnabled?cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone:[p.tracking_code,p.customer_name,p.name,p.customer_phone,p.phone].some(v=>{const s=String(v||"").toLowerCase();return s.includes(q)||(digits.length>=3&&cleanPhone(v).includes(digits))}))));
  renderAdminRows(filtered);
