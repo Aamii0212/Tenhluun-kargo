@@ -186,6 +186,8 @@ footer{text-align:center;color:#fff;padding:35px 15px 25px;font-size:13px;backgr
 const SUPABASE_URL = "https://marlhculacividpbfddn.supabase.co";
 const SUPABASE_KEY = "sb_publishable_13w76dxEXz7SWRAouotJvw_6Oceh9jh";
 const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+// Shared handover state is declared before search handlers use it.
+let selectedHandoverIds=new Set(),currentHandoverRows=[],phoneSearchSelectionEnabled=false,activeHandoverPhone="";
 const adminToday=new Date();document.addEventListener("DOMContentLoaded",()=>{const el=document.getElementById("paidDateFilter");if(el)el.value=[adminToday.getFullYear(),String(adminToday.getMonth()+1).padStart(2,"0"),String(adminToday.getDate()).padStart(2,"0")].join("-")});
 let customerParcels = [];
 let currentPhone = "";
@@ -1013,7 +1015,6 @@ new MutationObserver(()=>run()).observe(document.documentElement,{subtree:true,a
 @media(max-width:520px){#bulkHandoverBar .bh-actions{justify-content:space-between}#bulkHandoverBar button{padding:9px 10px;font-size:14px}}
 </style>
 <script id="bulk-handover-logic">
-let selectedHandoverIds=new Set(),currentHandoverRows=[],phoneSearchSelectionEnabled=false,activeHandoverPhone="";
 function selectedHandoverParcels(){if(!phoneSearchSelectionEnabled||!activeHandoverPhone)return [];return adminParcels.filter(p=>selectedHandoverIds.has(String(p.id))&&classifyStatus(p.parcel_status)==="mongolia"&&cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone)}
 function updateHandoverBar(){const rows=selectedHandoverParcels(),sum=rows.reduce((n,p)=>n+Number(p.price_mnt||0),0);document.getElementById("bhTotal").textContent=sum.toLocaleString("mn-MN")+"₮";document.getElementById("bhCount").textContent=rows.length+" сонгосон";document.getElementById("bulkHandoverBar").style.display=rows.length?"block":"none"}
 function toggleHandover(id,checked){const p=adminParcels.find(x=>String(x.id)===String(id));if(!phoneSearchSelectionEnabled||!p||cleanPhone(p.customer_phone||p.phone)!==activeHandoverPhone||classifyStatus(p.parcel_status)!=="mongolia")return;if(checked)selectedHandoverIds.add(String(id));else selectedHandoverIds.delete(String(id));updateHandoverBar()}
