@@ -671,6 +671,10 @@ async function rejectPreRegistration(id){const note=prompt("Татгалзсан
 
 async function adminLogout(){await db.auth.signOut();document.getElementById("adminDashboard").style.display="none";document.getElementById("adminLogin").style.display="block"}
 
+let selectedHandoverIds = new Set();
+let phoneSearchSelectionEnabled = false;
+let activeHandoverPhone = "";
+let currentHandoverRows = [];
 let adminParcels=[],editingParcelId=null,adminBranches=[];
 function adminStatusLabel(s){return s==="received"?"Хүлээж авсан":s==="mongolia"?"Монголд ирсэн":"Эрээнд ирсэн"}
 async function loadAdminParcels(){
@@ -959,10 +963,6 @@ if(!n&&!u){msg.textContent='❌ Хадгалсангүй. '+err.join(' | ');retu
 @media(max-width:520px){#bulkHandoverBar .bh-actions{justify-content:space-between}#bulkHandoverBar button{padding:9px 10px;font-size:14px}}
 </style>
 <script id="bulk-handover-logic">
-let selectedHandoverIds = new Set();
-let phoneSearchSelectionEnabled = false;
-let activeHandoverPhone = "";
-let currentHandoverRows = [];
 function handoverSelectedParcels(){
  if(!phoneSearchSelectionEnabled||!activeHandoverPhone)return [];
  return adminParcels.filter(p=>selectedHandoverIds.has(String(p.id))&&classifyStatus(p.parcel_status)!=="received"&&cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone);
