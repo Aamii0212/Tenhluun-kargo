@@ -493,6 +493,23 @@ async function loadAdminParcels(){
  body.innerHTML='<div class="parcel-list-empty">Ачаа ачаалж байна...</div>';
  try{const all=[];let from=0;const batchSize=1000;while(true){const {data,error}=await db.from("parcels").select("*").eq("branch_id",selectedAdminBranchId).order("created_at",{ascending:false}).range(from,from+batchSize-1);if(error)throw error;const part=data||[];all.push(...part);if(part.length<batchSize)break;from+=batchSize}adminParcels=all;renderAdminRows(adminParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia"&&!!(p.customer_phone||p.phone)));updateAdminStats();await loadNoNameParcels();showMessage("adminNotice","")}catch(error){console.error("Ачааны жагсаалт татах:",error);body.innerHTML='<div class="parcel-list-empty">Ачаа татахад алдаа: '+escapeHTML(error.message||error)+'</div>';showMessage("adminNotice","Ачаа татах алдаа: "+(error.message||error))}
 }
+async function deleteNoNameParcel(id){
+ const rowId=String(id||"");
+ if(!rowId||!selectedAdminBranchId){showMessage("adminNotice","Эхлээд ажиллах салбараа сонгоно уу.");return}
+ const row=adminParcels.find(p=>String(p.id)===rowId);
+ if(row&&String(row.branch_id)!==String(selectedAdminBranchId)){showMessage("adminNotice","Өөр салбарын ачааг устгах боломжгүй.");return}
+ if(!confirm("Энэ нэр, дугааргүй ачааг устгах уу?"))return;
+ try{
+  const {data,error}=await db.from("parcels").delete().eq("id",rowId).eq("branch_id",selectedAdminBranchId).is("customer_phone",null).select("id");
+  if(error)throw error;
+  if(!data||!data.length)throw new Error("Ачаа устсангүй. Салбарын эрх эсвэл бичлэгийн нөхцөлийг шалгана уу.");
+  await loadAdminParcels();
+  await loadNoNameParcels();
+  showMessage("adminNotice","Нэр, дугааргүй ачааг устгалаа.");
+ }catch(error){showMessage("adminNotice","Устгах алдаа: "+(error.message||String(error)));}
+}
+window.deleteNoNameParcel=deleteNoNameParcel;
+
 async function loadNoNameParcels(){
  const box=document.getElementById("noNameParcelRows");if(!box)return;
  if(!selectedAdminBranchId){box.innerHTML='<div class="parcel-list-empty">Эхлээд ажиллах салбараа сонгоно уу.</div>';return}
@@ -503,7 +520,7 @@ async function loadNoNameParcels(){
   if(!rows.length){box.innerHTML='<div class="parcel-list-empty">Нэр, дугааргүй ачаа одоогоор алга.</div>';return}
   box.innerHTML=rows.map(p=>{
    const id=String(p.id);
-   return '<article class="parcel-list-card"><div class="parcel-card-top"><div class="parcel-customer"><b>Нэр, дугааргүй ачаа</b><strong>Утасгүй</strong></div><b class="parcel-price">'+Number(p.price_mnt||0).toLocaleString("mn-MN")+' ₮</b></div><div class="parcel-card-code">'+escapeHTML(p.tracking_code||"-")+'</div><div class="parcel-card-meta"><span>'+escapeHTML(adminStatusLabel(classifyStatus(p.parcel_status)))+'</span><span>'+escapeHTML(p.weight_kg??0)+' кг</span><span>'+escapeHTML(p.arrival_date||"-")+'</span></div><div class="parcel-card-actions"><button type="button" onclick="editParcel('+JSON.stringify(id)+')">✎ Засах</button><button type="button" class="parcel-delete" onclick="deleteParcel('+JSON.stringify(id)+')">Устгах</button></div></article>';
+   return '<article class="parcel-list-card"><div class="parcel-card-top"><div class="parcel-customer"><b>Нэр, дугааргүй ачаа</b><strong>Утасгүй</strong></div><b class="parcel-price">'+Number(p.price_mnt||0).toLocaleString("mn-MN")+' ₮</b></div><div class="parcel-card-code">'+escapeHTML(p.tracking_code||"-")+'</div><div class="parcel-card-meta"><span>'+escapeHTML(adminStatusLabel(classifyStatus(p.parcel_status)))+'</span><span>'+escapeHTML(p.weight_kg??0)+' кг</span><span>'+escapeHTML(p.arrival_date||"-")+'</span></div><div class="parcel-card-actions"><button type="button" onclick="editParcel('+JSON.stringify(id)+')">✎ Засах</button><button type="button" class="parcel-delete" onclick="deleteNoNameParcel('+JSON.stringify(id)+')">Устгах</button></div></article>';
   }).join("");
  }catch(error){console.error("Нэр дугааргүй ачаа:",error);box.innerHTML='<div class="parcel-list-empty">Ачаа татахад алдаа: '+escapeHTML(error.message||error)+'</div>'}
 }
