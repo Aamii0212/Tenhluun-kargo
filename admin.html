@@ -730,7 +730,7 @@ function filterAdminRows(){
  selectedHandoverIds.clear();
  phoneSearchSelectionEnabled=/^[\d\s()+-]+$/.test(raw)&&digits.length===8;
  activeHandoverPhone=phoneSearchSelectionEnabled?digits:"";
- const filtered=adminParcels.filter(p=>(!bid||String(p.branch_id||"")===bid)&&(!st||classifyStatus(p.parcel_status)===st)&&(!pay||(pay==="paid"?!!p.paid_at:!p.paid_at))&&(!q|| (phoneSearchSelectionEnabled?cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone:[p.tracking_code,p.customer_name,p.name,p.customer_phone,p.phone].some(v=>{const s=String(v||"").toLowerCase();return s.includes(q)||(digits.length>=3&&cleanPhone(v).includes(digits))}))));
+ const filtered=adminParcels.filter(p=>(!phoneSearchSelectionEnabled||classifyStatus(p.parcel_status)==="mongolia")&&(!bid||String(p.branch_id||"")===bid)&&(!st||classifyStatus(p.parcel_status)===st)&&(!pay||(pay==="paid"?!!p.paid_at:!p.paid_at))&&(!q|| (phoneSearchSelectionEnabled?cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone:[p.tracking_code,p.customer_name,p.name,p.customer_phone,p.phone].some(v=>{const s=String(v||"").toLowerCase();return s.includes(q)||(digits.length>=3&&cleanPhone(v).includes(digits))}))));
  renderAdminRows(filtered);
  const feedback=document.getElementById("searchFeedback");if(feedback){if(!raw&&!bid&&!st&&!pay)feedback.textContent="📦 Нийт "+adminParcels.length+" ачаа бүртгэлтэй";else if(filtered.length)feedback.textContent="🔎 "+filtered.length+" ачаа олдлоо"+(phoneSearchSelectionEnabled?" · Нэг утасны дугаарын ачаанууд":"");else feedback.textContent="❌ “"+raw+"” хайлтаар ачаа олдсонгүй. Трак код эсвэл утасны дугаараа шалгана уу."}
 }
@@ -984,7 +984,7 @@ if(!n&&!u){msg.textContent='❌ Хадгалсангүй. '+err.join(' | ');retu
 <script id="bulk-handover-logic">
 function handoverSelectedParcels(){
  if(!phoneSearchSelectionEnabled||!activeHandoverPhone)return [];
- return adminParcels.filter(p=>selectedHandoverIds.has(String(p.id))&&classifyStatus(p.parcel_status)!=="received"&&cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone);
+ return adminParcels.filter(p=>selectedHandoverIds.has(String(p.id))&&classifyStatus(p.parcel_status)==="mongolia"&&cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone);
 }
 function updateHandoverBar(){
  const rows=handoverSelectedParcels(),sum=rows.reduce((n,p)=>n+Number(p.price_mnt||0),0),bar=document.getElementById("bulkHandoverBar");
@@ -994,14 +994,14 @@ function updateHandoverBar(){
 }
 function toggleParcelSelection(id,checked){
  const p=adminParcels.find(x=>String(x.id)===String(id));
- if(!phoneSearchSelectionEnabled||!p||cleanPhone(p.customer_phone||p.phone)!==activeHandoverPhone||classifyStatus(p.parcel_status)==="received")return;
+ if(!phoneSearchSelectionEnabled||!p||cleanPhone(p.customer_phone||p.phone)!==activeHandoverPhone||classifyStatus(p.parcel_status)!=="mongolia")return;
  if(checked)selectedHandoverIds.add(String(id));else selectedHandoverIds.delete(String(id));
  updateHandoverBar();
 }
 function clearHandoverSelection(){selectedHandoverIds.clear();renderAdminRows(currentHandoverRows)}
 function selectVisibleHandoverRows(){
  if(!phoneSearchSelectionEnabled||!activeHandoverPhone){alert("Эхлээд 8 оронтой утасны дугаараар хайна уу.");return}
- const visible=currentHandoverRows.filter(p=>classifyStatus(p.parcel_status)!=="received"&&cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone);
+ const visible=currentHandoverRows.filter(p=>classifyStatus(p.parcel_status)==="mongolia"&&cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone);
  const allSelected=visible.length>0&&visible.every(p=>selectedHandoverIds.has(String(p.id)));
  visible.forEach(p=>allSelected?selectedHandoverIds.delete(String(p.id)):selectedHandoverIds.add(String(p.id)));
  renderAdminRows(currentHandoverRows);
@@ -1011,13 +1011,13 @@ function renderAdminRows(rows){
  currentHandoverRows=rows.slice();
  updateAdminStats();
  const body=document.getElementById("adminParcelRows");
- const selectable=phoneSearchSelectionEnabled?rows.filter(p=>classifyStatus(p.parcel_status)!=="received"&&cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone):[];
+ const selectable=phoneSearchSelectionEnabled?rows.filter(p=>classifyStatus(p.parcel_status)==="mongolia"&&cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone):[];
  const allSelected=selectable.length>0&&selectable.every(p=>selectedHandoverIds.has(String(p.id)));
  const head='<div class="record-select-head"><span>Нийт: '+rows.length+'</span>'+(phoneSearchSelectionEnabled&&selectable.length?'<button type="button" onclick="selectVisibleHandoverRows()">'+(allSelected?'☑ Сонголт цуцлах':'☑ Бүгдийг сонгох')+'</button>':'<span>Бөөнөөр сонгохын тулд утасны дугаараар хайна уу</span>')+'</div>';
  if(!rows.length){body.innerHTML='<div class="empty">Бүртгэлтэй ачаа алга.</div>'}
  else body.innerHTML=head+rows.map((p,i)=>{
   const id=String(p.id),received=classifyStatus(p.parcel_status)==="received",samePhone=phoneSearchSelectionEnabled&&cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone,checked=selectedHandoverIds.has(id);
-  const canPick=!received&&samePhone;
+  const canPick=classifyStatus(p.parcel_status)==="mongolia"&&samePhone;
   return '<article class="record-card"><div class="record-line">'+(canPick?'<input class="record-pick" type="checkbox" aria-label="Ачаа сонгох" '+(checked?'checked':'')+' onchange="toggleParcelSelection(\''+id.replace(/'/g,"\\'")+'\',this.checked)">':'<span class="record-index">'+(i+1)+'</span>')+'<div class="record-person"><b>'+escapeHTML(p.customer_name||p.name||"Харилцагч")+'</b><a href="tel:'+escapeHTML(p.customer_phone||p.phone||"")+'">'+escapeHTML(p.customer_phone||p.phone||"-")+'</a></div><strong class="record-price">'+Number(p.price_mnt||0).toLocaleString()+" ₮"+'</strong></div><div class="record-code">'+escapeHTML(p.tracking_code||"-")+'</div><div class="record-meta"><span>'+escapeHTML(p.piece_number||1)+' ш</span><span>'+escapeHTML(p.weight_kg??0)+' кг</span><span>'+escapeHTML(adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name||"Салбаргүй")+'</span><span>'+adminStatusLabel(classifyStatus(p.parcel_status))+'</span><span>'+(p.paid_at?'💰 Төлсөн':'⏳ Төлбөр хүлээгдэж буй')+'</span></div><div class="record-actions">'+(canPick?'<button class="handover-btn" onclick="toggleParcelSelection(\''+id.replace(/'/g,"\\'")+'\',true);renderAdminRows(currentHandoverRows)">＋ Сонгох</button>':received?'<span class="received-tag">✓ Хүлээлгэн өгсөн</span>':'<span class="muted">Утасны дугаараар хайж сонгоно уу</span>')+'<button class="edit-btn" onclick="editParcel(\''+id.replace(/'/g,"\\'")+'\')">✎ Засах</button><button class="delete-btn" onclick="deleteParcel(\''+id.replace(/'/g,"\\'")+'\')">Устгах</button></div></article>';
  }).join("");
  document.getElementById("adminCount").textContent="Нийт: "+rows.length+" ачаа";
