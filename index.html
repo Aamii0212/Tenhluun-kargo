@@ -783,9 +783,11 @@ async function bulkMarkEreen(){
      if(insertError){
       // SELECT policy мөрийг нуусан ч tracking_code UNIQUE constraint duplicate insert-ийг барьж болно.
       if(insertError.code==="23505"||/duplicate key|already exists/i.test(insertError.message||"")){
-       const {error:retryError}=await db.from("parcels").update(patch).ilike("tracking_code",code);
+       const {data:retryRows,error:retryError}=await db.from("parcels")
+        .update(patch).ilike("tracking_code",code).select("id");
        if(retryError)throw retryError;
-       updatedCount++;
+       if(!retryRows||retryRows.length===0)throw Error("Давхардсан ачаа олдсон боловч төлөв шинэчлэгдсэнгүй. Админы UPDATE эрхийг шалгана уу.");
+       updatedCount+=retryRows.length;
       }else throw insertError;
      }else{
       if(!created)throw Error("Ачааны шинэ бичлэг үүссэнгүй.");
