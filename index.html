@@ -1066,15 +1066,17 @@ new MutationObserver(()=>run()).observe(document.documentElement,{subtree:true,a
 #bulkHandoverBar .bh-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 #bulkHandoverBar button,#bulkHandoverModal button{border:1px solid #ddd;border-radius:10px;background:#fff;padding:10px 14px;font:inherit;font-weight:700}
 #bulkHandoverBar .bh-primary,#bulkHandoverModal .bh-primary{background:#d73591;color:#fff;border-color:#d73591}
-#bulkHandoverModal{display:none;position:fixed;z-index:9100;inset:0;background:#0008;align-items:center;justify-content:center;padding:16px}
-#bulkHandoverModal .bh-dialog{background:#fff;border-radius:16px;padding:20px;width:min(100%,560px);max-height:90vh;overflow:auto;box-shadow:0 12px 40px #0003}
-#bulkHandoverModal h2{margin:0 0 10px;font-size:21px}
-#bulkHandoverModal input[type=date],#bulkHandoverModal input:not([type=radio]){box-sizing:border-box;width:100%;padding:12px;border:1px solid #e5a8cc;border-radius:9px;font:inherit;margin:7px 0 14px}
-#bulkHandoverModal .bh-label{display:block;font-weight:800;margin:12px 0 5px}
+#bulkHandoverModal,#bulkPhoneModal{display:none;position:fixed;z-index:9100;inset:0;background:#0008;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
+#bulkHandoverModal .bh-dialog,#bulkPhoneModal .bh-dialog{background:#fff;border-radius:16px;padding:20px;width:min(100%,560px);max-height:90vh;overflow:auto;box-shadow:0 12px 40px #0003;box-sizing:border-box}
+#bulkHandoverModal h2,#bulkPhoneModal h2{margin:0 0 10px;font-size:21px}
+#bulkHandoverModal input[type=date],#bulkHandoverModal input:not([type=radio]),#bulkPhoneModal input:not([type=radio]){box-sizing:border-box;width:100%;padding:12px;border:1px solid #e5a8cc;border-radius:9px;font:inherit;margin:7px 0 14px}
+#bulkHandoverModal .bh-label,#bulkPhoneModal .bh-label{display:block;font-weight:800;margin:12px 0 5px}
 #bulkHandoverModal .bh-methods{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:10px 0 18px}
 #bulkHandoverModal .bh-methods label{display:flex;align-items:center;gap:8px;font-size:17px}
-#bulkHandoverModal .bh-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
-#bulkHandoverModal #bhError{color:#c02d75;font-weight:700}
+#bulkHandoverModal .bh-modal-actions,#bulkPhoneModal .bh-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;flex-wrap:wrap}
+#bulkHandoverModal #bhError,#bulkPhoneModal #bhPhoneError{color:#c02d75;font-weight:700}
+#bulkPhoneModal button{border:1px solid #ddd;border-radius:10px;background:#fff;padding:10px 14px;font:inherit;font-weight:700}
+#bulkPhoneModal .bh-primary{background:#d73591;color:#fff;border-color:#d73591}
 #adminParcelRows .handover-pick{width:22px;height:22px;accent-color:#d73591}
 @media(max-width:520px){#bulkHandoverBar .bh-actions{justify-content:space-between}#bulkHandoverBar button{padding:9px 10px;font-size:14px}}
 </style>
