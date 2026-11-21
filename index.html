@@ -263,6 +263,29 @@ function startCustomerRealtime(){
  .subscribe();
 }
 async function refreshCustomerParcels(){if(!currentPhone)return;try{const {data,error}=await db.rpc("get_customer_parcels_by_phone_v2",{p_phone:currentPhone});if(error)throw error;const {data:directRows,error:directError}=await db.from("parcels").select("*").eq("customer_phone",currentPhone).order("created_at",{ascending:false});if(directError)console.warn("Customer direct refresh:",directError);const merged=new Map();for(const p of(data||[]))merged.set(String(p.tracking_code||"").trim().toUpperCase(),p);for(const p of(directRows||[])){const code=String(p.tracking_code||"").trim().toUpperCase();if(code)merged.set(code,{...(merged.get(code)||{}),...p})}const {data:pre,error:pe}=await db.rpc("get_customer_preregistrations_by_phone",{p_phone:currentPhone});if(pe)throw pe;customerParcels=[...merged.values(),...(pre||[]).filter(p=>p.status==="pending").map(p=>({...p,parcel_status:"registered",price_mnt:0,piece_number:1,weight_kg:0,volume_m3:0,paid_at:null}))];openCustomerDashboard()}catch(e){console.error("Customer auto refresh:",e)}}
+
+// Дэлгэц нээлттэй үед мэдээллийг автоматаар шинэчилнэ. Хуудсыг бүхэлд нь reload хийхгүй.
+let tenhluunAutoRefreshBusy=false;
+async function tenhluunAutoRefresh(){
+ if(tenhluunAutoRefreshBusy||document.visibilityState==="hidden")return;
+ const customerOpen=!!currentPhone&&document.getElementById("customerDashboard")?.style.display==="block";
+ const adminOpen=document.getElementById("adminDashboard")?.style.display==="block";
+ if(!customerOpen&&!adminOpen)return;
+ tenhluunAutoRefreshBusy=true;
+ try{
+  if(customerOpen){
+   await refreshCustomerParcels();
+  }else if(adminOpen){
+   await loadAdminParcels();
+   await loadPreRegistrations();
+  }
+ }catch(e){console.warn("Автомат шинэчлэлт:",e)}
+ finally{tenhluunAutoRefreshBusy=false}
+}
+setInterval(tenhluunAutoRefresh,30000);
+document.addEventListener("visibilitychange",()=>{
+ if(document.visibilityState==="visible")tenhluunAutoRefresh();
+});
 function dedupeCustomerParcels(items){
  const byCode=new Map(),rank={registered:0,ereen:1,mongolia:2,received:3};
  for(const p of (items||[])){const code=String(p.tracking_code||"").trim().toUpperCase();if(!code)continue;const group=p.parcel_status==="registered"?"registered":classifyStatus(p.parcel_status),prev=byCode.get(code),prevGroup=prev?(prev.parcel_status==="registered"?"registered":classifyStatus(prev.parcel_status)):null;
