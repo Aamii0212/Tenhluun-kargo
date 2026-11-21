@@ -1093,7 +1093,7 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
     if(!phoneSearchSelectionEnabled||!activeHandoverPhone)return [];
     return adminParcels.filter(p=>selectedHandoverIds.has(String(p.id)) &&
       classifyStatus(p.parcel_status)==="mongolia" &&
-      phoneDigits(p.customer_phone||p.phone)===activeHandoverPhone);
+      (phoneDigits(p.customer_phone)===activeHandoverPhone || phoneDigits(p.phone)===activeHandoverPhone));
   };
   window.updateHandoverBar=function(){
     const rows=window.selectedHandoverParcels();
@@ -1113,9 +1113,15 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
     document.querySelectorAll("#adminParcelRows .parcel-list-card").forEach(card=>card.classList.toggle("is-selected",!!card.querySelector("input[type=checkbox]:checked")));
   };
   window.toggleAllHandover=function(checked){
-    if(!phoneSearchSelectionEnabled||!activeHandoverPhone)return;
-    currentHandoverRows.filter(p=>classifyStatus(p.parcel_status)==="mongolia"&&phoneDigits(p.customer_phone||p.phone)===activeHandoverPhone)
-      .forEach(p=>checked?selectedHandoverIds.add(String(p.id)):selectedHandoverIds.delete(String(p.id)));
+    if(!phoneSearchSelectionEnabled||!activeHandoverPhone){selectedHandoverIds.clear();window.updateHandoverBar();return;}
+    const exactRows=currentHandoverRows.filter(p=>classifyStatus(p.parcel_status)==="mongolia" &&
+      (phoneDigits(p.customer_phone)===activeHandoverPhone || phoneDigits(p.phone)===activeHandoverPhone));
+    if(checked){
+      selectedHandoverIds.clear();
+      exactRows.forEach(p=>selectedHandoverIds.add(String(p.id)));
+    }else{
+      exactRows.forEach(p=>selectedHandoverIds.delete(String(p.id)));
+    }
     window.renderAdminRows(currentHandoverRows);
   };
   window.renderAdminRows=function(rows,emptyText="Монголд ирсэн ачаа одоогоор алга."){
@@ -1127,7 +1133,7 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
       const status=classifyStatus(p.parcel_status),id=String(p.id);
       const safe=id.replace(/\\/g,"\\\\").replace(/'/g,"\\'");
       const phone=p.customer_phone||p.phone||"-";
-      const canSelect=phoneSearchSelectionEnabled&&status==="mongolia"&&phoneDigits(phone)===activeHandoverPhone;
+      const canSelect=phoneSearchSelectionEnabled&&status==="mongolia"&&(phoneDigits(p.customer_phone)===activeHandoverPhone||phoneDigits(p.phone)===activeHandoverPhone);
       const checked=selectedHandoverIds.has(id)&&canSelect;
       const selector=canSelect?'<label class="parcel-check"><input type="checkbox" '+(checked?'checked ':'')+'onchange="toggleHandover(\''+safe+'\',this.checked)"><span>'+(index+1)+'</span></label>':'<span class="parcel-check-spacer"></span>';
       const branch=adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name||"-";
@@ -1141,7 +1147,7 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
     const count=document.getElementById("adminCount");
     if(count)count.textContent="Хайлтын үр дүн: "+currentHandoverRows.length+" ачаа";
     const all=document.querySelector("#adminParcelCards .admin-list-head button");
-    const canBulk=phoneSearchSelectionEnabled&&currentHandoverRows.some(p=>classifyStatus(p.parcel_status)==="mongolia"&&phoneDigits(p.customer_phone||p.phone)===activeHandoverPhone);
+    const canBulk=phoneSearchSelectionEnabled&&currentHandoverRows.some(p=>classifyStatus(p.parcel_status)==="mongolia"&&(phoneDigits(p.customer_phone)===activeHandoverPhone||phoneDigits(p.phone)===activeHandoverPhone));
     if(all)all.style.display=canBulk?"inline-flex":"none";
     window.updateHandoverBar();
   };
