@@ -791,7 +791,7 @@ async function bulkRegisterParcels(){
 }
 async function bulkMarkEreen(){
  const box=document.getElementById("bulkTrackingCodes"),out=document.getElementById("bulkEreenResult");
- const codes=[...new Set(String(box?.value||"").split(/[\\s,;]+/).map(x=>x.trim().toUpperCase()).filter(Boolean))];
+ const codes=[...new Set(String(box?.value||"").split(/[\s,;]+/).map(x=>x.trim().toUpperCase()).filter(Boolean))];
  if(!codes.length){showMessage("bulkEreenResult","Трак кодоо оруулна уу.");return}
  if(codes.length>500){showMessage("bulkEreenResult","Нэг удаад 500 хүртэл трак код оруулна.");return}
  if(!selectedAdminBranchId){showMessage("bulkEreenResult","Эхлээд ажиллах салбараа сонгоно уу.");return}
