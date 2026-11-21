@@ -1035,6 +1035,23 @@ async function deleteSelectedParcels(){
 function openBulkHandover(){const rows=selectedHandoverParcels();if(!rows.length){alert("Монголд ирсэн ачаанаас сонгоно уу.");return}const sum=rows.reduce((n,p)=>n+Number(p.price_mnt||0),0);document.getElementById("bhSummary").textContent=rows.length+" ачаа · Нийт "+sum.toLocaleString("mn-MN")+"₮";document.getElementById("bhDate").value=new Date().toLocaleDateString("en-CA");document.querySelectorAll('input[name="bhMethod"]').forEach(x=>x.checked=false);document.getElementById("bhStaff").value="";document.getElementById("bhError").textContent="";document.getElementById("bulkHandoverModal").style.display="flex"}
 function closeBulkHandover(){document.getElementById("bulkHandoverModal").style.display="none"}
 async function submitBulkHandover(){const rows=selectedHandoverParcels(),ids=rows.map(p=>p.id),method=document.querySelector('input[name="bhMethod"]:checked')?.value,date=document.getElementById("bhDate").value,staff=document.getElementById("bhStaff").value.trim(),err=document.getElementById("bhError"),btn=document.getElementById("bhSubmit");if(!rows.length){err.textContent="Ачаа сонгоно уу.";return}if(!method){err.textContent="Төлбөрийн хэрэгслээ сонгоно уу.";return}if(!date){err.textContent="Огноо сонгоно уу.";return}btn.disabled=true;btn.textContent="Хадгалж байна...";try{let receivedBy=staff;if(!receivedBy){const {data}=await db.auth.getUser();receivedBy=data?.user?.email||"Админ"}const paidAt=new Date(date+"T"+new Date().toTimeString().slice(0,8)).toISOString();const {data,error}=await db.from("parcels").update({parcel_status:"received",paid_at:paidAt,payment_method:method,received_by:receivedBy}).in("id",ids).select("id");if(error)throw error;const done=new Set((data||[]).map(x=>String(x.id)));if(done.size!==ids.length)throw new Error("Сонгосон "+ids.length+" ачаанаас "+done.size+" нь шинэчлэгдлээ. Админы эрх/RLS тохиргоог шалгана уу.");selectedHandoverIds.clear();closeBulkHandover();await loadAdminParcels();showMessage("adminNotice","✅ "+done.size+" ачааг хүлээлгэн өгч, төлбөрийн хэлбэрийг хадгаллаа.")}catch(e){err.textContent="Хадгалах алдаа: "+(e.message||e)}finally{btn.disabled=false;btn.textContent="Хүлээлгэж өгөх"}}
+// Expose bulk-action handlers explicitly for mobile Safari inline buttons.
+window.selectedHandoverParcels=selectedHandoverParcels;
+window.updateHandoverBar=updateHandoverBar;
+window.toggleHandover=toggleHandover;
+window.toggleAllHandover=function(checked){
+ if(!phoneSearchSelectionEnabled||!activeHandoverPhone){selectedHandoverIds.clear();updateHandoverBar();return}
+ const exact=currentHandoverRows.filter(p=>classifyStatus(p.parcel_status)==="mongolia"&&cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone);
+ if(checked){selectedHandoverIds.clear();exact.forEach(p=>selectedHandoverIds.add(String(p.id)))}
+ else exact.forEach(p=>selectedHandoverIds.delete(String(p.id)));
+ renderAdminRows(currentHandoverRows);
+};
+window.clearHandoverSelection=clearHandoverSelection;
+window.changeSelectedPhones=changeSelectedPhones;
+window.deleteSelectedParcels=deleteSelectedParcels;
+window.openBulkHandover=openBulkHandover;
+window.closeBulkHandover=closeBulkHandover;
+window.submitBulkHandover=submitBulkHandover;
 function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа одоогоор алга."){
  currentHandoverRows=rows;updateAdminStats();
  const body=document.getElementById("adminParcelRows");
