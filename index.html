@@ -1158,7 +1158,7 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
     if(hidden)hidden.value=raw;
     selectedHandoverIds.clear();
     const digits=phoneDigits(raw);
-    phoneSearchSelectionEnabled=digits.length===8 && /^[\\d\\s()+-]+$/.test(raw);
+    phoneSearchSelectionEnabled=digits.length===8 && /^[\d\s()+-]+$/.test(raw);
     activeHandoverPhone=phoneSearchSelectionEnabled?digits:"";
     const bid=document.getElementById("adminBranchFilter")?.value||"";
     const feedback=document.getElementById("searchFeedback");
