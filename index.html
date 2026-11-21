@@ -1168,8 +1168,7 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
       // Утасны хайлт зөвхөн яг ижил 8 оронтой дугаараар таарна.
       // Салбар болон төлөвийн шүүлтээр тухайн хүний ачааг алгасахгүй.
       rows=adminParcels.filter(p=>
-        phoneDigits(p.customer_phone)===activeHandoverPhone ||
-        phoneDigits(p.phone)===activeHandoverPhone
+        cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone
       );
     }else if(!selectedAdminBranchId){
       window.renderAdminRows([],"Эхлээд ажиллах салбараа сонгоно уу.");
