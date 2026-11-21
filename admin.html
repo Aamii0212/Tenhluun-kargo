@@ -730,7 +730,7 @@ function filterAdminRows(){
  selectedHandoverIds.clear();
  phoneSearchSelectionEnabled=/^[\d\s()+-]+$/.test(raw)&&digits.length===8;
  activeHandoverPhone=phoneSearchSelectionEnabled?digits:"";
- const filtered=adminParcels.filter(p=>(!phoneSearchSelectionEnabled||classifyStatus(p.parcel_status)==="mongolia")&&(!bid||String(p.branch_id||"")===bid)&&(!st||classifyStatus(p.parcel_status)===st)&&(!pay||(pay==="paid"?!!p.paid_at:!p.paid_at))&&(!q|| (phoneSearchSelectionEnabled?cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone:[p.tracking_code,p.customer_name,p.name,p.customer_phone,p.phone].some(v=>{const s=String(v||"").toLowerCase();return s.includes(q)||(digits.length>=3&&cleanPhone(v).includes(digits))}))));
+ const filtered=adminParcels.filter(p=>classifyStatus(p.parcel_status||p.status)==="mongolia"&&(!bid||String(p.branch_id||"")===bid)&&(!st||classifyStatus(p.parcel_status)===st)&&(!pay||(pay==="paid"?!!p.paid_at:!p.paid_at))&&(!q|| (phoneSearchSelectionEnabled?cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone:[p.tracking_code,p.customer_name,p.name,p.customer_phone,p.phone].some(v=>{const s=String(v||"").toLowerCase();return s.includes(q)||(digits.length>=3&&cleanPhone(v).includes(digits))}))));
  renderAdminRows(filtered);
  const feedback=document.getElementById("searchFeedback");if(feedback){if(!raw&&!bid&&!st&&!pay)feedback.textContent="📦 Нийт "+adminParcels.length+" ачаа бүртгэлтэй";else if(filtered.length)feedback.textContent="🔎 "+filtered.length+" ачаа олдлоо"+(phoneSearchSelectionEnabled?" · Нэг утасны дугаарын ачаанууд":"");else feedback.textContent="❌ “"+raw+"” хайлтаар ачаа олдсонгүй. Трак код эсвэл утасны дугаараа шалгана уу."}
 }
