@@ -276,12 +276,18 @@ async function tenhluunAutoRefresh(){
   if(customerOpen){
    await refreshCustomerParcels();
   }else if(adminOpen){
+   await loadBranches();
    await loadAdminParcels();
    await loadPreRegistrations();
+   if(typeof renderRevenueArchive==="function"&&document.getElementById("revenueArchiveRows"))renderRevenueArchive();
+   const settingsInputs=["settingKg","settingM3","settingOpen","settingClose"].map(id=>document.getElementById(id));
+   const settingsUnchanged=settingsInputs.every(el=>!el||!el.dataset.autoRefreshDirty);
+   if(settingsUnchanged&&settingsInputs.every(el=>!el||document.activeElement!==el))await loadSiteSettings();
   }
  }catch(e){console.warn("Автомат шинэчлэлт:",e)}
  finally{tenhluunAutoRefreshBusy=false}
 }
+["settingKg","settingM3","settingOpen","settingClose"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("input",()=>{el.dataset.autoRefreshDirty="1"})});
 setInterval(tenhluunAutoRefresh,30000);
 document.addEventListener("visibilitychange",()=>{
  if(document.visibilityState==="visible")tenhluunAutoRefresh();
