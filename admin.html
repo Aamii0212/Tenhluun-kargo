@@ -1008,6 +1008,8 @@ function selectVisibleHandoverRows(){
 }
 function renderAdminRows(rows){
  rows=uniqueAdminParcels(rows).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+ // Хүлээлгэж өгөх утасны хайлт идэвхтэй үед зөвхөн Монголд ирсэн ачааг харуулна.
+ if(phoneSearchSelectionEnabled&&activeHandoverPhone){rows=rows.filter(p=>classifyStatus(p.parcel_status)==="mongolia"&&cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone)}
  currentHandoverRows=rows.slice();
  updateAdminStats();
  const body=document.getElementById("adminParcelRows");
