@@ -1148,25 +1148,27 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
   window.filterAdminRows=async function(){
     const quick=document.getElementById("quickAdminSearch");
     const hidden=document.getElementById("adminSearch");
-    const raw=String(quick?.value||hidden?.value||"").trim();
+    const raw=String(quick ? quick.value : (hidden?.value||"")).trim();
     if(hidden)hidden.value=raw;
     selectedHandoverIds.clear();
     const digits=phoneDigits(raw);
-    phoneSearchSelectionEnabled=digits.length===8 && /^[\d\s()+-]+$/.test(raw);
+    phoneSearchSelectionEnabled=digits.length===8 && /^[\\d\\s()+-]+$/.test(raw);
     activeHandoverPhone=phoneSearchSelectionEnabled?digits:"";
     const bid=document.getElementById("adminBranchFilter")?.value||"";
     const feedback=document.getElementById("searchFeedback");
     const say=(msg)=>{if(feedback){feedback.textContent=msg;feedback.style.display=msg?"block":"none";}};
-    if(!selectedAdminBranchId){
+    let rows=[];
+    if(phoneSearchSelectionEnabled){
+      // Утасны хайлт зөвхөн яг ижил 8 оронтой дугаараар таарна.
+      // Салбар болон төлөвийн шүүлтээр тухайн хүний ачааг алгасахгүй.
+      rows=adminParcels.filter(p=>
+        phoneDigits(p.customer_phone)===activeHandoverPhone ||
+        phoneDigits(p.phone)===activeHandoverPhone
+      );
+    }else if(!selectedAdminBranchId){
       window.renderAdminRows([],"Эхлээд ажиллах салбараа сонгоно уу.");
       say("⚠️ Эхлээд ажиллах салбараа сонгоно уу.");
       return;
-    }
-    let rows=[];
-    if(phoneSearchSelectionEnabled){
-      rows=adminParcels.filter(p=>phoneDigits(p.customer_phone||p.phone)===activeHandoverPhone &&
-        classifyStatus(p.parcel_status)==="mongolia" &&
-        (!bid||String(p.branch_id||"")===bid));
     }else if(raw){
       const q=raw.toLowerCase();
       rows=adminParcels.filter(p=>(!bid||String(p.branch_id||"")===bid) &&
@@ -1174,7 +1176,7 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
     }else{
       rows=adminParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia"&&!!(p.customer_phone||p.phone)&&(!bid||String(p.branch_id||"")===bid));
     }
-    window.renderAdminRows(rows,raw?"Энэ дугаарт Монголд ирсэн ачаа олдсонгүй.":"Монголд ирсэн ачаа одоогоор алга.");
+    window.renderAdminRows(rows,phoneSearchSelectionEnabled?"Энэ утасны дугаарт бүртгэлтэй ачаа олдсонгүй.":raw?"Хайлтаар ачаа олдсонгүй.":"Монголд ирсэн ачаа одоогоор алга.");
     if(raw)say(rows.length?"✓ "+raw+" — "+rows.length+" ачаа олдлоо.":"✕ "+raw+" дугаарт ачаа олдсонгүй.");
     else say("");
     if(quick)document.getElementById("adminParcelCards")?.scrollIntoView({behavior:"smooth",block:"start"});
