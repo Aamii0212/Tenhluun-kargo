@@ -745,51 +745,73 @@ async function saveParcel(){
 }
 async function bulkMarkEreen(){
  const box=document.getElementById("bulkTrackingCodes"),out=document.getElementById("bulkEreenResult");
- const codes=[...new Set(box.value.split(/[\s,;]+/).map(x=>x.trim().toUpperCase()).filter(Boolean))];
+ const codes=[...new Set(String(box?.value||"").split(/[\\s,;]+/).map(x=>x.trim().toUpperCase()).filter(Boolean))];
  if(!codes.length){showMessage("bulkEreenResult","Трак кодоо оруулна уу.");return}
  if(codes.length>500){showMessage("bulkEreenResult","Нэг удаад 500 хүртэл трак код оруулна.");return}
- if(!confirm(codes.length+" трак кодыг урьдчилсан бүртгэлтэй нь тулгаж, “Эрээнд ирсэн” төлөвт оруулах уу?"))return;
- out.textContent="⏳ Код бүрийг шалгаж, өмнөх бүртгэлтэй нь холбож байна...";
+ if(!selectedAdminBranchId){showMessage("bulkEreenResult","Эхлээд ажиллах салбараа сонгоно уу.");return}
+ if(!confirm(codes.length+" трак кодыг урьдчилсан бүртгэлтэй нь холбож, “Эрээнд ирсэн” төлөвт оруулах уу?"))return;
+ const btn=document.querySelector('#bulkEreenBox button[onclick="bulkMarkEreen()"]');
+ if(btn){btn.disabled=true;btn.textContent="⏳ Хадгалж байна..."}
+ out.textContent="⏳ Урьдчилсан бүртгэл болон ачааны мэдээллийг шалгаж байна...";
  let updatedCount=0,insertedCount=0,linkedCount=0,failed=[];
- for(let i=0;i<codes.length;i++){
-  const code=codes[i];
-  out.textContent="⏳ "+(i+1)+"/"+codes.length+" — "+code;
-  try{
-   // Урьдчилсан бүртгэлийг зөвхөн pending биш, бүх төлөвөөс хайна.
-   const {data:preRows,error:preError}=await db.from("customer_pre_registrations").select("id,customer_phone,description,status").eq("tracking_code",code);
-   if(preError)throw preError;
-   const activePre=(preRows||[]).filter(x=>x.status!=="rejected");
-   const pre=activePre[0]||null;
-   if((preRows||[]).length && !pre)throw Error("Урьдчилсан бүртгэл татгалзсан төлөвтэй байна. Админ хэсгээс шалгана уу.");
-   const {data:rows,error:findError}=await db.from("parcels").select("id,tracking_code").ilike("tracking_code",code);
-   if(findError)throw findError;
-   if(rows&&rows.length){
-    const ids=rows.map(x=>x.id);
-    const patch={parcel_status:"ereen"};
-    if(pre?.customer_phone)patch.customer_phone=pre.customer_phone;
-    const {data:changed,error:updateError}=await db.from("parcels").update(patch).in("id",ids).select("id");
-    if(updateError)throw updateError;
-    if(!changed||changed.length!==ids.length)throw Error("Бүх мөрийн төлөв шинэчлэгдсэнгүй (RLS/эрхийн тохиргоог шалгана уу)");
-    updatedCount+=changed.length;
-   }else{
-    if(!selectedAdminBranchId)throw Error("Шинэ ачаа үүсгэхийн өмнө ажиллах салбараа сонгоно уу.");
-    const payload={tracking_code:code,customer_phone:pre?.customer_phone||null,customer_name:"",piece_number:1,weight_kg:0,volume_m3:0,price_mnt:0,parcel_status:"ereen",branch_id:selectedAdminBranchId,description:pre?.description||""};
-    const {data:created,error:insertError}=await db.from("parcels").insert(payload).select("id").maybeSingle();
-    if(insertError)throw insertError;
-    if(!created)throw Error("Шинэ ачаа хадгалагдсангүй (RLS/эрхийн тохиргоог шалгана уу)");
-    insertedCount++;
-   }
-   if(preRows?.length){
-    const {error:linkError}=await db.from("customer_pre_registrations").update({status:"confirmed",reviewed_at:new Date().toISOString(),admin_note:"Эрээнд ирсэн ачаатай холбож, төлөвийг шинэчилсэн"}).in("id",activePre.map(x=>x.id));
-    if(linkError)throw linkError;
-    linkedCount+=activePre.length;
-   }
-  }catch(e){failed.push(code+" → "+(e.message||String(e)))}
+ try{
+  for(let i=0;i<codes.length;i++){
+   const code=codes[i];
+   out.textContent="⏳ "+(i+1)+"/"+codes.length+" — "+code;
+   try{
+    // Хэрэглэгчийн урьдчилсан бүртгэлийг том/жижиг үсгээс үл хамааран яг кодоор нь олно.
+    const {data:preRows,error:preError}=await db.from("customer_pre_registrations")
+      .select("id,customer_phone,description,status")
+      .ilike("tracking_code",code);
+    if(preError)throw preError;
+    const activePre=(preRows||[]).filter(x=>String(x.status||"").toLowerCase()!=="rejected");
+    const pre=activePre[0]||null;
+    if((preRows||[]).length&&!pre)throw Error("Урьдчилсан бүртгэл татгалзсан байна.");
+    // Өмнө ачааны мөр үүссэн бол шинээр нэмэхгүй, тухайн мөрийн төлөвийг шинэчилнэ.
+    const {data:rows,error:findError}=await db.from("parcels")
+      .select("id,tracking_code").ilike("tracking_code",code);
+    if(findError)throw findError;
+    if(rows?.length){
+     const ids=rows.map(x=>x.id);
+     const patch={parcel_status:"ereen"};
+     if(pre?.customer_phone)patch.customer_phone=pre.customer_phone;
+     if(pre?.description)patch.description=pre.description;
+     const {data:changed,error:updateError}=await db.from("parcels")
+       .update(patch).in("id",ids).select("id");
+     if(updateError)throw updateError;
+     if(!changed||changed.length!==ids.length)throw Error("Ачааны төлөв шинэчлэгдсэнгүй. Админы эрх/RLS тохиргоог шалгана уу.");
+     updatedCount+=changed.length;
+    }else{
+     const payload={tracking_code:code,customer_phone:pre?.customer_phone||null,
+      customer_name:"",piece_number:1,weight_kg:0,volume_m3:0,price_mnt:0,
+      parcel_status:"ereen",branch_id:selectedAdminBranchId,
+      description:pre?.description||""};
+     const {data:created,error:insertError}=await db.from("parcels")
+       .insert(payload).select("id").maybeSingle();
+     if(insertError)throw insertError;
+     if(!created)throw Error("Ачааны шинэ бичлэг үүссэнгүй.");
+     insertedCount++;
+    }
+    // Урьдчилсан бүртгэлийг confirmed болгох нь хэрэглэгчийн дэлгэцэд давхар pending мөр харагдахаас сэргийлнэ.
+    if(activePre.length){
+     const {data:linked,error:linkError}=await db.from("customer_pre_registrations")
+      .update({status:"confirmed",reviewed_at:new Date().toISOString(),
+       admin_note:"Эрээнд ирсэн ачааны бүртгэлтэй холбогдож, төлөв шинэчлэгдсэн"})
+      .in("id",activePre.map(x=>x.id)).select("id");
+     if(linkError)throw linkError;
+     if(!linked||linked.length!==activePre.length)throw Error("Урьдчилсан бүртгэлийн төлөв баталгаажаагүй.");
+     linkedCount+=linked.length;
+    }
+   }catch(e){failed.push(code+" → "+(e.message||String(e)))}
+  }
+ }finally{
+  await loadAdminParcels();
+  if(typeof loadPreRegistrations==="function")await loadPreRegistrations();
+  if(btn){btn.disabled=false;btn.textContent="⬇ Эрээнд ирсэн болгож хадгалах"}
  }
- await loadAdminParcels();
- if(typeof loadPreRegistrations==="function")await loadPreRegistrations();
- out.innerHTML="<b>✅ Эрээнд ирсэн болгосон: "+(updatedCount+insertedCount)+"</b><br>Өмнөх бичлэгийн төлөв шинэчилсэн: "+updatedCount+"<br>Шинээр бүртгэсэн: "+insertedCount+"<br>Урьдчилсан бүртгэлтэй холбосон: "+linkedCount+"<br>Алдаа: "+failed.length+(failed.length?"<br>"+escapeHTML(failed.join("<br>")):"");
+ out.innerHTML="<b>✅ Эрээнд ирсэн болгосон: "+(updatedCount+insertedCount)+"</b><br>Өмнөх ачааны мөр шинэчилсэн: "+updatedCount+"<br>Шинээр ачаа үүсгэсэн: "+insertedCount+"<br>Урьдчилсан бүртгэлтэй холбосон: "+linkedCount+"<br>Алдаа: "+failed.length+(failed.length?"<br>"+escapeHTML(failed.join("<br>")):"");
 }
+window.bulkMarkEreen=bulkMarkEreen;
 async function handoverParcel(id){
  const p=adminParcels.find(x=>String(x.id)===String(id));if(!p)return;
  if(classifyStatus(p.parcel_status)!=="mongolia"){showMessage("adminNotice","Зөвхөн Монголд ирсэн ачааг хүлээлгэн өгөх боломжтой.");return}
