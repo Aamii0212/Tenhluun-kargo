@@ -308,7 +308,7 @@ function openCustomerDashboard(){
  document.getElementById("customerPhoneLabel").textContent=(window.currentCustomerName?window.currentCustomerName+" · ":"")+"Утас: "+currentPhone;
  const registered=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="registered");document.getElementById("countRegistered").textContent=registered.length;
  const ereen=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="ereen");
- const mongolia=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="mongolia");
+ const mongolia=customerParcels.filter(p=>classifyStatus(p.parcel_status||p.status)==="mongolia");
  const received=customerParcels.filter(p=>classifyStatus(p.parcel_status)==="received");
  document.getElementById("countEreen").textContent=ereen.length;document.getElementById("countMongolia").textContent=mongolia.length;document.getElementById("countReceived").textContent=received.length;
  const first=customerParcels.find(p=>p.branch_name||p.branch_address||p.branch_hours||p.branch_location);
@@ -1057,9 +1057,9 @@ new MutationObserver(()=>run()).observe(document.documentElement,{subtree:true,a
 #adminDashboard #editStatus{display:none!important}
 @media(max-width:600px){#adminDashboard .parcel-phone-group{padding:12px!important}#adminDashboard .tracking-price-row{grid-template-columns:minmax(0,1fr) minmax(90px,42%)!important}}
 </style>
-<div id="bulkHandoverBar" aria-live="polite"><div class="bh-total">Нийт дүн: <b id="bhTotal">0₮</b></div><div class="bh-countline"><b id="bhCount">0 сонгосон</b><button type="button" onclick="clearHandoverSelection()">✕ Цэвэрлэх</button></div><div class="bh-actions"><button type="button" onclick="changeSelectedPhones()">Утас өөрчлөх</button><button type="button" class="bh-primary" onclick="openBulkHandover()">Хүлээлгэж өгөх</button><button type="button" class="bh-danger" onclick="deleteSelectedParcels()">Устгах</button></div></div>
-<div id="bulkHandoverModal" role="dialog" aria-modal="true" aria-labelledby="bhTitle"><div class="bh-dialog"><h2 id="bhTitle">Сонгосон ачааг хүлээлгэж өгөх</h2><p id="bhSummary"></p><label class="bh-label" for="bhDate">Огноо</label><input id="bhDate" type="date"><div class="bh-label">Төлбөрийн хэрэгсэл</div><div class="bh-methods"><label><input type="radio" name="bhMethod" value="cash"> Бэлэн мөнгө</label><label><input type="radio" name="bhMethod" value="card"> Карт</label><label><input type="radio" name="bhMethod" value="transfer"> Дансны шилжүүлэг</label><label><input type="radio" name="bhMethod" value="qpay"> QPay</label></div><label class="bh-label" for="bhStaff">Хүлээлгэн өгсөн ажилтан (заавал биш)</label><input id="bhStaff" placeholder="Ажилтны нэр"><div id="bhError" role="alert"></div><div class="bh-modal-actions"><button type="button" onclick="closeBulkHandover()">Хаах</button><button type="button" class="bh-primary" id="bhSubmit" onclick="submitBulkHandover()">Хүлээлгэж өгөх</button></div></div></div>
-<div id="bulkPhoneModal" role="dialog" aria-modal="true" aria-labelledby="bhPhoneTitle"><div class="bh-dialog"><h2 id="bhPhoneTitle">Утасны дугаар өөрчлөх</h2><p id="bhPhoneSummary"></p><label class="bh-label" for="bhNewPhone">Шинэ 8 оронтой дугаар</label><input id="bhNewPhone" type="tel" inputmode="numeric" maxlength="8" placeholder="Жишээ: 85525391"><div id="bhPhoneError" role="alert"></div><div class="bh-modal-actions"><button type="button" onclick="closePhoneModal()">Болих</button><button type="button" class="bh-primary" onclick="saveSelectedPhones()">Хадгалах</button></div></div></div>
+<div id="bulkHandoverBar" aria-live="polite"><div class="bh-total">Нийт дүн: <b id="bhTotal">0₮</b></div><div class="bh-countline"><b id="bhCount">0 сонгосон</b><button type="button" onclick="clearHandoverSelection()">✕ Цэвэрлэх</button></div><div class="bh-actions"><button type="button" onclick="window.changeSelectedPhones()">Утас өөрчлөх</button><button type="button" class="bh-primary" onclick="window.openBulkHandover()">Хүлээлгэж өгөх</button><button type="button" class="bh-danger" onclick="window.deleteSelectedParcels()">Устгах</button></div></div>
+<div id="bulkHandoverModal" role="dialog" aria-modal="true" aria-labelledby="bhTitle"><div class="bh-dialog"><h2 id="bhTitle">Сонгосон ачааг хүлээлгэж өгөх</h2><p id="bhSummary"></p><label class="bh-label" for="bhDate">Огноо</label><input id="bhDate" type="date"><div class="bh-label">Төлбөрийн хэрэгсэл</div><div class="bh-methods"><label><input type="radio" name="bhMethod" value="cash"> Бэлэн мөнгө</label><label><input type="radio" name="bhMethod" value="card"> Карт</label><label><input type="radio" name="bhMethod" value="transfer"> Дансны шилжүүлэг</label><label><input type="radio" name="bhMethod" value="qpay"> QPay</label></div><label class="bh-label" for="bhStaff">Хүлээлгэн өгсөн ажилтан (заавал биш)</label><input id="bhStaff" placeholder="Ажилтны нэр"><div id="bhError" role="alert"></div><div class="bh-modal-actions"><button type="button" onclick="closeBulkHandover()">Хаах</button><button type="button" class="bh-primary" id="bhSubmit" onclick="window.submitBulkHandover()">Хүлээлгэж өгөх</button></div></div></div>
+<div id="bulkPhoneModal" role="dialog" aria-modal="true" aria-labelledby="bhPhoneTitle"><div class="bh-dialog"><h2 id="bhPhoneTitle">Утасны дугаар өөрчлөх</h2><p id="bhPhoneSummary"></p><label class="bh-label" for="bhNewPhone">Шинэ 8 оронтой дугаар</label><input id="bhNewPhone" type="tel" inputmode="numeric" maxlength="8" placeholder="Жишээ: 85525391"><div id="bhPhoneError" role="alert"></div><div class="bh-modal-actions"><button type="button" onclick="closePhoneModal()">Болих</button><button type="button" class="bh-primary" onclick="window.saveSelectedPhones()">Хадгалах</button></div></div></div>
 <style id="bulk-handover-ui">
 #bulkHandoverBar{display:none;position:fixed;z-index:9000;left:0;right:0;bottom:0;background:#fff;padding:14px 18px calc(16px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;box-shadow:0 -8px 32px #24152b24}
 #bulkHandoverBar .bh-total{font-size:17px;font-weight:800;color:#64b833;margin-bottom:9px}#bulkHandoverBar .bh-total b{font-size:23px}
@@ -1175,12 +1175,12 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
 
 <script id="final-phone-search-fix">
 (function(){
-  function phoneDigits(v){return String(v||"").replace(/\D/g,"")}
+  function phoneDigits(v){return String(v||"").replace(/\D/g,"").slice(-8)}
   window.selectedHandoverParcels=function(){
     if(!phoneSearchSelectionEnabled||!activeHandoverPhone)return [];
     return adminParcels.filter(p=>selectedHandoverIds.has(String(p.id)) &&
       classifyStatus(p.parcel_status)==="mongolia" &&
-      (phoneDigits(p.customer_phone)===activeHandoverPhone || phoneDigits(p.phone)===activeHandoverPhone));
+      (phoneDigits(p.customer_phone)===phoneDigits(activeHandoverPhone) || phoneDigits(p.phone)===phoneDigits(activeHandoverPhone)));
   };
   window.updateHandoverBar=function(){
     const rows=window.selectedHandoverParcels();
@@ -1193,7 +1193,7 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
   window.toggleHandover=function(id,checked){
     const p=adminParcels.find(x=>String(x.id)===String(id));
     if(!phoneSearchSelectionEnabled||!p||
-       phoneDigits(p.customer_phone||p.phone)!==activeHandoverPhone||
+       phoneDigits(p.customer_phone||p.phone)!==phoneDigits(activeHandoverPhone)||
        classifyStatus(p.parcel_status)!=="mongolia")return;
     if(checked)selectedHandoverIds.add(String(id));else selectedHandoverIds.delete(String(id));
     window.updateHandoverBar();
