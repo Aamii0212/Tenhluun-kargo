@@ -712,7 +712,7 @@ async function saveParcel(){
   try{
    const {data:found,error:findError}=await db.from("parcels").select("id,tracking_code,customer_phone").ilike("tracking_code",row.tracking_code);
    if(findError)throw findError;
-   if(_noName&&(found||[]).some(x=>x.customer_phone))throw Error("Энэ трак код хэрэглэгчийн дугаартай холбогдсон байна. Дугааргүй ачаа болгон өөрчлөхөөс сэргийлж хадгалсангүй.");
+   // Админ засварлахдаа өмнө нь буруу утсанд холбогдсон ачааг дугааргүй болгож шилжүүлж болно.
    if(found?.length){
     const target=editingParcelId?found.filter(x=>String(x.id)===String(editingParcelId)):found;
     if(!target.length)throw Error("Засварлах ачааны бичлэг олдсонгүй.");
