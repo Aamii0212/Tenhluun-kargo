@@ -752,7 +752,7 @@ async function bulkMarkEreen(){
  if(!confirm(codes.length+" трак кодыг урьдчилсан бүртгэлтэй нь холбож, “Эрээнд ирсэн” төлөвт оруулах уу?"))return;
  const btn=document.querySelector('#bulkEreenBox button[onclick="bulkMarkEreen()"]');
  if(btn){btn.disabled=true;btn.textContent="⏳ Хадгалж байна..."}
- out.textContent="⏳ Урьдчилсан бүртгэл болон ачааны мэдээллийг шалгаж байна...";
+ out.textContent="BUILD: 2026-11-22 / bulk-ereen-v2 — Урьдчилсан бүртгэл болон ачааны мэдээллийг шалгаж байна...";
  let updatedCount=0,insertedCount=0,linkedCount=0,failed=[];
  try{
   for(let i=0;i<codes.length;i++){
