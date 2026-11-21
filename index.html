@@ -399,7 +399,7 @@ async function saveSiteSettings(){
  const payload={id:1,kg_price:kg,m3_price:m3,open_time:open,close_time:close,updated_at:new Date().toISOString()};
  const {error}=await db.from("site_settings").upsert(payload);
  if(error){showMessage("settingsInfo","Хадгалж чадсангүй: "+error.message);return}
- siteSettings=payload;showMessage("settingsInfo","Үнэ, ажлын цаг хадгалагдлаа ✓");
+ siteSettings=payload;["settingKg","settingM3","settingOpen","settingClose"].forEach(id=>{const el=document.getElementById(id);if(el)delete el.dataset.autoRefreshDirty});showMessage("settingsInfo","Үнэ, ажлын цаг хадгалагдлаа ✓");
 }
 function openAdminLoginPage(){document.getElementById("publicPage").style.display="none";document.getElementById("customerDashboard").style.display="none";document.getElementById("customerHeader").style.display="none";document.getElementById("pageFooter").style.display="none";document.querySelectorAll("body > a").forEach(a=>a.style.display="none");document.getElementById("adminLogin").classList.remove("hidden");document.getElementById("adminLogin").style.display="block";document.getElementById("adminLogin").scrollIntoView({block:"start"});}
 if(new URLSearchParams(location.search).get("admin")==="1"){openAdminLoginPage()}
