@@ -1127,12 +1127,15 @@ function renderAdminRows(rows,emptyText="Монголд ирсэн ачаа од
  const body=document.getElementById("adminParcelRows");
  if(!rows.length){body.innerHTML='<div class="parcel-list-empty">'+escapeHTML(emptyText)+'</div>'}
  else body.innerHTML=rows.map((p,index)=>{
-  const status=classifyStatus(p.parcel_status),id=String(p.id),safe=id.replace(/\\/g,"\\\\").replace(/'/g,"\\'"),checked=selectedHandoverIds.has(id);
+  const status=classifyStatus(p.parcel_status),id=String(p.id),safe=escapeHTML(id),checked=selectedHandoverIds.has(id);
   const phone=p.customer_phone||p.phone||"-",name=p.customer_name||p.name||"-",branch=adminBranches.find(b=>String(b.id)===String(p.branch_id))?.name||"-";
   const canSelect=phoneSearchSelectionEnabled&&status==="mongolia"&&handoverPhoneMatches(p);
-  const selector=canSelect?'<label class="parcel-check"><input type="checkbox" '+(checked?'checked ':'')+'onchange="toggleHandover(\\''+safe+'\\',this.checked)"><span>'+(index+1)+'</span></label>':'<span class="parcel-check-spacer"></span>';
-  return '<article class="parcel-list-card '+(checked?'is-selected':'')+'"><div class="parcel-card-top">'+selector+'<div class="parcel-customer"><b>'+escapeHTML(name)+'</b><strong>'+escapeHTML(phone)+'</strong></div><b class="parcel-price">'+Number(p.price_mnt||0).toLocaleString("mn-MN")+' ₮</b></div><div class="parcel-card-code">'+escapeHTML(p.tracking_code||"-")+'</div><div class="parcel-card-meta"><span>'+escapeHTML(branch)+'</span><span>'+escapeHTML(adminStatusLabel(status))+'</span><span>'+escapeHTML(p.weight_kg??"-")+' кг</span></div><div class="parcel-card-actions"><button type="button" onclick="editParcel(\\''+safe+'\\')">✎ Засах</button><button type="button" class="parcel-delete" onclick="deleteParcel(\\''+safe+'\\')">Устгах</button></div></article>';
+  const selector=canSelect?`<label class="parcel-check"><input type="checkbox" ${checked?'checked ':''}data-handover-id="${safe}"><span>${index+1}</span></label>`:'<span class="parcel-check-spacer"></span>';
+  return `<article class="parcel-list-card ${checked?'is-selected':''}"><div class="parcel-card-top">${selector}<div class="parcel-customer"><b>${escapeHTML(name)}</b><strong>${escapeHTML(phone)}</strong></div><b class="parcel-price">${Number(p.price_mnt||0).toLocaleString("mn-MN")} ₮</b></div><div class="parcel-card-code">${escapeHTML(p.tracking_code||"-")}</div><div class="parcel-card-meta"><span>${escapeHTML(branch)}</span><span>${escapeHTML(adminStatusLabel(status))}</span><span>${escapeHTML(p.weight_kg??"-")} кг</span></div><div class="parcel-card-actions"><button type="button" data-edit-parcel="${safe}">✎ Засах</button><button type="button" class="parcel-delete" data-delete-parcel="${safe}">Устгах</button></div></article>`;
  }).join("");
+ body.querySelectorAll("[data-handover-id]").forEach(el=>el.addEventListener("change",()=>toggleHandover(el.dataset.handoverId,el.checked)));
+ body.querySelectorAll("[data-edit-parcel]").forEach(el=>el.addEventListener("click",()=>editParcel(el.dataset.editParcel)));
+ body.querySelectorAll("[data-delete-parcel]").forEach(el=>el.addEventListener("click",()=>deleteParcel(el.dataset.deleteParcel)));
  const count=document.getElementById("adminCount");if(count)count.textContent="Нийт: "+rows.length;
  const selectAll=document.querySelector('#adminParcelCards .admin-list-head button');if(selectAll)selectAll.style.display=phoneSearchSelectionEnabled&&rows.some(p=>classifyStatus(p.parcel_status)==="mongolia"&&cleanPhone(p.customer_phone||p.phone)===activeHandoverPhone)?"inline-flex":"none";
  updateHandoverBar();
