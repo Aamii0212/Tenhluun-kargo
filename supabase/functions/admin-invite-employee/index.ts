@@ -12,11 +12,11 @@ Deno.serve(async(req)=>{
   if(userError||!userData.user)return json({error:"Нэвтрэх эрх баталгаажаагүй."},401);
   const {data:profile,error:profileError}=await caller.from("profiles").select("role").eq("id",userData.user.id).maybeSingle();
   if(profileError||profile?.role!=="admin")return json({error:"Зөвхөн админ ажилтан үүсгэнэ."},403);
-  const body=await req.json(),username=String(body.username||"").trim().toLowerCase(),password=String(body.password||""),fullName=String(body.full_name||"").trim(),phone=String(body.phone||"").replace(/\\D/g,""),branchId=String(body.branch_id||"").trim();
+  const body=await req.json(),username=String(body.username||"").trim().toLowerCase(),password=String(body.password||""),fullName=String(body.full_name||"").trim(),phone=String(body.phone||"").replace(/\D/g,""),branchId=String(body.branch_id||"").trim();
   if(!/^[a-z0-9_-]{3,30}$/.test(username))return json({error:"Нэвтрэх нэр 3-30 тэмдэгт, англи жижиг үсэг/тоо/_/- байна."},400);
   if(password.length<8)return json({error:"Нууц үг хамгийн багадаа 8 тэмдэгт байна."},400);
   if(!fullName)return json({error:"Ажилтны нэр оруулна уу."},400);
-  if(!/^\\d{8}$/.test(phone))return json({error:"Утасны дугаар 8 оронтой байна."},400);
+  if(!/^\d{8}$/.test(phone))return json({error:"Утасны дугаар 8 оронтой байна."},400);
   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(branchId))return json({error:"Ажиллах салбараа сонгоно уу."},400);
   const email=username+"@tenhluun.invalid",admin=createClient(url,serviceKey,{auth:{autoRefreshToken:false,persistSession:false}});
   const {data:branch,error:branchError}=await admin.from("branches").select("id,name").eq("id",branchId).maybeSingle();
